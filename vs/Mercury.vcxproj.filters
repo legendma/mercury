@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ecs">
+      <UniqueIdentifier>{e9618ac1-d377-49fe-9510-499160af9398}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{94b21a1f-f59f-4415-b13f-cfc750794eca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ecs\Component.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\Entity.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\Universe.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\ecs\Component.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\ComponentClass.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\Entity.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\Universe.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\Math.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\Utilities.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
