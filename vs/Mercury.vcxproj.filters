@@ -7,6 +7,9 @@
     <Filter Include="utils">
       <UniqueIdentifier>{94b21a1f-f59f-4415-b13f-cfc750794eca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="win">
+      <UniqueIdentifier>{e209b35c-00e3-4e87-92ac-abb83bcbbb3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ecs\Component.cpp">
@@ -18,6 +21,14 @@
     <ClCompile Include="..\src\ecs\Universe.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\win\main.cpp" />
+    <ClCompile Include="..\src\win\ApplicationTimer.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\PlayerInput.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -38,5 +49,12 @@
     <ClInclude Include="..\src\utils\Utilities.hpp">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\win\ApplicationTimer.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\PlayerInput.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Engine.hpp" />
   </ItemGroup>
 </Project>

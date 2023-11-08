@@ -22,15 +22,21 @@
     <ClCompile Include="..\src\ecs\Component.cpp" />
     <ClCompile Include="..\src\ecs\Entity.cpp" />
     <ClCompile Include="..\src\ecs\Universe.cpp" />
+    <ClCompile Include="..\src\Engine.cpp" />
+    <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
+    <ClCompile Include="..\src\win\PlayerInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp" />
     <ClInclude Include="..\src\ecs\ComponentClass.hpp" />
     <ClInclude Include="..\src\ecs\Entity.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
+    <ClInclude Include="..\src\Engine.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
+    <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
+    <ClInclude Include="..\src\win\PlayerInput.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -87,7 +93,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft GDK\230603\GRDK\GameKit\Include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Microsoft GDK\230603\GRDK\GameKit\Lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -127,6 +134,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
