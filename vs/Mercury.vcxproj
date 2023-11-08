@@ -93,8 +93,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>C:\Program Files (x86)\Microsoft GDK\230603\GRDK\GameKit\Include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Microsoft GDK\230603\GRDK\GameKit\Lib\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
