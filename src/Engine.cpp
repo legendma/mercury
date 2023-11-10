@@ -1,33 +1,31 @@
 
 #include "PlayerInput.hpp"
+#include "universe.hpp"
+
+using namespace ECS;
 
 
-
+static Universe the_universe;
 
 bool Engine_Init()
 {
-
-	/*  - setup controller input*/
-
-	PlayerInput_InitializeController();
+Universe_Init( &the_universe );
+PlayerInput_InitializeController( &the_universe );
 
 return (true);
 }
 
 
-void Engine_DoFrame(float frame_delta)
+void Engine_DoFrame( float frame_delta )
 {
-
-	PlayerInput_GetCurrentInput();
+PlayerInput_GetCurrentInput( &the_universe );
 
 }
 
 bool Engine_CleanUp()
 {
-
-	/*Shutdown controller*/
-	PlayerInput_ShutdownController();
-
+PlayerInput_ShutdownController( &the_universe );
+Universe_Destroy( &the_universe );
 
 return (true);
 }

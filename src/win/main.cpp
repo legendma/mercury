@@ -14,7 +14,6 @@ static const wchar_t *CLASS_NAME = L"Mercury";
 bool CreateMainWindow(HINSTANCE hinstance);
 LRESULT CALLBACK WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-static Universe the_universe;
 
 int WINAPI main(HINSTANCE hinstance, HINSTANCE previous, PWSTR comandline, int show )
 {
@@ -66,7 +65,7 @@ while( should_quit == false )
 	else
 		{
 		ApplicationTimer_GetDeltaTime(&main_loop_timer);
-		Engine_DoFrame((float)main_loop_timer.frame_delta);
+		Engine_DoFrame( (float)main_loop_timer.frame_delta );
 		}
 
 	}
@@ -74,28 +73,6 @@ while( should_quit == false )
 /* engine shutdown and cleanup */
 Engine_CleanUp();
 
-Universe_Init( &the_universe );
-
-EntityId entity = Universe_CreateNewEntity( &the_universe );
-assert( Universe_EntityIsAlive( entity, &the_universe ) );
-HealthComponent *entitys_health = (HealthComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_HEALTH, &the_universe );
-
-entitys_health->max_health = 25;
-entitys_health->current_health = 5;
-
-assert( Universe_EntityHasComponent( entity, COMPONENT_HEALTH, &the_universe ) );
-
-entitys_health = (HealthComponent*)Universe_TryGetComponent( entity, COMPONENT_HEALTH, &the_universe );
-
-assert( entitys_health && entitys_health->current_health == 5 );
-assert( entitys_health && entitys_health->max_health == 25 );
-
-assert( !Universe_EntityHasComponent( entity, COMPONENT_TRANSFORM_3D, &the_universe ) );
-Universe_RemoveComponentFromEntity( entity, COMPONENT_HEALTH, &the_universe );
-
-assert( !Universe_EntityHasComponent( entity, COMPONENT_HEALTH, &the_universe ) );
-
-Universe_Destroy( &the_universe );
 }
 
 
