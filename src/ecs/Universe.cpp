@@ -74,16 +74,6 @@ for( uint32_t i = 0; i < cnt_of_array( universe->components ); i++ )
     Component_DestroyRegistry( &universe->components[ i ] );
     }
 
-for( uint32_t i = 0; i < cnt_of_array( universe->singleton_entities ); i++ )
-    {
-    if( universe->singleton_entities[ i ].id_and_version == INVALID_ENTITY_ID )
-        {
-        continue;
-        }
-
-    Universe_RemoveComponentFromEntity( universe->singleton_entities[ i ], (ComponentClass)i, universe );
-    }
-
 *universe = {};
 
 }   /* Universe_Destroy() */

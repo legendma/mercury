@@ -94,7 +94,11 @@
     <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\ots\lib\amd64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -151,6 +155,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
