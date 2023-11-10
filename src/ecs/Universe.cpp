@@ -74,6 +74,16 @@ for( uint32_t i = 0; i < cnt_of_array( universe->components ); i++ )
     Component_DestroyRegistry( &universe->components[ i ] );
     }
 
+for( uint32_t i = 0; i < cnt_of_array( universe->singleton_entities ); i++ )
+    {
+    if( universe->singleton_entities[ i ].id_and_version == INVALID_ENTITY_ID )
+        {
+        continue;
+        }
+
+    Universe_RemoveComponentFromEntity( universe->singleton_entities[ i ], (ComponentClass)i, universe );
+    }
+
 *universe = {};
 
 }   /* Universe_Destroy() */
@@ -145,6 +155,36 @@ return( Entity_EntityIsAlive( entity, &universe->entities ) );
 
 /*******************************************************************
 *
+*   Universe_GetSingletonComponent()
+*
+*   DESCRIPTION:
+*       Get the requested singleton component.
+*
+*******************************************************************/
+
+void * Universe_GetSingletonComponent( const ComponentClass component, Universe *universe )
+{
+void *ret = NULL;
+
+EntityId entity = universe->singleton_entities[ component ];
+if( entity.id_and_version == INVALID_ENTITY_ID )
+    {
+    entity = Universe_CreateNewEntity( universe );
+    ret = Universe_AttachComponentToEntity( entity, component, universe );
+    universe->singleton_entities[ component ] = entity;
+    }
+else
+    {
+    ret = Universe_TryGetComponent( entity, component, universe );
+    }
+
+return( ret );
+
+}   /* Universe_GetSingletonComponent() */
+
+
+/*******************************************************************
+*
 *   Universe_Init()
 *
 *   DESCRIPTION:
@@ -161,6 +201,11 @@ Entity_InitRegistry( &universe->entities );
 for( uint32_t i = 0; i < cnt_of_array( universe->components ); i++ )
     {
     Component_InitRegistry( GetComponentClassSize( (ComponentClass)i ), &universe->components[ i ] );
+    }
+
+for( uint32_t i = 0; i < cnt_of_array( universe->singleton_entities ); i++ )
+    {
+    universe->singleton_entities[ i ].id_and_version = INVALID_ENTITY_ID;
     }
 
 }   /* Universe_Init() */
