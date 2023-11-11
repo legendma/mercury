@@ -21,8 +21,8 @@ static Universe the_universe;
 bool Engine_Init()
 {
 Universe_Init( &the_universe );
-Render_Init( &the_universe );
-PlayerInput_Init( &the_universe );
+if( !Render_Init( &the_universe ) )      return( false );
+if( !PlayerInput_Init( &the_universe ) ) return( false );
 
 return( true );
 

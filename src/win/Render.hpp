@@ -1,5 +1,7 @@
 #pragma once
-#include "universe.hpp"
+#include "Universe.hpp"
+
+typedef void * RenderWindowInfo;
 
 bool Render_Init( ECS::Universe* universe );
 void Render_Destroy( ECS::Universe* universe );

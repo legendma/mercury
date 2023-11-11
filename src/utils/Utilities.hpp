@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Math.hpp"
+
+typedef Vec4 Color4f;
 
 /*******************************************************************
 *
@@ -33,3 +36,25 @@
 
 #define _compiler_assert( _eval, _filename, _line_num ) \
     typedef char assert_failed_##_filename##_##_line_num [ 2 * !!(_eval) - 1 ]
+
+
+/*******************************************************************
+*
+*   Utilities_MakeColor4f()
+*
+*   DESCRIPTION:
+*       Helper function to construct a float4 color.
+*
+*******************************************************************/
+
+static inline Color4f Utilities_MakeColor4f( float r, float g, float b, float a )
+{
+Color4f ret = {};
+ret.v.x = r;
+ret.v.y = g;
+ret.v.z = b;
+ret.v.w = a;
+
+return( ret );
+
+} /* Utilities_MakeColor4f() */
