@@ -1,9 +1,12 @@
 #include <GameInput.h>
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <stdbool.h>
 
 #include "universe.hpp"
+#include "HardwareIDs.hpp"
 
 using namespace ECS;
 
@@ -14,56 +17,10 @@ typedef struct _DirectXPlayerInput
     IGameInputDevice* the_gamepad = nullptr;
     } DirectXPlayerInput;
 
-typedef enum _DualSenseReadAxis
-    {
-    DUALSENSEREADAXIS_LEFT_STICK_X,
-    DUALSENSEREADAXIS_LEFT_STICK_Y,
-    DUALSENSEREADAXIS_RIGHT_STICK_X,
-    DUALSENSEREADAXIS_LEFT_TRIGGER,
-    DUALSENSEREADAXIS_RIGHT_TRIGGER,
-    DUALSENSEREADAXIS_RIGHT_STICK_Y,
-    /* count */
-    DUALSENSEREADAXIS_COUNT,
-    }DualSenseReadAxis;
-
-
-typedef enum _DualSenseButtons
-{
-    DUALSENSEBUTTONS_LEFT_BUTTON,
-    DUALSENSEBUTTONS_BOTTOM_BUTTON,
-    DUALSENSEBUTTONS_RIGHT_BUTTON,
-    DUALSENSEBUTTONS_TOP_BUTTON,
-    DUALSENSEBUTTONS_L1_TRIGGER,
-    DUALSENSEBUTTONS_R1_TRIGGER,
-    DUALSENSEBUTTONS_L2_TRIGGER,
-    DUALSENSEBUTTONS_R2_TRIGGER,
-    DUALSENSEBUTTONS_OPTION,
-    DUALSENSEBUTTONS_START,
-    DUALSENSEBUTTONS_LEFT_STICK_CLICK,
-    DUALSENSEBUTTONS_RIGHT_STICK_CLICK,
-    DUALSENSEBUTTONS_POWER_BUTTON,
-    DUALSENSEBUTTONS_CENTER_BUTTON,
-    DUALSENSEBUTTONS_MUTE_BUTTON,
-    /* count */
-    DUALSENSEBUTTONS__COUNT,
-} DualSenseButtons;
-
-typedef enum _DualSenseDPad
-    {
-    DUALSENSEDPAD_UP,
-    DUALSENSEDPAD_UPRIGHT,
-    DUALSENSEDPAD_RIGHT,
-    DUALSENSEDPAD_DOWNRIGHT,
-    DUALSENSEDPAD_DOWN,
-    DUALSENSEDPAD_DOWNLEFT,
-    DUALSENSEDPAD_LEFT,
-    DUALSENSEDPAD_UPLEFT,
-    /* count */
-    DUALSENSEDPAD_COUNT,
-    } DualSenseDPad;
 
 
 static DirectXPlayerInput * AsDirectXPlayerInput( Universe *universe );
+static void FindControllerVendorDevice( const GameInputDeviceInfo *controller_info, const size_t num, uint32_t *out_controller_vendor_device, bool *out_is_device_supported );
 
 
 /*******************************************************************
@@ -129,6 +86,10 @@ input = NULL;
 *
 *******************************************************************/
 
+
+
+
+
 void PlayerInput_DoFrame( float frame_delta, Universe *universe )
 {
 //#define MAX_NUM_KEYSTATES    ( 50 )
@@ -145,7 +106,7 @@ struct Controller
 DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
 IGameInputReading *reading = NULL;
 
-/* get Keyboard input */
+/* get Keyboard input. can consider adding later */
 //if (SUCCEEDED(game_input_library->GetCurrentReading(GameInputKindKeyboard, the_keyboard, &reading)))
 //    {
 //    if (!the_keyboard)
@@ -175,12 +136,13 @@ IGameInputReading *reading = NULL;
 /* Get controller input */
 if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindController, input->the_gamepad, &reading)))
     {
-    if (!input->the_gamepad) reading->GetDevice( &input->the_gamepad );
+    if (!input->the_gamepad) reading->GetDevice( &input->the_gamepad );   //dynamically add a controller if it is disconnected
 
+
+    // ensure we don't get massive readings if there are errors in the data stream
      bool button_array[MAX_NUM_CONTROLLER_BUTTONS] = {0};
      float axis_array[MAX_NUM_CONTROLLER_AXIS] = {0};
      GameInputSwitchPosition switch_array[ MAX_NUM_CONTROLLER_SWITCHES ] = {};
-
 
     uint32_t button_count = reading->GetControllerButtonCount();
      if (button_count > cnt_of_array(button_array) )
@@ -189,7 +151,7 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
          printf( "WARNING: Too many controller buttons found in PlayerInput system\n");
         }
 
-     uint32_t axis_count = reading->GetControllerAxisCount();
+    uint32_t axis_count = reading->GetControllerAxisCount();
      if (axis_count > cnt_of_array(axis_array) )
      {
          axis_count = cnt_of_array(axis_array);
@@ -203,41 +165,57 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
          printf("WARNING Too many controller switces found in PlayerInput system\n" );
      }
 
+
+
+     /* pull what kind of controller is connected  */
+    const GameInputDeviceInfo *controller_info = NULL;
+    controller_info = input->the_gamepad->GetDeviceInfo();
+    uint32_t controller_vendor_device[ 2 ]={};
+    bool is_device_supported = false;
+    FindControllerVendorDevice( controller_info, cnt_of_array( controller_vendor_device ), controller_vendor_device, &is_device_supported );
+
+    // get raw data from the controller. don't collect data if the controller is unsupported
+    if( is_device_supported = true )
+    {
      uint32_t num_button_states_found =  reading->GetControllerButtonState(button_count, button_array);
      uint32_t  num_axis_states_found = reading->GetControllerAxisState(axis_count, axis_array );
      uint32_t  num_switch_states_found = reading->GetControllerSwitchState( switch_count, switch_array);
 
-    // for (uint32_t i = 0; i < switch_count; i++)
-     //   {
-     //    printf("%d ", switch_array[i]);
 
-     //   }
-    //printf("\n");
 
-     Controller controller = {};
-     for(uint32_t i = 0; i < num_button_states_found; i++ )
-         {
-         if( button_array[ i ] == true )
-            {
-            controller.button_states |= ( 1 << i );
-            }
-        }
 
-    // Retrieve the fixed-format gamepad state from the reading.
-    //uint32_t num_buttons_filled_out = reading->GetControllerButtonState(button_count,state);
+
+
+
+
+    }
+
+
+
+
+
+
+ //    Controller controller = {};
+   //  for(uint32_t i = 0; i < num_button_states_found; i++ )
+    //     {
+    //     if( button_array[ i ] == true )
+     //       {
+      //      controller.button_states |= ( 1 << i );
+     //       }
+      //  }
+
+
+
+
+
+
+
+
 
     reading->Release();
 
         
-    /*for( uint32_t i = 0; i < num_buttons_filled_out; i++ )
-        {
-        if (state[i] == true)
-            {
-            printf("Hey we got a gamepad button FREEEDOM: %d\n", i);
-            }
-        }
-
-    }*/
+    
     
     }
 } /* PlayerInput_DoFrame() */
@@ -258,3 +236,117 @@ SingletonPlayerInputComponent * component = (SingletonPlayerInputComponent*)Univ
 return( (DirectXPlayerInput*)component->ptr );
 
 } /* AsDirectXPlayerInput() */
+
+
+/*******************************************************************
+*
+*   FindControllerVendorDevice()
+*
+*   DESCRIPTION:
+*       get the vendor and device ID of the current controller. 
+*       will print out a warning if the controller is unsupported
+*
+*******************************************************************/
+
+static void FindControllerVendorDevice( const GameInputDeviceInfo *controller_info, const size_t num, uint32_t *out_controller_vendor_device, bool *out_is_device_supported )
+{
+assert( num == 2 );
+
+#define set_vender( _vendor ) \
+   ( out_controller_vendor_device[ 0 ] = _vendor )
+
+#define set_sony_device( _sonydevice ) \
+    ( out_controller_vendor_device[ 1 ] = _sonydevice )
+
+#define set_microsoft_device( _microsoftdevice ) \
+    (out_controller_vendor_device[ 1 ] = _microsoftdevice )
+
+#define set_nintendo_device( _nintendodevice ) \
+    (out_controller_vendor_device[ 1 ] = _nintendodevice )
+
+#define set_other_device( _otherdevice ) \
+    (out_controller_vendor_device[ 1 ] = _otherdevice )
+
+#define supported_device() \
+    (*out_is_device_supported = true)
+
+#define unsupported_device() \
+    printf( "WARNING Unsupported controller is connected. controller input may not function or may function incorrectly" ); \
+    (*out_is_device_supported = false)
+
+
+ControllerVendor vendor;
+
+switch( controller_info->vendorId )
+{
+    case 0x54c:  //Sony
+        vendor = CONTROLLER_VENDOR_SONY;
+        set_vender( vendor );
+        SonyControllerDevice sonydevice;
+        switch( controller_info->productId )
+        {
+            case 0x0ce6:
+                sonydevice = SONY_CONTROLLER_DEVICE_DUALSENSE;
+                set_sony_device( sonydevice );
+                supported_device();
+            break;
+
+            default:
+                sonydevice = SONY_CONTROLLER_DEVICE_OTHER;
+                set_sony_device( sonydevice );
+                unsupported_device();
+         }
+    break;
+
+    case 0x045e: //microsoft
+        vendor = CONTROLLER_VENDOR_MICROSOFT;
+        set_vender( vendor );
+        MicrosoftControllerDevice microsoftdevice;
+    //    switch( controller_info->productId )   // update here whenever we support microsfot controllers
+   //         {
+  //          default:
+                microsoftdevice = MICROSOFT_CONTROLLER_DEVICE_OTHER;
+                set_microsoft_device ( microsoftdevice);
+                unsupported_device();
+    //        }
+    break;
+
+    case 0x057e: //Nintendo
+        vendor = CONTROLLER_VENDOR_NINTNEDO;
+        set_vender( vendor );
+        NintendoControllerDevice nintendodevice;
+        switch( controller_info->productId )
+    {
+        case 2009:
+            nintendodevice = NINTENDO_CONTROLLER_DEVICE_SWITCH_PRO;
+            set_nintendo_device (nintendodevice);
+            supported_device();
+        break;
+
+        default:
+            nintendodevice = NINTENDO_CONTROLLER_DEVICE_OTHER;
+            set_nintendo_device( nintendodevice );
+            unsupported_device();
+     }
+    break;
+
+    default:
+        vendor = CONTROLLER_VENDOR_OTHER;
+        set_vender( vendor );
+        OtherControllerDevice otherdevice;
+        otherdevice = OTHER_CONTROLLER_DEVICE_OTHER;
+        set_other_device( otherdevice );
+        unsupported_device();
+}
+
+
+#undef set_vender
+#undef set_sony_device 
+#undef set_microsoft_device 
+#undef set_nintendo_device 
+#undef set_other_device 
+#undef supported_device
+#undef unsupported_device
+
+
+} /* FindControllerVendorDevice() */

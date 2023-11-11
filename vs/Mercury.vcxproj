@@ -34,6 +34,7 @@
     <ClInclude Include="..\src\ecs\Entity.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
     <ClInclude Include="..\src\Engine.hpp" />
+    <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />

@@ -248,8 +248,7 @@ void Render_Destroy( Universe* universe )
 {
 DX12Render *render = AsDX12Render( universe );
 
-ComSafeRelease( render->device );
-ComSafeRelease( render->dxgi_factory );
+Reset( render );
 
 free( render );
 render = NULL;
