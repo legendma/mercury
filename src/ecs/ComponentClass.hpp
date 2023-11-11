@@ -66,16 +66,14 @@ typedef enum _ControllerAxis
     CONTROLLER_AXIS_RIGHT_STICK,
     /* Count */
     CONTROLLER_AXIS_COUNT
-    }ControllerAxis;
+    } ControllerAxis;
 
 typedef enum _ControllerTriggers
-{
+    {
     CONTROLLER_AXIS_LEFT_TRIGGER,
     CONTROLLER_AXIS_RIGHT_TRIGGER
 
-}ControllerTriggers;
-
-
+    } ControllerTriggers;
 
 
 typedef struct _ControllerInputComponent
@@ -94,6 +92,16 @@ typedef struct _SingletonPlayerInputComponent
     void               *ptr;
     } SingletonPlayerInputComponent;
 
+/*******************************************************************
+*
+*   COMPONENT_SINGLETON_RENDER - SingletonRenderComponent
+*
+*******************************************************************/
+
+typedef struct _SingletonRenderComponent
+    {
+    void               *ptr;
+    } SingletonRenderComponent;
 
 /*******************************************************************
 *
@@ -106,6 +114,7 @@ typedef enum
     COMPONENT_HEALTH,
     COMPONENT_TRANSFORM_3D,
     COMPONENT_SINGLETON_PLAYER_INPUT,
+    COMPONENT_SINGLETON_RENDER,
     COMPONENT_CONTROLLER_INPUT,
     /* count */
     COMPONENT_CNT
@@ -123,6 +132,7 @@ static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
     { COMPONENT_TRANSFORM_3D,           sizeof( Transform3DComponent )          },
     { COMPONENT_CONTROLLER_INPUT,       sizeof( ControllerInputComponent )      },
     { COMPONENT_SINGLETON_PLAYER_INPUT, sizeof( SingletonPlayerInputComponent ) },
+    { COMPONENT_SINGLETON_RENDER,       sizeof( SingletonRenderComponent )      }
     };
 compiler_assert( cnt_of_array( COMPONENT_CLASS_SIZES ) == COMPONENT_CNT, component_class_hpp );
 

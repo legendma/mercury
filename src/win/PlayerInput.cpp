@@ -1,5 +1,7 @@
 #include <GameInput.h>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "universe.hpp"
 
@@ -11,8 +13,6 @@ typedef struct _DirectXPlayerInput
     IGameInput* game_input_library = nullptr;
     IGameInputDevice* the_gamepad = nullptr;
     } DirectXPlayerInput;
-
-//DirectXPlayerInput global_remove_me;
 
 typedef enum _DualSenseReadAxis
     {
@@ -63,7 +63,7 @@ typedef enum _DualSenseDPad
     } DualSenseDPad;
 
 
-static DirectXPlayerInput * AsDirectXPlayerInput( Universe* universe );
+static DirectXPlayerInput * AsDirectXPlayerInput( Universe *universe );
 
 
 /*******************************************************************
@@ -88,12 +88,12 @@ if( !component->ptr )
 DirectXPlayerInput *input = (DirectXPlayerInput*)component->ptr;
 memset( input, 0, sizeof( *input ) );
 
-if (GameInputCreate( &input->game_input_library ) != S_OK)
+if( GameInputCreate( &input->game_input_library ) != S_OK )
     {
     return false;
     }
   
-  return true;
+return( true );
 
 } /* PlayerInput_Init() */
 
@@ -252,7 +252,7 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
 *
 *******************************************************************/
 
-static DirectXPlayerInput * AsDirectXPlayerInput( Universe* universe )
+static DirectXPlayerInput * AsDirectXPlayerInput( Universe *universe )
 {
 SingletonPlayerInputComponent * component = (SingletonPlayerInputComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_PLAYER_INPUT, universe );
 return( (DirectXPlayerInput*)component->ptr );

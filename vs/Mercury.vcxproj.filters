@@ -29,6 +29,9 @@
       <Filter>win</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Engine.cpp" />
+    <ClCompile Include="..\src\win\Render.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -56,5 +59,8 @@
       <Filter>win</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Engine.hpp" />
+    <ClInclude Include="..\src\win\Render.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
