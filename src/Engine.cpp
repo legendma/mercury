@@ -1,6 +1,7 @@
 
 #include "PlayerInput.hpp"
-#include "universe.hpp"
+#include "Render.hpp"
+#include "Universe.hpp"
 
 using namespace ECS;
 
@@ -20,7 +21,7 @@ static Universe the_universe;
 bool Engine_Init()
 {
 Universe_Init( &the_universe );
-/* TODO <MPA> - Start the graphic driver */
+Render_Init( &the_universe );
 PlayerInput_Init( &the_universe );
 
 return( true );
@@ -40,6 +41,7 @@ return( true );
 void Engine_DoFrame( float frame_delta )
 {
 PlayerInput_DoFrame( frame_delta, &the_universe );
+Render_DoFrame( frame_delta, &the_universe );
 
 } /* Engine_DoFrame() */
 
@@ -56,6 +58,7 @@ PlayerInput_DoFrame( frame_delta, &the_universe );
 bool Engine_Destroy()
 {
 PlayerInput_Destroy( &the_universe );
+Render_Destroy( &the_universe );
 Universe_Destroy( &the_universe );
 
 return( true );

@@ -62,5 +62,8 @@
     <ClInclude Include="..\src\win\Render.hpp">
       <Filter>win</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\win\ComUtilities.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

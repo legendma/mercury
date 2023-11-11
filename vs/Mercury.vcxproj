@@ -37,6 +37,7 @@
     <ClInclude Include="..\src\utils\Math.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
+    <ClInclude Include="..\src\win\ComUtilities.hpp" />
     <ClInclude Include="..\src\win\PlayerInput.hpp" />
     <ClInclude Include="..\src\win\Render.hpp" />
   </ItemGroup>
@@ -140,7 +141,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,7 +158,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;GameInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
