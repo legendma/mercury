@@ -6,7 +6,6 @@
 using namespace ECS;
 
 
-
 typedef struct _DirectXPlayerInput
     {
     IGameInput* game_input_library = nullptr;
@@ -61,21 +60,32 @@ typedef enum _DualSenseDPad
     DUALSENSEDPAD_UPLEFT,
     /* count */
     DUALSENSEDPAD_COUNT,
-    }DualSenseDPad;
+    } DualSenseDPad;
 
 
 static DirectXPlayerInput * AsDirectXPlayerInput( Universe* universe );
 
 
+/*******************************************************************
+*
+*   PlayerInput_Init()
+*
+*   DESCRIPTION:
+*       Initialize the player input system.
+*       Returns TRUE if the GDK library was successfully loaded.
+*
+*******************************************************************/
 
-/*Initialize the gaming input devices (mouse, keyboard, controller, etc). Returns true if the initialization was sucessful.*/
-bool PlayerInput_InitializeController(Universe* universe)
+bool PlayerInput_Init(Universe* universe)
 {    
 SingletonPlayerInputComponent* component = (SingletonPlayerInputComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_PLAYER_INPUT, universe);
 component->ptr = malloc( sizeof(DirectXPlayerInput) );
+if( !component->ptr )
+    {
+    return( false );
+    }
 
-DirectXPlayerInput *input;
-input = (DirectXPlayerInput*)component->ptr;
+DirectXPlayerInput *input = (DirectXPlayerInput*)component->ptr;
 memset( input, 0, sizeof( *input ) );
 
 if (GameInputCreate( &input->game_input_library ) != S_OK)
@@ -84,24 +94,47 @@ if (GameInputCreate( &input->game_input_library ) != S_OK)
     }
   
   return true;
-}
 
-/*Shutdown the game input devices*/
-void PlayerInput_ShutdownController(Universe* universe)
+} /* PlayerInput_Init() */
+
+
+/*******************************************************************
+*
+*   PlayerInput_Destroy()
+*
+*   DESCRIPTION:
+*       Destroy the Player Input system and free its resources.
+*
+*******************************************************************/
+
+void PlayerInput_Destroy(Universe* universe)
 {
 DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
 
 if (input->the_gamepad ) input->the_gamepad->Release();
 if (input->game_input_library ) input->game_input_library->Release();
 
-}
+free( input );
+input = NULL;
+
+} /* PlayerInput_Destroy() */
 
 
-/*  - get current input*/
+/*******************************************************************
+*
+*   PlayerInput_DoFrame()
+*
+*   DESCRIPTION:
+*       Advance the system one frame.
+*
+*******************************************************************/
 
-void PlayerInput_GetCurrentInput(Universe* universe)
+void PlayerInput_DoFrame( float frame_delta, Universe *universe )
 {
-DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
+//#define MAX_NUM_KEYSTATES    ( 50 )
+#define MAX_NUM_CONTROLLER_BUTTONS ( 32 )
+#define MAX_NUM_CONTROLLER_AXIS    ( 16 )
+#define MAX_NUM_CONTROLLER_SWITCHES    ( 16 )
 
 struct Controller
     {
@@ -109,14 +142,8 @@ struct Controller
 
     };
 
-//#define MAX_NUM_KEYSTATES    ( 50 )
-#define MAX_NUM_CONTROLLER_BUTTONS ( 32 )
-#define MAX_NUM_CONTROLLER_AXIS    ( 16 )
-#define MAX_NUM_CONTROLLER_SWITCHES    ( 16 )
-
-IGameInputReading* reading;
-
-
+DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
+IGameInputReading *reading = NULL;
 
 /* get Keyboard input */
 //if (SUCCEEDED(game_input_library->GetCurrentReading(GameInputKindKeyboard, the_keyboard, &reading)))
@@ -150,8 +177,6 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
     {
     if (!input->the_gamepad) reading->GetDevice( &input->the_gamepad );
 
-
-
      bool button_array[MAX_NUM_CONTROLLER_BUTTONS] = {0};
      float axis_array[MAX_NUM_CONTROLLER_AXIS] = {0};
      GameInputSwitchPosition switch_array[ MAX_NUM_CONTROLLER_SWITCHES ] = {};
@@ -182,20 +207,12 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
      uint32_t  num_axis_states_found = reading->GetControllerAxisState(axis_count, axis_array );
      uint32_t  num_switch_states_found = reading->GetControllerSwitchState( switch_count, switch_array);
 
-
-
-
-
-
     // for (uint32_t i = 0; i < switch_count; i++)
      //   {
      //    printf("%d ", switch_array[i]);
 
      //   }
     //printf("\n");
-
-
-
 
      Controller controller = {};
      for(uint32_t i = 0; i < num_button_states_found; i++ )
@@ -205,7 +222,6 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
             controller.button_states |= ( 1 << i );
             }
         }
-
 
     // Retrieve the fixed-format gamepad state from the reading.
     //uint32_t num_buttons_filled_out = reading->GetControllerButtonState(button_count,state);
@@ -224,18 +240,21 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
     }*/
     
     }
-}
+} /* PlayerInput_DoFrame() */
 
-/*Shutdown the game input devices*/
+
+/*******************************************************************
+*
+*   AsDirectXPlayerInput()
+*
+*   DESCRIPTION:
+*       Get the singleton system state.
+*
+*******************************************************************/
+
 static DirectXPlayerInput * AsDirectXPlayerInput( Universe* universe )
 {
 SingletonPlayerInputComponent * component = (SingletonPlayerInputComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_PLAYER_INPUT, universe );
 return( (DirectXPlayerInput*)component->ptr );
 
-}
-
-
-
-
-
-
+} /* AsDirectXPlayerInput() */
