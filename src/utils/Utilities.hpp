@@ -40,6 +40,20 @@ typedef Vec4 Color4f;
 
 /*******************************************************************
 *
+*   max_uint_value()
+*
+*   DESCRIPTION:
+*       Compute the maximum number of values that can be stored in
+*       the given unsigned type.
+*
+*******************************************************************/
+
+#define max_uint_value( _type ) \
+    ( (size_t)1 << sizeof( _type ) * 8 )
+
+
+/*******************************************************************
+*
 *   Utilities_MakeColor4f()
 *
 *   DESCRIPTION:

@@ -7,6 +7,8 @@
 
 #include "universe.hpp"
 #include "HardwareIDs.hpp"
+#include "Utilities.hpp"
+#include "math.hpp"
 
 using namespace ECS;
 
@@ -21,6 +23,7 @@ typedef struct _DirectXPlayerInput
 
 static DirectXPlayerInput * AsDirectXPlayerInput( Universe *universe );
 static void FindControllerVendorDevice( const GameInputDeviceInfo *controller_info, const size_t num, uint32_t *out_controller_vendor_device, bool *out_is_device_supported );
+void SetSonyDualsenseButtonPressed( const ControllerSonyDualsense button_in, SingletonControllerInputButtonStateBitArray *ba );
 
 
 /*******************************************************************
@@ -43,7 +46,7 @@ if( !component->ptr )
     }
 
 DirectXPlayerInput *input = (DirectXPlayerInput*)component->ptr;
-memset( input, 0, sizeof( *input ) );
+*input = {};
 
 if( GameInputCreate( &input->game_input_library ) != S_OK )
     {
@@ -86,12 +89,11 @@ input = NULL;
 *
 *******************************************************************/
 
-
-
-
-
 void PlayerInput_DoFrame( float frame_delta, Universe *universe )
 {
+#define vendor_and_device_as_u32( _vendor, _device ) \
+    ( ( (_vendor) << 16 ) | ( 0xffff & _device ) )
+
 //#define MAX_NUM_KEYSTATES    ( 50 )
 #define MAX_NUM_CONTROLLER_BUTTONS ( 32 )
 #define MAX_NUM_CONTROLLER_AXIS    ( 16 )
@@ -106,7 +108,7 @@ struct Controller
 DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
 IGameInputReading *reading = NULL;
 
-/* get Keyboard input. can consider adding later */
+/* TODO get Keyboard input. can consider adding later */
 //if (SUCCEEDED(game_input_library->GetCurrentReading(GameInputKindKeyboard, the_keyboard, &reading)))
 //    {
 //    if (!the_keyboard)
@@ -166,58 +168,55 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
      }
 
 
-
      /* pull what kind of controller is connected  */
     const GameInputDeviceInfo *controller_info = NULL;
     controller_info = input->the_gamepad->GetDeviceInfo();
     uint32_t controller_vendor_device[ 2 ]={};
     bool is_device_supported = false;
+
     FindControllerVendorDevice( controller_info, cnt_of_array( controller_vendor_device ), controller_vendor_device, &is_device_supported );
 
     // get raw data from the controller. don't collect data if the controller is unsupported
-    if( is_device_supported = true )
-    {
-     uint32_t num_button_states_found =  reading->GetControllerButtonState(button_count, button_array);
-     uint32_t  num_axis_states_found = reading->GetControllerAxisState(axis_count, axis_array );
-     uint32_t  num_switch_states_found = reading->GetControllerSwitchState( switch_count, switch_array);
+    if( is_device_supported == true )
+        {
+        compiler_assert( CONTROLLER_DEVICE_COUNT < max_uint_value( uint16_t ), player_input_cpp );
+        compiler_assert( CONTROLLER_VENDOR_COUNT < max_uint_value( uint16_t ), player_input_cpp );
+        uint32_t vendor_and_device = vendor_and_device_as_u32( controller_vendor_device[ 0 ], controller_vendor_device[ 1 ] );
 
+        /* grab controller data */
+        uint32_t num_button_states_found = reading->GetControllerButtonState( button_count, button_array );
+        uint32_t  num_axis_states_found = reading->GetControllerAxisState( axis_count, axis_array );
+        uint32_t  num_switch_states_found = reading->GetControllerSwitchState( switch_count, switch_array );
 
+        /* grab controller input component*/
+        SingletonControllerInputComponent *component = (SingletonControllerInputComponent *)Universe_GetSingletonComponent( COMPONENT_SINGLETON_CONTROLLER_INPUT, universe );
+        *component = {};
 
+        /* interpret controller data and save it to component */
+        switch( vendor_and_device )
+            {
+            case vendor_and_device_as_u32( CONTROLLER_VENDOR_SONY, CONTROLLER_DEVICE_SONY_DUALSENSE ):
+                for( int i = 0; i < CONTROLLER_SONY_DUALSENSE_BUTTONS_LAST; i++ )
+                    {
+                    if( button_array[i] == false )
+                        {
+                        continue;
+                        }
 
+                    SetSonyDualsenseButtonPressed( (ControllerSonyDualsense)i, &component->button_state );
+                    }
+                break;
 
-
-
-
-    }
-
-
-
-
-
-
- //    Controller controller = {};
-   //  for(uint32_t i = 0; i < num_button_states_found; i++ )
-    //     {
-    //     if( button_array[ i ] == true )
-     //       {
-      //      controller.button_states |= ( 1 << i );
-     //       }
-      //  }
-
-
-
-
-
-
-
-
+            default:
+                printf(" WARNING This controller has been added to the supported device list but the data translation to the compoenent has not been set up yet. ");
+                break;
+            }
+      
+        }
 
     reading->Release();
-
-        
-    
-    
     }
+
 } /* PlayerInput_DoFrame() */
 
 
@@ -255,17 +254,8 @@ assert( num == 2 );
 #define set_vender( _vendor ) \
    ( out_controller_vendor_device[ 0 ] = _vendor )
 
-#define set_sony_device( _sonydevice ) \
-    ( out_controller_vendor_device[ 1 ] = _sonydevice )
-
-#define set_microsoft_device( _microsoftdevice ) \
-    (out_controller_vendor_device[ 1 ] = _microsoftdevice )
-
-#define set_nintendo_device( _nintendodevice ) \
-    (out_controller_vendor_device[ 1 ] = _nintendodevice )
-
-#define set_other_device( _otherdevice ) \
-    (out_controller_vendor_device[ 1 ] = _otherdevice )
+#define set_device( _device ) \
+    ( out_controller_vendor_device[ 1 ] = _device )
 
 #define supported_device() \
     (*out_is_device_supported = true)
@@ -276,24 +266,23 @@ assert( num == 2 );
 
 
 ControllerVendor vendor;
+ControllerDevice device;
 
 switch( controller_info->vendorId )
 {
     case 0x54c:  //Sony
         vendor = CONTROLLER_VENDOR_SONY;
         set_vender( vendor );
-        SonyControllerDevice sonydevice;
         switch( controller_info->productId )
         {
             case 0x0ce6:
-                sonydevice = SONY_CONTROLLER_DEVICE_DUALSENSE;
-                set_sony_device( sonydevice );
+                device = CONTROLLER_DEVICE_SONY_DUALSENSE;
                 supported_device();
             break;
 
             default:
-                sonydevice = SONY_CONTROLLER_DEVICE_OTHER;
-                set_sony_device( sonydevice );
+                device = CONTROLLER_DEVICE_SONY_OTHER;
+                set_device( device );
                 unsupported_device();
          }
     break;
@@ -301,31 +290,29 @@ switch( controller_info->vendorId )
     case 0x045e: //microsoft
         vendor = CONTROLLER_VENDOR_MICROSOFT;
         set_vender( vendor );
-        MicrosoftControllerDevice microsoftdevice;
-    //    switch( controller_info->productId )   // update here whenever we support microsfot controllers
+    //    switch( controller_info->productId )   // TODO update here whenever we support microsfot controllers
    //         {
   //          default:
-                microsoftdevice = MICROSOFT_CONTROLLER_DEVICE_OTHER;
-                set_microsoft_device ( microsoftdevice);
+                device = CONTROLLER_DEVICE_MICROSOFT_OTHER;
+                set_device ( device);
                 unsupported_device();
     //        }
     break;
 
     case 0x057e: //Nintendo
-        vendor = CONTROLLER_VENDOR_NINTNEDO;
+        vendor = CONTROLLER_VENDOR_NINTENDO;
         set_vender( vendor );
-        NintendoControllerDevice nintendodevice;
         switch( controller_info->productId )
     {
         case 2009:
-            nintendodevice = NINTENDO_CONTROLLER_DEVICE_SWITCH_PRO;
-            set_nintendo_device (nintendodevice);
+            device = CONTROLLER_DEVICE_NINTENDO_SWITCH_PRO;
+            set_device (device);
             supported_device();
         break;
 
         default:
-            nintendodevice = NINTENDO_CONTROLLER_DEVICE_OTHER;
-            set_nintendo_device( nintendodevice );
+            device = CONTROLLER_DEVICE_NINTENDO_OTHER;
+            set_device( device );
             unsupported_device();
      }
     break;
@@ -333,20 +320,86 @@ switch( controller_info->vendorId )
     default:
         vendor = CONTROLLER_VENDOR_OTHER;
         set_vender( vendor );
-        OtherControllerDevice otherdevice;
-        otherdevice = OTHER_CONTROLLER_DEVICE_OTHER;
-        set_other_device( otherdevice );
+        device = CONTROLLER_DEVICE_OTHER_OTHER;
+        set_device( device );
         unsupported_device();
 }
 
 
 #undef set_vender
-#undef set_sony_device 
-#undef set_microsoft_device 
-#undef set_nintendo_device 
-#undef set_other_device 
+#undef set_device 
 #undef supported_device
 #undef unsupported_device
 
 
 } /* FindControllerVendorDevice() */
+
+
+/*******************************************************************
+*
+*   SetSonyDualsenseButtonPressed()
+*
+*   DESCRIPTION:
+*       Set the generic controller butter for the given Sony
+*       Dualsense button id.
+*
+*******************************************************************/
+
+void SetSonyDualsenseButtonPressed( const ControllerSonyDualsense button_in, SingletonControllerInputButtonStateBitArray *ba )
+{
+switch( button_in )
+    {
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_SQUARE_BUTTOM:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_LEFT_BUTTON );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_X_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_BOT_BUTTON );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_CIRCLE_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_RIGHT_BUTTON );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_TRIANGLE_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_TOP_BUTTON );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_L1_TRIGGER:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_L1 );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_R1_TRIGGER:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_R1 );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_L2_TRIGGER:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_L2);
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_R2_TRIGGER:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_R2 );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_OPTION:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_OPTIONS );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_START:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_MENU );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_LEFT_STICK_CLICK:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_LEFT_STICK_CLICK );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_RIGHT_STICK_CLICK:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_RIGHT_STICK_CLICK );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_POWER_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_POWER );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_CENTER_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_CENTER_PAD );
+        break;
+    case CONTROLLER_SONY_DUALSENSE_BUTTONS_MUTE_BUTTON:
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_MUTE );
+        break;
+
+    default:
+        //TODO debug_assert( false );
+        break;
+    }
+
+} /* SetSonyDualsenseButtonPressed() */
+
+

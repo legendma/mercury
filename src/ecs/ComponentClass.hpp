@@ -35,7 +35,7 @@ typedef struct _Transform3DComponent
 
 /*******************************************************************
 *
-*   COMPONENT_CONTROLLER_INPUT - ControllerInputComponent
+*   COMPONENT_SINGLETON_CONTROLLER_INPUT - SingletonControllerInputComponent
 *
 *******************************************************************/
 
@@ -85,13 +85,23 @@ typedef enum _ControllerTriggers
     CONTROLLER_TRIGGERS_COUNT
     } ControllerTriggers;
 
+typedef uint8_t SingletonControllerInputButtonStateBAType;
+#define SINGLETON_CONTROLLER_INPUT_BUTTON_BA_COUNT \
+    MATH_BITARRAY_COUNT( SingletonControllerInputButtonStateBAType, CONTROLLER_BUTTON_COUNT )
 
-typedef struct _ControllerInputComponent
+typedef struct _SingletonControllerInputButtonStateBitArray
     {
-    uint32_t            button_state;
+    SingletonControllerInputButtonStateBAType
+                        ba[ SINGLETON_CONTROLLER_INPUT_BUTTON_BA_COUNT ];
+    } SingletonControllerInputButtonStateBitArray;
+
+typedef struct _SingletonControllerInputComponent
+    {
+    SingletonControllerInputButtonStateBitArray
+                        button_state;
     Vec2                axis_state;
     float               trigger_state;
-    } ControllerInputComponent;
+    } SingletonControllerInputComponent;
 
 /*******************************************************************
 *
@@ -127,7 +137,7 @@ typedef enum
     COMPONENT_TRANSFORM_3D,
     COMPONENT_SINGLETON_PLAYER_INPUT,
     COMPONENT_SINGLETON_RENDER,
-    COMPONENT_CONTROLLER_INPUT,
+    COMPONENT_SINGLETON_CONTROLLER_INPUT,
     /* count */
     COMPONENT_CNT
     } ComponentClass;
@@ -140,11 +150,11 @@ typedef struct _ComponentClassSizes
 
 static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
     {
-    { COMPONENT_HEALTH,                 sizeof( HealthComponent )               },
-    { COMPONENT_TRANSFORM_3D,           sizeof( Transform3DComponent )          },
-    { COMPONENT_CONTROLLER_INPUT,       sizeof( ControllerInputComponent )      },
-    { COMPONENT_SINGLETON_PLAYER_INPUT, sizeof( SingletonPlayerInputComponent ) },
-    { COMPONENT_SINGLETON_RENDER,       sizeof( SingletonRenderComponent )      }
+    { COMPONENT_HEALTH,                     sizeof( HealthComponent )               },
+    { COMPONENT_TRANSFORM_3D,               sizeof( Transform3DComponent )          },
+    { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent )      },
+    { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent ) },
+    { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )      }
     };
 compiler_assert( cnt_of_array( COMPONENT_CLASS_SIZES ) == COMPONENT_CNT, component_class_hpp );
 
