@@ -21,8 +21,11 @@
   <ItemGroup>
     <ClCompile Include="..\src\ecs\Component.cpp" />
     <ClCompile Include="..\src\ecs\Entity.cpp" />
+    <ClCompile Include="..\src\ecs\NonOwningGroup.cpp" />
     <ClCompile Include="..\src\ecs\Universe.cpp" />
-    <ClCompile Include="..\src\Engine.cpp" />
+    <ClCompile Include="..\src\game\Engine.cpp" />
+    <ClCompile Include="..\src\game\Event.cpp" />
+    <ClCompile Include="..\src\game\GameMode.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
@@ -32,9 +35,12 @@
     <ClInclude Include="..\src\ecs\Component.hpp" />
     <ClInclude Include="..\src\ecs\ComponentClass.hpp" />
     <ClInclude Include="..\src\ecs\Entity.hpp" />
+    <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
-    <ClInclude Include="..\src\Engine.hpp" />
+    <ClInclude Include="..\src\game\Engine.hpp" />
+    <ClInclude Include="..\src\game\Event.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
+    <ClInclude Include="..\src\game\GameMode.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
@@ -97,11 +103,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

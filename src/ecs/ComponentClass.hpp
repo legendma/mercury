@@ -7,31 +7,22 @@
 
 namespace ECS
 {
-
 /*******************************************************************
 *
-*   COMPONENT_HEALTH - HealthComponent
+*   IMPLEMENT_SINGLETON_VOID()
+*
+*   DESCRIPTION:
+*       Implement the standard singleton component containing only
+*       a void *.
 *
 *******************************************************************/
 
-typedef struct _HealthComponent
-    {
-    uint32_t            max_health;
-    uint32_t            current_health;
-    } HealthComponent;
+#define IMPLEMENT_SINGLETON_VOID( _type ) \
+    typedef struct _##_type               \
+        {                                 \
+        void               *ptr;          \
+        } _type
 
-/*******************************************************************
-*
-*   COMPONENT_TRANSFORM_3D - Transform3DComponent
-*
-*******************************************************************/
-
-typedef struct _Transform3DComponent
-    {
-    Vec4                translation;
-    Vec3                scale;
-    Quaternion          rotation;
-    } Transform3DComponent;
 
 /*******************************************************************
 *
@@ -109,10 +100,7 @@ typedef struct _SingletonControllerInputComponent
 *
 *******************************************************************/
 
-typedef struct _SingletonPlayerInputComponent
-    {
-    void               *ptr;
-    } SingletonPlayerInputComponent;
+IMPLEMENT_SINGLETON_VOID( SingletonPlayerInputComponent );
 
 /*******************************************************************
 *
@@ -120,10 +108,60 @@ typedef struct _SingletonPlayerInputComponent
 *
 *******************************************************************/
 
-typedef struct _SingletonRenderComponent
+IMPLEMENT_SINGLETON_VOID( SingletonRenderComponent );
+
+/*******************************************************************
+*
+*   COMPONENT_SINGLETON_GAME_MODE - SingletonGameModeComponent
+*
+*******************************************************************/
+
+typedef enum _GameModeMainMode
     {
-    void               *ptr;
-    } SingletonRenderComponent;
+    GAME_MODE_INTRO,
+    GAME_MODE_MAIN_MENU,
+    GAME_MODE_CHARACTER_CREATE,
+    GAME_MODE_IN_GAME
+    } GameModeMainMode;
+
+typedef struct _SingletonGameModeComponent
+    {
+    GameModeMainMode    main_mode;
+    } SingletonGameModeComponent;
+
+/*******************************************************************
+*
+*   COMPONENT_EVENT_NOTIFICATION - EventNotificationComponent
+*
+*******************************************************************/
+
+typedef union _EventNotificationEvent
+    {
+    int i;
+    } EventNotificationEvent;
+
+typedef enum _EventNotificationClass
+    {
+    EVENT_NOTIFICATION_DUMMY_REMOVE_ME,
+    /* count */
+    EVENT_NOTIFICATION_CLASS_COUNT
+    } EventNotificationClass;
+
+typedef struct _EventNotificationComponent
+    {
+    EventNotificationClass
+                        cls;
+    EventNotificationEvent
+                        u;
+    } EventNotificationComponent;
+
+/*******************************************************************
+*
+*   COMPONENT_SINGLETON_EVENT - SingletonEventComponent
+*
+*******************************************************************/
+
+IMPLEMENT_SINGLETON_VOID( SingletonEventComponent );
 
 /*******************************************************************
 *
@@ -133,8 +171,9 @@ typedef struct _SingletonRenderComponent
 
 typedef enum
     {
-    COMPONENT_HEALTH,
-    COMPONENT_TRANSFORM_3D,
+    COMPONENT_EVENT_NOTIFICATION,
+    COMPONENT_SINGLETON_GAME_MODE,
+    COMPONENT_SINGLETON_EVENT,
     COMPONENT_SINGLETON_PLAYER_INPUT,
     COMPONENT_SINGLETON_RENDER,
     COMPONENT_SINGLETON_CONTROLLER_INPUT,
@@ -148,13 +187,14 @@ typedef struct _ComponentClassSizes
     size_t              size;
     } ComponentClassSizes;
 
-static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
+static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in the future this table needs to be referenced in update() time, need to store it in the universe as size_t array[ COMPONENT_CNT ] for quick lookup */
     {
-    { COMPONENT_HEALTH,                     sizeof( HealthComponent )               },
-    { COMPONENT_TRANSFORM_3D,               sizeof( Transform3DComponent )          },
-    { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent )      },
-    { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent ) },
-    { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )      }
+    { COMPONENT_EVENT_NOTIFICATION,         sizeof( EventNotificationComponent )        },
+    { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent ) },
+    { COMPONENT_SINGLETON_EVENT,            sizeof( SingletonEventComponent )           },
+    { COMPONENT_SINGLETON_GAME_MODE,        sizeof( SingletonGameModeComponent )        },
+    { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent )     },
+    { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )          }
     };
 compiler_assert( cnt_of_array( COMPONENT_CLASS_SIZES ) == COMPONENT_CNT, component_class_hpp );
 

@@ -5,6 +5,7 @@
 
 #include "Component.hpp"
 #include "Entity.hpp"
+#include "Utilities.hpp"
 
 #define REGISTRY_START_CNT          ( 4 )
 #define REGISTRY_SWAP_STORAGE       ( 1 )
@@ -117,6 +118,57 @@ if( !Component_EntityHasComponent( entity, registry ) )
 return( GetStorageAtIndex( registry->sparse[ entity.u.id ], registry ) );
 
 }   /* Component_GetComponent() */
+
+
+/*******************************************************************
+*
+*   Component_GetComponentCount()
+*
+*   DESCRIPTION:
+*       Get the current number of components in use.
+*
+*******************************************************************/
+
+uint32_t Component_GetComponentCount( const ComponentRegistry *registry )
+{
+return( registry->dense_count );
+
+}   /* Component_GetComponentCount() */
+
+
+/*******************************************************************
+*
+*   Component_GetComponentAtDenseIndex()
+*
+*   DESCRIPTION:
+*       Get the component by dense index.
+*
+*******************************************************************/
+
+void * Component_GetComponentAtDenseIndex( const uint32_t dense_index, const ComponentRegistry *registry )
+{
+debug_assert( dense_index < registry->dense_count );
+return( &registry->storage[ dense_index ] );
+
+}   /* Component_GetComponentAtDenseIndex() */
+
+
+/*******************************************************************
+*
+*   Component_GetEntityAtDenseIndex()
+*
+*   DESCRIPTION:
+*       Get the entity that owns the component instance at the given
+*       dense index.
+*
+*******************************************************************/
+
+EntityId Component_GetEntityAtDenseIndex( const uint32_t dense_index, const ComponentRegistry *registry )
+{
+debug_assert( dense_index < registry->dense_count );
+return( registry->dense[ dense_index ] );
+
+}   /* Component_GetEntityAtDenseIndex() */
 
 
 /*******************************************************************

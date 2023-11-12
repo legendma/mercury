@@ -8,6 +8,7 @@
 #include <winuser.h>
 
 #include "ComUtilities.hpp"
+#include "Event.hpp" // TODO <MPA>
 #include "Render.hpp"
 #include "Universe.hpp"
 #include "Utilities.hpp"
@@ -120,6 +121,8 @@ static bool                   GetWindowExtent( HWND window, UINT *width, UINT *h
 static void                   Reset( DX12Render *render );
 static void                   SetDefaultViewport( DX12Render *render );
 
+static EventHandlerProc       HandleEvent; // TODO <MPA>
+
 
 /*******************************************************************
 *
@@ -140,6 +143,11 @@ if( !component->ptr )
     {
     return( false );
     }
+
+// TODO <MPA> REMOVE TEST CODE
+Event_RegisterEventListener( EVENT_LISTENER_RENDER, HandleEvent, universe );
+Event_ListenToEvent( EVENT_LISTENER_RENDER, EVENT_NOTIFICATION_DUMMY_REMOVE_ME, EVENT_LISTEN_ACTION_START_LISTENING, universe );
+// END TEST CODE
 
 DX12Render *render = (DX12Render*)component->ptr;
 *render = {};
@@ -741,6 +749,22 @@ if( !GetWindowRect( window, &rect ) )
 return( true );
 
 } /* GetWindowExtent() */
+
+
+/*******************************************************************
+*
+*   HandleEvent()
+*
+*   DESCRIPTION:
+*       Test out the event system.
+*
+*******************************************************************/
+
+void HandleEvent( const ECS::EventNotificationComponent *evt, ECS::Universe *universe ) // TODO <MPA>
+{
+assert( evt->cls == EVENT_NOTIFICATION_DUMMY_REMOVE_ME );
+
+} /* HandleEvent() */
 
 
 /*******************************************************************

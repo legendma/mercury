@@ -1,8 +1,10 @@
 #pragma once
+#include <cassert>
 
 #include "Math.hpp"
 
 typedef Vec4 Color4f;
+
 
 /*******************************************************************
 *
@@ -23,6 +25,36 @@ typedef Vec4 Color4f;
 
 /*******************************************************************
 *
+*   expand_va_args()
+*
+*   DESCRIPTION:
+*       Work around a non-standard preprocessor issue in MSVC.
+*
+*******************************************************************/
+
+#define expand_va_args( _args ) \
+    _args
+
+
+/*******************************************************************
+*
+*   cnt_of_va_args()
+*
+*   DESCRIPTION:
+*       Compute the number of variable arguments of a variadic
+*       macro.
+*
+*******************************************************************/
+
+#define _cnt_of_va_args( _1, _2, _3, _4, _5, _6, _7, _8, _9, _count, ... ) \
+    _count
+
+#define cnt_of_va_args( ... ) \
+    expand_va_args( _cnt_of_va_args( __VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1 ) )
+
+
+/*******************************************************************
+*
 *   compiler_assert()
 *
 *   DESCRIPTION:
@@ -36,6 +68,23 @@ typedef Vec4 Color4f;
 
 #define _compiler_assert( _eval, _filename, _line_num ) \
     typedef char assert_failed_##_filename##_##_line_num [ 2 * !!(_eval) - 1 ]
+
+
+/*******************************************************************
+*
+*   debug_assert()
+*
+*   DESCRIPTION:
+*       Assert an assumption - but only in debug mode.
+*
+*******************************************************************/
+
+#if defined( _DEBUG )
+#define debug_assert( _expression ) \
+    assert( _expression )
+#else
+#define debug_assert( _expression )
+#endif
 
 
 /*******************************************************************

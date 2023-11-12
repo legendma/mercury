@@ -10,6 +10,9 @@
     <Filter Include="win">
       <UniqueIdentifier>{e209b35c-00e3-4e87-92ac-abb83bcbbb3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="game">
+      <UniqueIdentifier>{348f5a52-4498-49dc-af8c-6a8e46d96fc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ecs\Component.cpp">
@@ -28,9 +31,20 @@
     <ClCompile Include="..\src\win\PlayerInput.cpp">
       <Filter>win</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine.cpp" />
     <ClCompile Include="..\src\win\Render.cpp">
       <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\GameMode.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\Engine.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\Event.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\NonOwningGroup.cpp">
+      <Filter>ecs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,12 +72,23 @@
     <ClInclude Include="..\src\win\PlayerInput.hpp">
       <Filter>win</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Engine.hpp" />
     <ClInclude Include="..\src\win\Render.hpp">
       <Filter>win</Filter>
     </ClInclude>
     <ClInclude Include="..\src\win\ComUtilities.hpp">
       <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\GameMode.hpp">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\Engine.hpp">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\Event.hpp">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\NonOwningGroup.hpp">
+      <Filter>ecs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

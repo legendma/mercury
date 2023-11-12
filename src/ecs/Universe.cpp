@@ -145,6 +145,38 @@ return( Entity_EntityIsAlive( entity, &universe->entities ) );
 
 /*******************************************************************
 *
+*   Universe_GetComponentRegistry()
+*
+*   DESCRIPTION:
+*       Get the requested component registry as read-only.
+*
+*******************************************************************/
+
+ComponentRegistry * Universe_GetComponentRegistry( const ComponentClass component, Universe *universe )
+{
+return( &universe->components[ component ] );
+
+}   /* Universe_GetComponentRegistry() */
+
+
+/*******************************************************************
+*
+*   Universe_GetComponentRegistryConst()
+*
+*   DESCRIPTION:
+*       Get the requested component registry as read-only.
+*
+*******************************************************************/
+
+const ComponentRegistry * Universe_GetComponentRegistryConst( const ComponentClass component, const Universe *universe )
+{
+return( &universe->components[ component ] );
+
+}   /* Universe_GetComponentRegistryConst() */
+
+
+/*******************************************************************
+*
 *   Universe_GetSingletonComponent()
 *
 *   DESCRIPTION:
