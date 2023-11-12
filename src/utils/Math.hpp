@@ -1,4 +1,5 @@
 #pragma once
+#include <climits>
 
 typedef union _Vec2
     {
@@ -35,6 +36,10 @@ typedef union _Vec4
 
 typedef Vec4 Quaternion;
 
+
+#define NUM_BITS_PER_BYTE \
+    CHAR_BIT
+
 /*******************************************************************
 *
 *   MATH_BITARRAY_COUNT()
@@ -46,7 +51,7 @@ typedef Vec4 Quaternion;
 *******************************************************************/
 
 #define MATH_BITARRAY_COUNT( _type, _bit_count ) \
-    ( 1 + ( ( (_bit_count) - 1 ) / sizeof( _type ) ) )
+    ( 1 + ( ( (_bit_count) - 1 ) / ( NUM_BITS_PER_BYTE * sizeof( _type ) ) ) )
 
 
 /*******************************************************************
@@ -59,7 +64,7 @@ typedef Vec4 Quaternion;
 *******************************************************************/
 
 #define math_bitarray_bit( _bit_array, _bit ) \
-    ( 1 << ( _bit % sizeof( (_bit_array ) ) ) )
+    ( 1 << ( _bit % ( NUM_BITS_PER_BYTE * sizeof( *(_bit_array) ) ) ) )
 
 
 /*******************************************************************
@@ -72,7 +77,7 @@ typedef Vec4 Quaternion;
 *******************************************************************/
 
 #define math_bitarray_index( _bit_array, _bit ) \
-    ( _bit / sizeof( (_bit_array) ) )
+    ( _bit / ( NUM_BITS_PER_BYTE * sizeof( *(_bit_array) ) ) )
 
 
 /*******************************************************************
@@ -111,4 +116,4 @@ typedef Vec4 Quaternion;
 *******************************************************************/
 
 #define Math_BitArrayIsSet( _bit_array, _bit ) \
-    (_bit_array)[ math_bitarray_index( _bit_array, _bit ) ] & math_bitarray_bit( _bit_array, _bit )
+    ( ( (_bit_array)[ math_bitarray_index( _bit_array, _bit ) ] & math_bitarray_bit( _bit_array, _bit ) ) != 0 )

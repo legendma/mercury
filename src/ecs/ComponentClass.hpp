@@ -91,8 +91,8 @@ typedef struct _SingletonControllerInputComponent
     {
     SingletonControllerInputButtonStateBitArray
                         button_state;
-    Vec2                axis_state;
-    float               trigger_state;
+    Vec2                axis_state [CONTROLLER_AXIS_COUNT ];
+    float               trigger_state [CONTROLLER_TRIGGERS_COUNT ];
     } SingletonControllerInputComponent;
 
 /*******************************************************************

@@ -116,6 +116,19 @@ typedef Vec4 Color4f;
 
 /*******************************************************************
 *
+*   max_of_vals()
+*
+*   DESCRIPTION:
+*       Evaluates to the largest of the given values.
+*
+*******************************************************************/
+
+#define max_of_vals( _a, _b ) \
+    ( _a > _b ? _a : _b )
+
+
+/*******************************************************************
+*
 *   Utilities_MakeColor4f()
 *
 *   DESCRIPTION:

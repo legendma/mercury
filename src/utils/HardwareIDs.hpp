@@ -105,3 +105,22 @@ typedef enum _ControllerSonyDualsense
                               + CONTROLLER_SONY_DUALSENSE_DPAD_COUNT
 } ControllerSonyDualsense;
 
+
+
+typedef enum _ControllerTriggersFloatData
+    {
+    CONTROLLER_TRIGGERS_FLOAT_DATA_LEFT_TRIGGER,
+    CONTROLLER_TRIGGERS_FLOAT_DATA_RIGHT_TRIGGER,
+    /* count */         
+    CONTROLLER_TRIGGERS_FLOAT_DATA_COUNT
+    } ControllerTriggersFloatData;
+
+typedef enum _ControllerStickAxisFloatData
+{
+    CONTROLLER_STICK_AXIS_FLOAT_DATA_X,
+    CONTROLLER_STICK_AXIS_FLOAT_DATA_Y,
+    /* count */         
+    CONTROLLER_STICK_AXIS_FLOAT_DATA_COUNT
+}ControllerStickAxisFloatData;
+
+
