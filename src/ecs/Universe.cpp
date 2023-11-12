@@ -2,13 +2,16 @@
 #include <cstdint>
 
 #include "Entity.hpp"
+#include "Command.hpp"
 #include "Component.hpp"
 #include "Universe.hpp"
+#include "Utilities.hpp"
 
 namespace ECS
 {
 static ComponentRegistry * GetComponentRegistry( const ComponentClass component, Universe *universe );
 static const ComponentRegistry * GetComponentRegistryConst( const ComponentClass component, const Universe *universe );
+static CommandProc ProcessCommand;
 
 
 /*******************************************************************
@@ -235,6 +238,24 @@ for( uint32_t i = 0; i < cnt_of_array( universe->singleton_entities ); i++ )
 
 /*******************************************************************
 *
+*   Universe_RegisterCommandProcessors()
+*
+*   DESCRIPTION:
+*       Register the command processors.  Work-around for
+*       chicken-egg scenario.
+*
+*******************************************************************/
+
+void Universe_RegisterCommandProcessors( Universe *universe )
+{
+Command_RegisterCommandProcessor( COMMAND_PROCESSOR_UNIVERSE, ProcessCommand, universe );
+Command_AddCommandClass( COMMAND_PROCESSOR_UNIVERSE, PENDING_COMMAND_DESTROY_ENTITY, COMMAND_PROCESSOR_ACTION_ADD, universe );
+
+}   /* Universe_RegisterCommandProcessors() */
+
+
+/*******************************************************************
+*
 *   Universe_RemoveComponentFromEntity()
 *
 *   DESCRIPTION:
@@ -322,6 +343,31 @@ if( component < 0
 return( &universe->components[ component ] );
 
 }   /* GetComponentRegistryConst() */
+
+
+/*******************************************************************
+*
+*   ProcessCommand()
+*
+*   DESCRIPTION:
+*       Process the given command.
+*
+*******************************************************************/
+
+static void ProcessCommand( const ECS::PendingCommandComponent *command, ECS::Universe *universe )
+{
+switch( command->cls )
+    {
+    case PENDING_COMMAND_DESTROY_ENTITY:
+        Universe_DestroyEntity( command->u.destroy_entity.entity, universe );
+        break;
+
+    default:
+        debug_assert_always();
+        break;
+    }
+
+}   /* ProcessCommand() */
 
 
 } /* namespace ECS */

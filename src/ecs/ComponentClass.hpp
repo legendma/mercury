@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "Entity.hpp"
 #include "Math.hpp"
 #include "Utilities.hpp"
 
@@ -135,17 +136,17 @@ typedef struct _SingletonGameModeComponent
 *
 *******************************************************************/
 
-typedef union _EventNotificationEvent
-    {
-    int i;
-    } EventNotificationEvent;
-
 typedef enum _EventNotificationClass
     {
     EVENT_NOTIFICATION_DUMMY_REMOVE_ME,
     /* count */
     EVENT_NOTIFICATION_CLASS_COUNT
     } EventNotificationClass;
+
+typedef union _EventNotificationEvent
+    {
+    int i;
+    } EventNotificationEvent;
 
 typedef struct _EventNotificationComponent
     {
@@ -154,6 +155,42 @@ typedef struct _EventNotificationComponent
     EventNotificationEvent
                         u;
     } EventNotificationComponent;
+
+/*******************************************************************
+*
+*   COMPONENT_PENDING_COMMAND - PendingCommandComponent
+*
+*******************************************************************/
+
+typedef enum _PendingCommandClass
+    {
+    PENDING_COMMAND_DESTROY_ENTITY,
+    /* count */
+    PENDING_COMMAND_CLASS_COUNT
+    } PendingCommandClass;
+
+typedef union _PendingCommandCommand
+    {
+    struct
+        {
+        EntityId        entity;
+        } destroy_entity;           /* PENDING_COMMAND_DESTROY_ENTITY */
+    } PendingCommandCommand;
+
+typedef struct _PendingCommandComponent
+    {
+    PendingCommandClass cls;
+    PendingCommandCommand
+                        u;
+    } PendingCommandComponent;
+
+/*******************************************************************
+*
+*   COMPONENT_SINGLETON_COMMAND - SingletonCommandComponent
+*
+*******************************************************************/
+
+IMPLEMENT_SINGLETON_VOID( SingletonCommandComponent );
 
 /*******************************************************************
 *
@@ -172,11 +209,13 @@ IMPLEMENT_SINGLETON_VOID( SingletonEventComponent );
 typedef enum
     {
     COMPONENT_EVENT_NOTIFICATION,
+    COMPONENT_PENDING_COMMAND,
+    COMPONENT_SINGLETON_COMMAND,
+    COMPONENT_SINGLETON_CONTROLLER_INPUT,
     COMPONENT_SINGLETON_GAME_MODE,
     COMPONENT_SINGLETON_EVENT,
     COMPONENT_SINGLETON_PLAYER_INPUT,
     COMPONENT_SINGLETON_RENDER,
-    COMPONENT_SINGLETON_CONTROLLER_INPUT,
     /* count */
     COMPONENT_CNT
     } ComponentClass;
@@ -190,6 +229,8 @@ typedef struct _ComponentClassSizes
 static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in the future this table needs to be referenced in update() time, need to store it in the universe as size_t array[ COMPONENT_CNT ] for quick lookup */
     {
     { COMPONENT_EVENT_NOTIFICATION,         sizeof( EventNotificationComponent )        },
+    { COMPONENT_PENDING_COMMAND,            sizeof( PendingCommandComponent )           },
+    { COMPONENT_SINGLETON_COMMAND,          sizeof( SingletonCommandComponent )         },
     { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent ) },
     { COMPONENT_SINGLETON_EVENT,            sizeof( SingletonEventComponent )           },
     { COMPONENT_SINGLETON_GAME_MODE,        sizeof( SingletonGameModeComponent )        },

@@ -24,6 +24,7 @@ ComponentRegistry *       Universe_GetComponentRegistry( const ComponentClass co
 const ComponentRegistry * Universe_GetComponentRegistryConst( const ComponentClass component, const Universe *universe );
 void *                    Universe_GetSingletonComponent( const ComponentClass component, Universe *universe );
 void                      Universe_Init( Universe *universe );
+void                      Universe_RegisterCommandProcessors( Universe *universe );
 void                      Universe_RemoveComponentFromEntity( const EntityId entity, const ComponentClass component, Universe *universe );
 void *                    Universe_TryGetComponent( const EntityId entity, const ComponentClass component, Universe *universe );
 

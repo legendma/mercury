@@ -89,6 +89,19 @@ typedef Vec4 Color4f;
 
 /*******************************************************************
 *
+*   debug_assert_always()
+*
+*   DESCRIPTION:
+*       Always assert in debug mode.
+*
+*******************************************************************/
+
+#define debug_assert_always() \
+    debug_assert( false )
+
+
+/*******************************************************************
+*
 *   max_uint_value()
 *
 *   DESCRIPTION:

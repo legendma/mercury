@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdlib>
 
+#include "Command.hpp"
 #include "Event.hpp"
 #include "Math.hpp"
 #include "Universe.hpp"
@@ -19,7 +20,7 @@ typedef struct _EventListenerInterests
     interests_ba_type   ba[ INTERESTS_ARRAY_COUNT ];
     } EventListenerInterests;
 
-typedef struct _EventInterestedParties
+typedef struct _EventInterestedPartiesCache
     {
     EventHandlerProc   *listeners[ EVENT_LISTENER_COUNT ];
     uint16_t            count;
@@ -133,7 +134,7 @@ EventSystem *system = AsEventSystem( universe );
 
 return( true );
 
-} /* GameMode_Init() */
+} /* Event_Init() */
 
 
 /*******************************************************************
@@ -180,8 +181,9 @@ while( NonOwningGroup_GetNext( &system->group, &entity, (void**)&component ) )
         cache->listeners[ i ]( component, universe );
         }
 
-    /* we can destroy the event entity immediately (without deferring via pending command), as no one should care */
-    Universe_DestroyEntity( entity, universe );
+    /* destroy the event */
+    PendingCommandCommand command;
+    Command_PostPending( PENDING_COMMAND_DESTROY_ENTITY, Command_MakeDestroyEntityCommand( entity, &command ), universe );
     }
 
 } /* Event_DoFrame() */

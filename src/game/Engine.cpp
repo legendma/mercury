@@ -1,3 +1,4 @@
+#include "Command.hpp"
 #include "Event.hpp"
 #include "GameMode.hpp"
 #include "PlayerInput.hpp"
@@ -23,6 +24,7 @@ bool Engine_Init()
 {
 Universe_Init( &the_universe );
 
+if( !Command_Init( &the_universe ) )     return( false );
 if( !Event_Init( &the_universe ) )       return( false );
 if( !Render_Init( &the_universe ) )      return( false );
 if( !PlayerInput_Init( &the_universe ) ) return( false );
@@ -48,6 +50,7 @@ GameMode_DoFrame( frame_delta, &the_universe );
 PlayerInput_DoFrame( frame_delta, &the_universe );
 Render_DoFrame( frame_delta, &the_universe );
 Event_DoFrame( frame_delta, &the_universe );
+Command_DoFrame( frame_delta, &the_universe );
 
 } /* Engine_DoFrame() */
 
@@ -67,6 +70,7 @@ GameMode_Destroy( &the_universe );
 PlayerInput_Destroy( &the_universe );
 Render_Destroy( &the_universe );
 Event_Destroy( &the_universe );
+Command_Destroy( &the_universe );
 Universe_Destroy( &the_universe );
 
 return( true );

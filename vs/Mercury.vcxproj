@@ -23,6 +23,7 @@
     <ClCompile Include="..\src\ecs\Entity.cpp" />
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp" />
     <ClCompile Include="..\src\ecs\Universe.cpp" />
+    <ClCompile Include="..\src\game\Command.cpp" />
     <ClCompile Include="..\src\game\Engine.cpp" />
     <ClCompile Include="..\src\game\Event.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\src\ecs\Entity.hpp" />
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
+    <ClInclude Include="..\src\game\Command.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
     <ClInclude Include="..\src\game\Event.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
