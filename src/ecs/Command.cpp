@@ -21,14 +21,14 @@ typedef struct _CommandProcessorInterests
 
 typedef struct _CommandProcessorsCache
     {
-    CommandProc        *processors[ COMMAND_PROCESSOR_COUNT ];
+    CommandProcedure   *processors[ COMMAND_PROCESSOR_COUNT ];
     uint16_t            count;
     bool                needs_rebuild;
     } CommandProcessorsCache;
 
 typedef struct _CommandSystem
     {
-    CommandProc        *processors[ COMMAND_PROCESSOR_COUNT ];
+    CommandProcedure   *processors[ COMMAND_PROCESSOR_COUNT ];
     CommandProcessorInterests
                         interests[ COMMAND_PROCESSOR_COUNT ];
     uint16_t            count;
@@ -237,7 +237,7 @@ while( Component_GetComponentCount( command_registry ) > 0 )
 *
 *******************************************************************/
 
-void Command_RegisterCommandProcessor( const CommandProcessor processor, CommandProc *processor_proc, Universe *universe )
+void Command_RegisterCommandProcessor( const CommandProcessor processor, CommandProcedure *processor_proc, Universe *universe )
 {
 CommandSystem *system = AsCommandSystem( universe );
 system->processors[ processor ] = processor_proc;

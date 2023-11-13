@@ -19,13 +19,13 @@ typedef enum _EventListenAction
     EVENT_LISTEN_ACTION_STOP_LISTENING
     } EventListenAction;
 
-typedef void EventHandlerProc( const ECS::EventNotificationComponent *evt, ECS::Universe *universe );
+typedef void EventProcedure( const ECS::EventNotificationComponent *evt, ECS::Universe *universe );
 
 bool Event_Init( ECS::Universe *universe );
 void Event_Destroy( ECS::Universe *universe );
 void Event_DoFrame( float frame_delta, ECS::Universe *universe );
 void Event_ListenToEvent( const EventListener listener, const EventNotificationClass evt, EventListenAction action, Universe *universe );
-void Event_RegisterEventListener( const EventListener listener, EventHandlerProc *handler_proc, Universe *universe );
+void Event_RegisterEventListener( const EventListener listener, EventProcedure *handler_proc, Universe *universe );
 
 
 /*******************************************************************

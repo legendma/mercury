@@ -7,15 +7,17 @@
 #include "Entity.hpp"
 #include "Utilities.hpp"
 
-#define REGISTRY_START_CNT          ( 4 )
+
 #define REGISTRY_SWAP_STORAGE       ( 1 )
+#define INVALID_DENSE_INDEX         max_uint_value( *( (ComponentRegistry*)NULL )->sparse )
 
 namespace ECS
 {
-static void EnsureStorageForEntity( const EntityId entity, ComponentRegistry *registry );
-static void ExpandRegistry( const uint32_t new_size, ComponentRegistry *registry );
+static void   EnsureStorageForEntity( const EntityId entity, ComponentRegistry *registry );
+static void   ExpandDenseAndStorage( const uint32_t new_size, ComponentRegistry *registry );
+static void   ExpandSparse( const uint32_t new_size, ComponentRegistry *registry );
 static void * GetStorageAtIndex( const uint32_t index, ComponentRegistry *registry );
-static void SwapMemory( const size_t size, void *a, void *b, void *scratch );
+static void   SwapMemory( const size_t size, void *a, void *b, void *scratch );
 
 
 /*******************************************************************
@@ -88,12 +90,18 @@ free( registry->storage );
 
 bool Component_EntityHasComponent( const EntityId entity, const ComponentRegistry *registry )
 {
-if( entity.u.id >= registry->capacity )
+if( entity.u.id >= registry->sparse_capacity )
     {
     return( false );
     }
 
-return( registry->dense[ registry->sparse[ entity.u.id ] ].id_and_version == entity.id_and_version );
+uint32_t dense_index = registry->sparse[ entity.u.id ];
+if( dense_index > registry->dense_count )
+    {
+    return( false );
+    }
+
+return( registry->dense[ dense_index ].id_and_version == entity.id_and_version );
 
 }   /* Component_EntityHasComponent() */
 
@@ -145,10 +153,10 @@ return( registry->dense_count );
 *
 *******************************************************************/
 
-void * Component_GetComponentAtDenseIndex( const uint32_t dense_index, const ComponentRegistry *registry )
+void * Component_GetComponentAtDenseIndex( const uint32_t dense_index, ComponentRegistry *registry )
 {
 debug_assert( dense_index < registry->dense_count );
-return( &registry->storage[ dense_index ] );
+return( GetStorageAtIndex( dense_index, registry ) );
 
 }   /* Component_GetComponentAtDenseIndex() */
 
@@ -181,12 +189,11 @@ return( registry->dense[ dense_index ] );
 *
 *******************************************************************/
 
-void Component_InitRegistry( size_t storage_stride, ComponentRegistry *registry )
+void Component_InitRegistry( const size_t storage_stride, const ComponentClass cls, ComponentRegistry *registry )
 {
 *registry = {};
 registry->storage_stride = storage_stride;
-
-ExpandRegistry( REGISTRY_START_CNT, registry );
+registry->cls            = cls;
 
 }   /* Entity_InitRegistry() */
 
@@ -215,15 +222,38 @@ uint32_t dense_swap    = registry->dense_count - 1;
 uint32_t sparse_swap   = registry->dense[ dense_swap ].u.id;
 assert( registry->sparse[ sparse_swap ] == dense_swap );
 
-void *scratch = GetStorageAtIndex( registry->capacity, registry );
+void *scratch = GetStorageAtIndex( registry->dense_storage_capacity, registry ); // TODO <MPA> - Rework this so we don't have to require scratch for singleton components which will never reach a size of more than 1
 SwapMemory( registry->storage_stride,  GetStorageAtIndex( dense_remove, registry ), GetStorageAtIndex( dense_swap, registry ), scratch );
 SwapMemory( sizeof(*registry->sparse), &registry->sparse[ sparse_remove ],          &registry->sparse[ sparse_swap ],          scratch );
 SwapMemory( sizeof(*registry->dense),  &registry->dense[ dense_remove ],            &registry->dense[ dense_swap ],            scratch );
 
 registry->dense[ dense_swap ].id_and_version = INVALID_ENTITY_ID;
+registry->sparse[ sparse_remove ]            = INVALID_DENSE_INDEX;
 registry->dense_count--;
 
 }   /* Component_RemoveComponent() */
+
+
+/*******************************************************************
+*
+*   Component_ReportMetrics()
+*
+*   DESCRIPTION:
+*       Report the registry's technical metrics.
+*
+*******************************************************************/
+
+void Component_ReportMetrics( const ComponentRegistry *registry, size_t *memory_usage )
+{
+/* memory usage */
+if( memory_usage )
+    {
+    *memory_usage = registry->sparse_capacity                                    * sizeof(*registry->sparse)
+                  + registry->dense_storage_capacity                             * sizeof(*registry->dense)
+                  + ( registry->dense_storage_capacity + REGISTRY_SWAP_STORAGE ) * registry->storage_stride;
+    }
+
+}   /* Component_ReportMetrics() */
 
 
 /*******************************************************************
@@ -238,83 +268,95 @@ registry->dense_count--;
 
 static void EnsureStorageForEntity( const EntityId entity, ComponentRegistry *registry )
 {
-if( entity.u.id < registry->capacity )
+/* sparse */
+if( entity.u.id >= registry->sparse_capacity )
     {
-    /* We're already good */
-    return;
+    uint32_t new_size = 2 * Utilities_ClampToMinU32( registry->sparse_capacity, entity.u.id + 1 );
+    ExpandSparse( new_size, registry );
     }
 
-/* Expand */
-uint32_t new_size = 2 * registry->capacity;
-if( new_size <= entity.u.id )
+/* dense and storage */
+if( registry->dense_count >= registry->dense_storage_capacity )
     {
-    new_size = entity.u.id + 1;
+    uint32_t new_size = Utilities_ClampToMinU32( 2 * registry->dense_storage_capacity, 1 );
+    ExpandDenseAndStorage( new_size, registry );
     }
-
-ExpandRegistry( new_size, registry );
 
 }   /* EnsureStorageForEntity() */
 
 
 /*******************************************************************
 *
-*   ExpandRegistry()
+*   ExpandDenseAndStorage()
 *
 *   DESCRIPTION:
-*       Enlarge the registry by reallocating the sparse, dense,
-*       and storage arrays at a new size.
+*       Enlarge the dense and storage by reallocating at a new size.
 *
 *******************************************************************/
 
-static void ExpandRegistry( const uint32_t new_size, ComponentRegistry *registry )
+static void ExpandDenseAndStorage( const uint32_t new_size, ComponentRegistry *registry )
 {
 /* we are only ever allowed to grow, never shrink */
-assert( new_size > registry->capacity );
-uint32_t *new_sparse  = (uint32_t*)malloc( sizeof(*new_sparse) * new_size );
-EntityId *new_dense   = (EntityId*)malloc( sizeof(*new_dense)  * new_size );
-uint8_t  *new_storage = (uint8_t*)malloc( registry->storage_stride * ( new_size + REGISTRY_SWAP_STORAGE ) );
+assert( new_size > registry->dense_storage_capacity );
+EntityId *new_dense   = (EntityId*)realloc( registry->dense, sizeof(*new_dense) * new_size );
+uint8_t  *new_storage = (uint8_t*)realloc( registry->storage, registry->storage_stride * ( new_size + REGISTRY_SWAP_STORAGE ) );
 
-if( !new_sparse
- || !new_dense
+if( !new_dense
  || !new_storage )
     {
-    free( new_sparse );
     free( new_dense );
     free( new_storage );
     assert( false );
     return;
     }
 
-if( registry->capacity > 0 )
-    {
-    /* Copy over the previous arrays to our larger new ones and then get rid of the old ones */
-    memcpy( new_sparse,  registry->sparse,  registry->capacity * sizeof(*registry->sparse) );
-    memcpy( new_dense,   registry->dense,   registry->capacity * sizeof(*registry->dense) );
-    memcpy( new_storage, registry->storage, registry->capacity * sizeof(*registry->storage) * registry->storage_stride );
-
-    free( registry->sparse );
-    free( registry->dense );
-    free( registry->storage );
-
-    registry->sparse  = NULL;
-    registry->dense   = NULL;
-    registry->storage = NULL;
-    }
-
-registry->sparse   = new_sparse;
 registry->dense    = new_dense;
 registry->storage  = new_storage;
 
-for( uint32_t i = registry->capacity; i < new_size; i++ )
+for( uint32_t i = registry->dense_storage_capacity; i < new_size; i++ )
     {
     /* mark the new unused dense entries as invalid */
-    registry->sparse[ i ] = i;
     registry->dense[ i ].id_and_version = INVALID_ENTITY_ID;
     }
 
-registry->capacity = new_size;
+registry->dense_storage_capacity = new_size;
 
-}   /* ExpandRegistry() */
+}   /* ExpandDenseAndStorage() */
+
+
+/*******************************************************************
+*
+*   ExpandSparse()
+*
+*   DESCRIPTION:
+*       Enlarge the sparse by reallocating at a new size.
+*
+*******************************************************************/
+
+static void ExpandSparse( const uint32_t new_size, ComponentRegistry *registry )
+{
+/* we are only ever allowed to grow, never shrink */
+assert( new_size > registry->sparse_capacity );
+uint32_t *new_sparse  = (uint32_t*)realloc( registry->sparse, sizeof(*new_sparse) * new_size );
+
+if( !new_sparse )
+    {
+    free( new_sparse );
+    assert( false );
+    return;
+    }
+
+registry->sparse = new_sparse;
+
+for( uint32_t i = registry->sparse_capacity; i < new_size; i++ )
+    {
+    /* mark the new unused dense entries as invalid */
+    registry->sparse[ i ] = INVALID_DENSE_INDEX;
+    }
+
+registry->sparse_capacity = new_size;
+
+}   /* ExpandSparse() */
 
 
 /*******************************************************************

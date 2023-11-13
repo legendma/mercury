@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\ecs\Command.cpp" />
     <ClCompile Include="..\src\ecs\Component.cpp" />
     <ClCompile Include="..\src\ecs\Entity.cpp" />
+    <ClCompile Include="..\src\ecs\Event.cpp" />
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp" />
     <ClCompile Include="..\src\ecs\Universe.cpp" />
-    <ClCompile Include="..\src\game\Command.cpp" />
     <ClCompile Include="..\src\game\Engine.cpp" />
-    <ClCompile Include="..\src\game\Event.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
@@ -33,14 +33,14 @@
     <ClCompile Include="..\src\win\Render.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\ecs\Command.hpp" />
     <ClInclude Include="..\src\ecs\Component.hpp" />
     <ClInclude Include="..\src\ecs\ComponentClass.hpp" />
     <ClInclude Include="..\src\ecs\Entity.hpp" />
+    <ClInclude Include="..\src\ecs\Event.hpp" />
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
-    <ClInclude Include="..\src\game\Command.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
-    <ClInclude Include="..\src\game\Event.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\game\GameMode.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />

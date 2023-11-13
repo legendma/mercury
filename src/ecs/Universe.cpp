@@ -11,7 +11,7 @@ namespace ECS
 {
 static ComponentRegistry * GetComponentRegistry( const ComponentClass component, Universe *universe );
 static const ComponentRegistry * GetComponentRegistryConst( const ComponentClass component, const Universe *universe );
-static CommandProc ProcessCommand;
+static CommandProcedure ProcessCommand;
 
 
 /*******************************************************************
@@ -225,7 +225,7 @@ Entity_InitRegistry( &universe->entities );
 
 for( uint32_t i = 0; i < cnt_of_array( universe->components ); i++ )
     {
-    Component_InitRegistry( GetComponentClassSize( (ComponentClass)i ), &universe->components[ i ] );
+    Component_InitRegistry( GetComponentClassSize( (ComponentClass)i ), (ComponentClass)i, &universe->components[ i ] );
     }
 
 for( uint32_t i = 0; i < cnt_of_array( universe->singleton_entities ); i++ )

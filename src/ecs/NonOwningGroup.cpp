@@ -115,10 +115,11 @@ if( component )
 iterator->entity_at_iterator.id_and_version = INVALID_ENTITY_ID;
 iterator->control_component_at_iterator = NULL;
 
-const ComponentRegistry *control_registry = iterator->components[ iterator->control_component_index ];
+ComponentRegistry *control_registry = iterator->components[ iterator->control_component_index ];
 for( ; iterator->iterator < iterator->control_class_component_count && !iterator->control_component_at_iterator; iterator->iterator++ )
 	{
 	EntityId this_entity = Component_GetEntityAtDenseIndex( iterator->iterator, control_registry );
+	debug_assert( this_entity.id_and_version != INVALID_ENTITY_ID );
 	void *this_component = Component_GetComponentAtDenseIndex( iterator->iterator, control_registry );
 
 	bool has_all_components = true;

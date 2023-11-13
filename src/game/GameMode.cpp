@@ -1,9 +1,12 @@
 #include <cassert>
 
+#include "Command.hpp"
 #include "Event.hpp" // TODO <MPA>
 #include "Universe.hpp"
 
 using namespace ECS;
+
+static CommandProcedure ProcessCommand;
 
 
 /*******************************************************************
@@ -20,8 +23,13 @@ bool GameMode_Init( Universe *universe )
 {
 SingletonGameModeComponent *component = (SingletonGameModeComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_GAME_MODE, universe );
 
-component->main_mode = GAME_MODE_INTRO;
-  
+component->main_mode = GAME_MODE_NONE;
+Command_RegisterCommandProcessor( COMMAND_PROCESSOR_GAME_MODE, ProcessCommand, universe );
+Command_AddCommandClass( COMMAND_PROCESSOR_GAME_MODE, PENDING_COMMAND_CHANGE_GAME_MODE, COMMAND_PROCESSOR_ACTION_ADD, universe );
+
+PendingCommandCommand command;
+Command_PostPending( PENDING_COMMAND_CHANGE_GAME_MODE, Command_MakeChangeGameMode( GAME_MODE_INTRO, &command ), universe);
+
 return( true );
 
 } /* GameMode_Init() */
@@ -65,6 +73,9 @@ Event_Enqueue( EVENT_NOTIFICATION_DUMMY_REMOVE_ME, &evt, universe );
 
 switch( component->main_mode )
     {
+    case GAME_MODE_NONE:
+        break;
+
     case GAME_MODE_INTRO:
         break;
 
@@ -83,4 +94,26 @@ switch( component->main_mode )
     }
 
 } /* GameMode_DoFrame() */
+
+
+/*******************************************************************
+*
+*   ProcessCommand()
+*
+*   DESCRIPTION:
+*       Process a command.
+*
+*******************************************************************/
+
+void ProcessCommand( const ECS::PendingCommandComponent *command, ECS::Universe *universe )
+{
+switch( command->cls )
+    {
+    case PENDING_COMMAND_CHANGE_GAME_MODE:
+        break;
+
+
+    }
+
+} /* ProcessCommand() */
 

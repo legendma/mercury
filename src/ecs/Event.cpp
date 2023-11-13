@@ -22,14 +22,14 @@ typedef struct _EventListenerInterests
 
 typedef struct _EventInterestedPartiesCache
     {
-    EventHandlerProc   *listeners[ EVENT_LISTENER_COUNT ];
+    EventProcedure     *listeners[ EVENT_LISTENER_COUNT ];
     uint16_t            count;
     bool                needs_rebuild;
     } EventInterestedPartiesCache;
 
 typedef struct _EventSystem
     {
-    EventHandlerProc   *listeners[ EVENT_LISTENER_COUNT ];
+    EventProcedure     *listeners[ EVENT_LISTENER_COUNT ];
     EventListenerInterests
                         interests[ EVENT_LISTENER_COUNT ];
     uint16_t            count;
@@ -183,7 +183,7 @@ while( NonOwningGroup_GetNext( &system->group, &entity, (void**)&component ) )
 
     /* destroy the event */
     PendingCommandCommand command;
-    Command_PostPending( PENDING_COMMAND_DESTROY_ENTITY, Command_MakeDestroyEntityCommand( entity, &command ), universe );
+    Command_PostPending( PENDING_COMMAND_DESTROY_ENTITY, Command_MakeDestroyEntity( entity, &command ), universe );
     }
 
 } /* Event_DoFrame() */
@@ -226,7 +226,7 @@ else
 *
 *******************************************************************/
 
-void Event_RegisterEventListener( const EventListener listener, EventHandlerProc *handler_proc, Universe *universe )
+void Event_RegisterEventListener( const EventListener listener, EventProcedure *handler_proc, Universe *universe )
 {
 EventSystem *system = AsEventSystem( universe );
 system->listeners[ listener ] = handler_proc;

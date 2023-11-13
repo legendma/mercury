@@ -117,3 +117,35 @@ typedef Vec4 Quaternion;
 
 #define Math_BitArrayIsSet( _bit_array, _bit ) \
     ( ( (_bit_array)[ math_bitarray_index( _bit_array, _bit ) ] & math_bitarray_bit( _bit_array, _bit ) ) != 0 )
+
+
+/*******************************************************************
+*
+*   Utilities_ClampToMaxU32()
+*
+*   DESCRIPTION:
+*       Return the value clamped to the maximum.
+*
+*******************************************************************/
+
+static inline uint32_t Utilities_ClampToMaxU32( const uint32_t value, const uint32_t maximum )
+{
+return( value > maximum ? maximum : value );
+
+} /* Utilities_ClampToMaxU32() */
+
+
+/*******************************************************************
+*
+*   Utilities_ClampToMinU32()
+*
+*   DESCRIPTION:
+*       Return the value clamped to the minimum.
+*
+*******************************************************************/
+
+static inline uint32_t Utilities_ClampToMinU32( const uint32_t value, const uint32_t minimum )
+{
+return( value < minimum ? minimum : value );
+
+} /* Utilities_ClampToMinU32() */

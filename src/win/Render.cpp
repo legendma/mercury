@@ -121,7 +121,7 @@ static bool                   GetWindowExtent( HWND window, UINT *width, UINT *h
 static void                   Reset( DX12Render *render );
 static void                   SetDefaultViewport( DX12Render *render );
 
-static EventHandlerProc       HandleEvent; // TODO <MPA>
+static EventProcedure         HandleEvent; // TODO <MPA>
 
 
 /*******************************************************************

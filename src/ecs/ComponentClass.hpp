@@ -119,6 +119,7 @@ IMPLEMENT_SINGLETON_VOID( SingletonRenderComponent );
 
 typedef enum _GameModeMainMode
     {
+    GAME_MODE_NONE,
     GAME_MODE_INTRO,
     GAME_MODE_MAIN_MENU,
     GAME_MODE_CHARACTER_CREATE,
@@ -164,6 +165,7 @@ typedef struct _EventNotificationComponent
 
 typedef enum _PendingCommandClass
     {
+    PENDING_COMMAND_CHANGE_GAME_MODE,
     PENDING_COMMAND_DESTROY_ENTITY,
     /* count */
     PENDING_COMMAND_CLASS_COUNT
@@ -175,6 +177,11 @@ typedef union _PendingCommandCommand
         {
         EntityId        entity;
         } destroy_entity;           /* PENDING_COMMAND_DESTROY_ENTITY */
+    struct
+        {
+        GameModeMainMode
+                        new_mode;
+        } change_game_mode;         /* PENDING_COMMAND_CHANGE_GAME_MODE */
     } PendingCommandCommand;
 
 typedef struct _PendingCommandComponent

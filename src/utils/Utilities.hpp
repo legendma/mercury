@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <climits>
 
 #include "Math.hpp"
 
@@ -102,17 +103,31 @@ typedef Vec4 Color4f;
 
 /*******************************************************************
 *
-*   max_uint_value()
+*   max_sint_value()
 *
 *   DESCRIPTION:
-*       Compute the maximum number of values that can be stored in
-*       the given unsigned type.
+*       Compute the maximum value that can be stored in the given
+*       signed type.
 *
 *******************************************************************/
 
-#define max_uint_value( _type ) \
-    ( (size_t)1 << sizeof( _type ) * 8 )
+#define max_sint_value( _t ) \
+    ( ( 1LL << ( sizeof(_t) * CHAR_BIT - 2 ) ) - 1 + ( 1LL << ( sizeof(_t) * CHAR_BIT - 2 ) ) )
 
+
+/*******************************************************************
+*
+*   max_uint_value()
+*
+*   DESCRIPTION:
+*       Compute the maximum value that can be stored in the given
+*       unsigned type.
+*
+*******************************************************************/
+
+#define max_uint_value( _t ) \
+    ( ( ( 1ULL << ( sizeof(_t) * CHAR_BIT - 1 ) ) - 1 + ( 1ULL << ( sizeof(_t) * CHAR_BIT - 1 ) ) ) )
+            
 
 /*******************************************************************
 *

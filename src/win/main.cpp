@@ -90,7 +90,7 @@ wc.lpszClassName = CLASS_NAME;
 RegisterClass(&wc);
 
 /* create the actual window */
-HWND hwnd = CreateWindowExW( 0, CLASS_NAME, L"Test Window", WS_OVERLAPPEDWINDOW, 0, 0, 1000, 1000, NULL, NULL, hinstance ,NULL );
+HWND hwnd = CreateWindowExW( 0, CLASS_NAME, L"Mercury Engine", WS_OVERLAPPEDWINDOW, 0, 0, 1000, 1000, NULL, NULL, hinstance ,NULL );
 if( hwnd == NULL )
 	{
 	return( NULL );

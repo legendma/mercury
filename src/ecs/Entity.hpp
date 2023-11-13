@@ -1,11 +1,11 @@
 #pragma once
 #include <cstdint>
 
+#include "Utilities.hpp"
 
 namespace ECS
 {
 
-#define INVALID_ENTITY_ID           ( 0xffffffff )
 
 typedef union _EntityId
 	{
@@ -16,6 +16,8 @@ typedef union _EntityId
 		uint32_t        version : 6;
 		} u;
 	} EntityId;
+
+#define INVALID_ENTITY_ID           max_uint_value( ( (EntityId*)NULL )->id_and_version )
 
 typedef struct _EntityRegistry
 	{
