@@ -41,6 +41,7 @@ for( uint8_t i = 0; i < out->num_classes; i++ )
 		{
 		out->control_component_index = i;
 		out->control_class_component_count = this_count;
+		out->iterator = out->control_class_component_count;
 		first_class = false;
 		}
 	}
@@ -116,11 +117,11 @@ iterator->entity_at_iterator.id_and_version = INVALID_ENTITY_ID;
 iterator->control_component_at_iterator = NULL;
 
 ComponentRegistry *control_registry = iterator->components[ iterator->control_component_index ];
-for( ; iterator->iterator < iterator->control_class_component_count && !iterator->control_component_at_iterator; iterator->iterator++ )
+for( ; iterator->iterator > 0 && !iterator->control_component_at_iterator; iterator->iterator-- )
 	{
-	EntityId this_entity = Component_GetEntityAtDenseIndex( iterator->iterator, control_registry );
+	EntityId this_entity = Component_GetEntityAtDenseIndex( iterator->iterator - 1, control_registry );
 	debug_assert( this_entity.id_and_version != INVALID_ENTITY_ID );
-	void *this_component = Component_GetComponentAtDenseIndex( iterator->iterator, control_registry );
+	void *this_component = Component_GetComponentAtDenseIndex( iterator->iterator - 1, control_registry );
 
 	bool has_all_components = true;
 	for( uint8_t j = 0; j < iterator->num_classes; j++ )

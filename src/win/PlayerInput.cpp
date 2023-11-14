@@ -537,9 +537,6 @@ static void SonyDualsenseTriggerAndStickSorting( const AxisReadingArray *read_ax
 } /* SonyDualsenseTriggerAndStickSorting() */
 
 
-
-
-
 /*******************************************************************
 *
 *   NormalizeControllerTriggers()
