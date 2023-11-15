@@ -3,10 +3,12 @@
 #include "GameMode.hpp"
 #include "PlayerInput.hpp"
 #include "Render.hpp"
+#include "ResourceManager.hpp" // TODO <MPA> - REMOVE
 #include "Universe.hpp"
 #include "Sound.hpp"
 
 using namespace ECS;
+using namespace Game;
 
 
 static Universe the_universe;
@@ -23,6 +25,7 @@ static Universe the_universe;
 
 bool Engine_Init()
 {
+ResourceManager_Init();
 Universe_Init( &the_universe );
 
 if( !Command_Init( &the_universe ) )		 return( false );

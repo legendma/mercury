@@ -27,6 +27,7 @@
     <ClCompile Include="..\src\ecs\Universe.cpp" />
     <ClCompile Include="..\src\game\Engine.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
+    <ClCompile Include="..\src\game\ResourceManager.cpp" />
     <ClCompile Include="..\src\game\Sound.cpp" />
     <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
@@ -43,8 +44,8 @@
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
+    <ClInclude Include="..\src\game\ResourceManager.hpp" />
     <ClInclude Include="..\src\game\Sound.hpp" />
-    <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\game\GameMode.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
@@ -53,6 +54,7 @@
     <ClInclude Include="..\src\win\ComUtilities.hpp" />
     <ClInclude Include="..\src\win\PlayerInput.hpp" />
     <ClInclude Include="..\src\win\Render.hpp" />
+    <ClInclude Include="ControllerInputUtilities.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -108,7 +110,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
-    <IntDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -116,6 +118,7 @@
     <IncludePath>$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
+    <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

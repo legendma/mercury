@@ -49,4 +49,27 @@ component->u   = *evt;
 } /* Event_Enqueue() */
 
 
+/*******************************************************************
+*
+*   Event_MakeChangeGameMainMode()
+*
+*   DESCRIPTION:
+*       Helper function to create a new event for the main game mode
+*       changing.
+*
+*******************************************************************/
+
+static inline EventNotificationEvent * Event_MakeChangeGameMainMode( const GameModeMainMode from_old, const GameModeMainMode to_new, EventNotificationEvent *evt )
+{
+*evt = {};
+evt->game_mode_changed.from_old = from_old;
+evt->game_mode_changed.to_new   = to_new;
+
+return( evt );
+
+} /* Event_MakeChangeGameMainMode() */
+
+
+
+
 } /* namespace ECS */

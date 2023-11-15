@@ -139,10 +139,7 @@ typedef enum _GameModeMainMode
     GAME_MODE_IN_GAME
     } GameModeMainMode;
 
-typedef struct _SingletonGameModeComponent
-    {
-    GameModeMainMode    main_mode;
-    } SingletonGameModeComponent;
+IMPLEMENT_SINGLETON_VOID( SingletonGameModeComponent );
 
 /*******************************************************************
 *
@@ -152,14 +149,20 @@ typedef struct _SingletonGameModeComponent
 
 typedef enum _EventNotificationClass
     {
-    EVENT_NOTIFICATION_DUMMY_REMOVE_ME,
+    EVENT_NOTIFICATION_GAME_MAIN_MODE_CHANGED,
     /* count */
     EVENT_NOTIFICATION_CLASS_COUNT
     } EventNotificationClass;
 
 typedef union _EventNotificationEvent
     {
-    int i;
+    struct
+        {
+        GameModeMainMode
+                        from_old;
+        GameModeMainMode
+                        to_new;
+        } game_mode_changed;        /* EVENT_NOTIFICATION_GAME_MAIN_MODE_CHANGED */
     } EventNotificationEvent;
 
 typedef struct _EventNotificationComponent

@@ -1,3 +1,9 @@
 [submodule "ots"]
 	path = ots
 	url = https://github.com/legendma/Mercury-dep.git
+[submodule "assets"]
+	path = assets
+	url = https://github.com/legendma/Mercury-assets.git
+[submodule "ResourcePackager"]
+	path = tools/ResourcePackager
+	url = https://github.com/legendma/Mercury-ResourceTool.git

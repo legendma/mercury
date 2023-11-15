@@ -43,10 +43,20 @@
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ecs\Command.cpp" />
-    <ClCompile Include="..\src\ecs\Event.cpp" />
-    <ClCompile Include="ControllerInputUtilities.cpp">
+    <ClCompile Include="..\src\ecs\Command.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\Event.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\ResourceManager.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\Sound.cpp">
+      <Filter>game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,11 +99,23 @@
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp">
       <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ecs\Command.hpp" />
-    <ClInclude Include="..\src\ecs\Event.hpp" />
-    <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
+    <ClInclude Include="..\src\ecs\Command.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\Event.hpp">
+      <Filter>ecs</Filter>
+    </ClInclude>
     <ClInclude Include="ControllerInputUtilities.hpp">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\HardwareIDs.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\ResourceManager.hpp">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\Sound.hpp">
+      <Filter>game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -60,7 +60,7 @@ component->u   = *command;
 *
 *******************************************************************/
 
-static inline PendingCommandCommand *Command_MakeChangeGameMode( const GameModeMainMode change_to, PendingCommandCommand *command )
+static inline PendingCommandCommand * Command_MakeChangeGameMode( const GameModeMainMode change_to, PendingCommandCommand *command )
 {
 *command = {};
 command->change_game_mode.new_mode = change_to;
