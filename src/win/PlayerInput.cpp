@@ -14,7 +14,6 @@ using namespace ECS;
 
 /* NOTE: each suppported controller needs to have an enum reported here in this , seperate list. TODO <jw> use the max_of_vals macro in front of this enum list once we have more than one controller supported */
 #define MAX_NUM_CONTROLLER_AXIS    ( CONTROLLER_SONY_DUALSENSE_AXIS_COUNT )// max_of_vals
-
 #define MAX_NUM_CONTROLLER_TRIGGERS    ( CONTROLLER_TRIGGERS_FLOAT_DATA_COUNT )// max_of_vals
 #define MAX_NUM_CONTROLLER_STICK_AXIS    ( CONTROLLER_STICK_AXIS_FLOAT_DATA_COUNT )// max_of_vals
 
@@ -47,7 +46,7 @@ typedef struct _StickWritingArray
 static DirectXPlayerInput * AsDirectXPlayerInput( Universe *universe );
 static void FindControllerVendorDevice( const GameInputDeviceInfo *controller_info, const size_t num, uint32_t *out_controller_vendor_device, bool *out_is_device_supported );
 static void SetSonyDualsenseButtonPressed( const ControllerSonyDualsense button_in, SingletonControllerInputButtonStateBitArray *ba );
-static void SetSonyDualsenseDpadPressed( const ControllerSonyDualsense button_in, SingletonControllerInputButtonStateBitArray *ba );
+static void SetSonyDualsenseDpadPressed( GameInputSwitchPosition switch_status, SingletonControllerInputButtonStateBitArray *ba );
 static void SonyDualsenseTriggerAndStickSorting( const AxisReadingArray *read_axis_array, TriggerWritingArray *trigger_array, StickWritingArray *stick_array );
 static void NormalizeControllerTriggers( TriggerWritingArray *trigger_array, DirectXPlayerInput *trigger_dead_zone_for_controller, const ControllerDevice controller_device_type );
 static void NormalizeControllerStickAxis( StickWritingArray *stick_arry, DirectXPlayerInput *stick_dead_zone_for_controller, const ControllerDevice controller_device_type );
@@ -132,42 +131,17 @@ void PlayerInput_DoFrame( float frame_delta, Universe *universe )
 
 //#define MAX_NUM_KEYSTATES    ( 50 )
 #define MAX_NUM_CONTROLLER_BUTTONS ( 32 )
-#define MAX_NUM_CONTROLLER_SWITCHES    ( 16 )
+#define MAX_NUM_CONTROLLER_SWITCHES    ( 16 )  
 
 struct Controller
     {
     uint32_t button_states;
-
     };
 
 DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
 IGameInputReading *reading = NULL;
 
-/* TODO get Keyboard input. can consider adding later */
-//if (SUCCEEDED(game_input_library->GetCurrentReading(GameInputKindKeyboard, the_keyboard, &reading)))
-//    {
-//    if (!the_keyboard)
-//        {
-//        reading->GetDevice(&the_keyboard);
-//        }
-//
-//    uint32_t keyboard_key_count = reading->GetKeyCount();
-//    GameInputKeyState state[ MAX_NUM_KEYSTATES ];
-//    uint32_t state_count = keyboard_key_count;
-//    if (state_count > MAX_NUM_KEYSTATES)
-//        {
-//        state_count = MAX_NUM_KEYSTATES;
-//        }
-//
-//        // Retrieve the fixed-format gamepad state from the reading.
-//        uint32_t num_states_filled_out = reading->GetKeyState(state_count, state);
-//        reading->Release();
-//        
-//        for( uint32_t i = 0; i < num_states_filled_out; i++ )
-//            {
-//            printf( "Key was pressed: %d\n", state[i].scanCode);
-//            }
-//    }
+
 
 
 /* Get controller input */
@@ -176,38 +150,37 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
     if (!input->the_gamepad) reading->GetDevice( &input->the_gamepad );   //dynamically add a controller if it is disconnected
 
 
-    // ensure we don't get massive readings if there are errors in the data stream
-     bool button_array[MAX_NUM_CONTROLLER_BUTTONS] = {0};
+    // initialize controller input variables
+     bool button_array[MAX_NUM_CONTROLLER_BUTTONS] = { 0 };
      AxisReadingArray read_axis_array = {};
      TriggerWritingArray write_triggers_array = {};
-     GameInputSwitchPosition switch_array[ MAX_NUM_CONTROLLER_SWITCHES ] = {};
+     GameInputSwitchPosition switch_array[ MAX_NUM_CONTROLLER_SWITCHES ] = {}; 
      StickWritingArray write_stick_axis_array = {};
 
-
+     // check how many inputs we have for the connected controller
     uint32_t button_count = reading->GetControllerButtonCount();
-     if (button_count > cnt_of_array(button_array) )
-        {
-         button_count = cnt_of_array(button_array);
-         printf( "WARNING: Too many controller buttons found in PlayerInput system\n");
-        }
-
     uint32_t axis_count = reading->GetControllerAxisCount();
-     if (axis_count > cnt_of_array( read_axis_array.arr ) )
-     {
-         axis_count = cnt_of_array( read_axis_array.arr );
-         printf("WARNING Too many controller axis found in PlayerInput system\n");
-     }
-
     uint32_t switch_count = reading->GetControllerSwitchCount();
 
 
-
-    if (switch_count > cnt_of_array(switch_array))
+    // ensure we don't get massive readings if there are errors in the data stream
+     if (button_count > MAX_NUM_CONTROLLER_BUTTONS )
         {
-         switch_count = cnt_of_array(switch_array);
-         printf("WARNING Too many controller switces found in PlayerInput system\n" );
+         button_count = MAX_NUM_CONTROLLER_BUTTONS;
+         printf( "WARNING: Too many controller buttons found in PlayerInput system\n");
      }
 
+     if (axis_count > MAX_NUM_CONTROLLER_AXIS )
+     {
+         axis_count = MAX_NUM_CONTROLLER_AXIS;
+         printf("WARNING Too many controller axis found in PlayerInput system\n");
+     }
+
+    if (switch_count > MAX_NUM_CONTROLLER_SWITCHES )
+        {
+         switch_count = MAX_NUM_CONTROLLER_SWITCHES;
+         printf("WARNING Too many controller switces found in PlayerInput system\n" );
+     }
 
      /* pull what kind of controller is connected  */
     const GameInputDeviceInfo *controller_info = NULL;
@@ -237,7 +210,7 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
         switch( vendor_and_device )
             {
             case vendor_and_device_as_u32( CONTROLLER_VENDOR_SONY, CONTROLLER_DEVICE_SONY_DUALSENSE ):
-                for( int i = 0; i < CONTROLLER_SONY_DUALSENSE_BUTTONS_COUNT; i++ )
+                for( int i = 0; i < button_count; i++ )
                     {
                     if( button_array[i] == false )
                         {
@@ -245,13 +218,9 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
                         }
                     SetSonyDualsenseButtonPressed( (ControllerSonyDualsense)(i + CONTROLLER_SONY_DUALSENSE_BUTTONS_FIRST), &component->button_state );
                     }
-                for( int j = 0; j < CONTROLLER_SONY_DUALSENSE_DPAD_COUNT; j++ )
+                for( int j = 0; j < switch_count; j++ )
                     {
-                    if( switch_array[j] == false )
-                        {
-                        continue;
-                        }
-                    SetSonyDualsenseDpadPressed( (ControllerSonyDualsense)(j + CONTROLLER_SONY_DUALSENSE_DPAD_FIRST), &component->button_state );
+                    SetSonyDualsenseDpadPressed( switch_array [ j ], &component->button_state);
                     }
                 /* assign sony_dualsense controller Trigger and stick Axis float data to the generic trigger and stick strutures */
                 SonyDualsenseTriggerAndStickSorting(&read_axis_array, &write_triggers_array, &write_stick_axis_array );
@@ -272,12 +241,12 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
                 break;
             }
         /* print out the controller component data for debuging purposes */
-        TestControllerComponentData( frame_delta, component );
+        //TestControllerComponentData( frame_delta, component );
         }
     reading->Release();
     }
-
 } /* PlayerInput_DoFrame() */
+
 
 
 /*******************************************************************
@@ -463,7 +432,6 @@ switch( button_in )
 } /* SetSonyDualsenseButtonPressed() */
 
 
-
 /*******************************************************************
 *
 *   SetSonyDualsenseDpadPressed()
@@ -474,44 +442,44 @@ switch( button_in )
 *
 *******************************************************************/
 
-static void SetSonyDualsenseDpadPressed( const ControllerSonyDualsense button_in, SingletonControllerInputButtonStateBitArray *ba )
+static void SetSonyDualsenseDpadPressed( GameInputSwitchPosition switch_status, SingletonControllerInputButtonStateBitArray *ba )
 {
-    switch( button_in )
+    switch( switch_status )
     {
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_CENTER - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
-        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_CENTER );
-        break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_UP - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchUp ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_UP );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_UPRIGHT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchUpRight ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_UPRIGHT );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_RIGHT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchRight ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_RIGHT );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_DOWNRIGHT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchDownRight ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_DOWNRIGHT );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_DOWN - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchDown) :
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_DOWN );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_DOWNLEFT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchDownLeft ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_DOWNLEFT );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_LEFT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchLeft ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_LEFT );
         break;
-    case (CONTROLLER_SONY_DUALSENSE_DPAD_UPLEFT - CONTROLLER_SONY_DUALSENSE_DPAD_FIRST):
+    case( GameInputSwitchUpLeft ):
         Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_UPLEFT );
         break;
 
     default:
-        debug_assert( false );
+        //Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_CENTER );
+        
         break;
     }
 
 } /* SetSonyDualsenseDpadPressed() */
+
+
 
 /*******************************************************************
 *
