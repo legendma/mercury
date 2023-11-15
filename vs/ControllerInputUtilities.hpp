@@ -1,0 +1,34 @@
+#pragma once
+
+#include "ComponentClass.hpp"
+
+
+typedef bool ControllerButtonQuery( const ECS::SingletonControllerInputComponent *component );
+
+ControllerButtonQuery IsDpadCenterPressed;
+ControllerButtonQuery IsDpadUpPressed;
+ControllerButtonQuery IsDpadUpRightPressed;
+ControllerButtonQuery IsDpadRightPressed;
+ControllerButtonQuery IsDpadDownRightPressed;
+ControllerButtonQuery IsDpadDownPressed;
+ControllerButtonQuery IsDpadDownLeftPressed;
+ControllerButtonQuery IsDpadLeftPressed;
+ControllerButtonQuery IsDpadUpLeftPressed;
+ControllerButtonQuery IsLeftStickPressed;
+ControllerButtonQuery IsRightStickPressed;
+ControllerButtonQuery IsL1Pressed;
+ControllerButtonQuery IsR1Pressed;
+ControllerButtonQuery IsL2Pressed;
+ControllerButtonQuery IsR2Pressed;
+ControllerButtonQuery IsMenuPressed;
+ControllerButtonQuery IsOptionsPressed;
+ControllerButtonQuery IsCenterPadPressed;
+ControllerButtonQuery IsPowerPressed;
+ControllerButtonQuery IsMutePressed;
+ControllerButtonQuery IsBotButtonPressed;
+ControllerButtonQuery IsTopButtonPressed;
+ControllerButtonQuery IsLeftButtonPressed;
+ControllerButtonQuery IsRightButtonPressed;
+
+
+

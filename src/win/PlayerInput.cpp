@@ -210,7 +210,7 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
         switch( vendor_and_device )
             {
             case vendor_and_device_as_u32( CONTROLLER_VENDOR_SONY, CONTROLLER_DEVICE_SONY_DUALSENSE ):
-                for( int i = 0; i < button_count; i++ )
+                for( uint32_t i = 0; i < button_count; i++ )
                     {
                     if( button_array[i] == false )
                         {
@@ -218,7 +218,7 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
                         }
                     SetSonyDualsenseButtonPressed( (ControllerSonyDualsense)(i + CONTROLLER_SONY_DUALSENSE_BUTTONS_FIRST), &component->button_state );
                     }
-                for( int j = 0; j < switch_count; j++ )
+                for( uint32_t j = 0; j < switch_count; j++ )
                     {
                     SetSonyDualsenseDpadPressed( switch_array [ j ], &component->button_state);
                     }

@@ -40,11 +40,13 @@
     <ClCompile Include="..\src\game\Engine.cpp">
       <Filter>game</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\Event.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp">
       <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\Command.cpp" />
+    <ClCompile Include="..\src\ecs\Event.cpp" />
+    <ClCompile Include="ControllerInputUtilities.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,11 +86,14 @@
     <ClInclude Include="..\src\game\Engine.hpp">
       <Filter>game</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\Event.hpp">
-      <Filter>game</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp">
       <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ecs\Command.hpp" />
+    <ClInclude Include="..\src\ecs\Event.hpp" />
+    <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
+    <ClInclude Include="ControllerInputUtilities.hpp">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
