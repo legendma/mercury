@@ -580,4 +580,3 @@ void InitializeControllerButtonUtilities( SingletonControllerInputComponent *com
 	component->is_pressed[ CONTROLLER_BUTTON_RIGHT_BUTTON]		= IsRightButtonPressed;
 
 } /* InitializeControllerButtonUtilities */
-

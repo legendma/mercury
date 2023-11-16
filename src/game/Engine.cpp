@@ -4,6 +4,7 @@
 #include "PlayerInput.hpp"
 #include "Render.hpp"
 #include "Universe.hpp"
+#include "Sound.hpp"
 
 using namespace ECS;
 
@@ -29,6 +30,8 @@ if( !Event_Init( &the_universe ) )       return( false );
 if( !Render_Init( &the_universe ) )      return( false );
 if( !PlayerInput_Init( &the_universe ) ) return( false );
 if( !GameMode_Init( &the_universe ) )    return( false );
+
+Sound_Do();
 
 return( true );
 
