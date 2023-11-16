@@ -5,10 +5,13 @@
 #include <cstring>
 #include <stdbool.h>
 
-#include "universe.hpp"
+
+#include "ControllerInputUtilities.hpp"
 #include "HardwareIDs.hpp"
-#include "Utilities.hpp"
 #include "math.hpp"
+#include "universe.hpp"
+#include "Utilities.hpp"
+
 
 using namespace ECS;
 
@@ -87,6 +90,12 @@ if( GameInputCreate( &input->game_input_library ) != S_OK )
 /* controller dead zone settings. TODO move this to a LUA script */
 input->controller_trigger_dead_zone[CONTROLLER_DEVICE_SONY_DUALSENSE] = 0.1f;
 input->controller_stick_dead_zone[CONTROLLER_DEVICE_SONY_DUALSENSE] = 0.1f;
+
+SingletonControllerInputComponent *controller = (SingletonControllerInputComponent *)Universe_GetSingletonComponent( COMPONENT_SINGLETON_CONTROLLER_INPUT, universe );
+*controller = {};
+
+/* setup the utilties functions in the controller input component */
+InitializeControllerButtonUtilities( controller );
   
 return( true );
 
@@ -204,7 +213,9 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
 
         /* grab controller input component*/
         SingletonControllerInputComponent *component = (SingletonControllerInputComponent *)Universe_GetSingletonComponent( COMPONENT_SINGLETON_CONTROLLER_INPUT, universe );
-        *component = {};
+        component->button_state = {0};
+        //component->axis_state = {0};
+        //component->trigger_state = { 0 };
 
         /* interpret controller data and save it to component */
         switch( vendor_and_device )
@@ -472,7 +483,7 @@ static void SetSonyDualsenseDpadPressed( GameInputSwitchPosition switch_status, 
         break;
 
     default:
-        //Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_CENTER );
+        Math_BitArraySet( ba->ba, CONTROLLER_BUTTON_DPAD_CENTER );
         
         break;
     }

@@ -87,12 +87,17 @@ typedef struct _SingletonControllerInputButtonStateBitArray
                         ba[ SINGLETON_CONTROLLER_INPUT_BUTTON_BA_COUNT ];
     } SingletonControllerInputButtonStateBitArray;
 
+struct _SingletonControllerInputComponent;
+typedef bool ControllerButtonQuery( const _SingletonControllerInputComponent *component );
+
 typedef struct _SingletonControllerInputComponent
     {
     SingletonControllerInputButtonStateBitArray
                         button_state;
     Vec2                axis_state [CONTROLLER_AXIS_COUNT ];
     float               trigger_state [CONTROLLER_TRIGGERS_COUNT ];
+    ControllerButtonQuery
+                       *is_pressed[ CONTROLLER_BUTTON_COUNT ];
     } SingletonControllerInputComponent;
 
 /*******************************************************************

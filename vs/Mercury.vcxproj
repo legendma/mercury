@@ -27,11 +27,11 @@
     <ClCompile Include="..\src\ecs\Universe.cpp" />
     <ClCompile Include="..\src\game\Engine.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
+    <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
     <ClCompile Include="..\src\win\Render.cpp" />
-    <ClCompile Include="ControllerInputUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Command.hpp" />
@@ -42,6 +42,7 @@
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
+    <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\game\GameMode.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
@@ -50,7 +51,6 @@
     <ClInclude Include="..\src\win\ComUtilities.hpp" />
     <ClInclude Include="..\src\win\PlayerInput.hpp" />
     <ClInclude Include="..\src\win\Render.hpp" />
-    <ClInclude Include="ControllerInputUtilities.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
