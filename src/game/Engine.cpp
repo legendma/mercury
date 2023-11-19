@@ -25,13 +25,12 @@ bool Engine_Init()
 {
 Universe_Init( &the_universe );
 
-if( !Command_Init( &the_universe ) )     return( false );
-if( !Event_Init( &the_universe ) )       return( false );
-if( !Render_Init( &the_universe ) )      return( false );
-if( !PlayerInput_Init( &the_universe ) ) return( false );
-if( !GameMode_Init( &the_universe ) )    return( false );
-
-Sound_Do();
+if( !Command_Init( &the_universe ) )		 return( false );
+if( !Event_Init( &the_universe ) )			 return( false );
+if( !Render_Init( &the_universe ) )			 return( false );
+if( !Sound_Init( &the_universe ) )           return( false );
+if( !PlayerInput_Init( &the_universe ) )	 return( false );
+if( !GameMode_Init( &the_universe ) )		 return( false );
 
 return( true );
 
@@ -52,6 +51,9 @@ void Engine_DoFrame( float frame_delta )
 GameMode_DoFrame( frame_delta, &the_universe );
 PlayerInput_DoFrame( frame_delta, &the_universe );
 Render_DoFrame( frame_delta, &the_universe );
+Sound_Update( frame_delta, &the_universe );
+
+/* always last */
 Event_DoFrame( frame_delta, &the_universe );
 Command_DoFrame( frame_delta, &the_universe );
 
@@ -72,6 +74,7 @@ bool Engine_Destroy()
 GameMode_Destroy( &the_universe );
 PlayerInput_Destroy( &the_universe );
 Render_Destroy( &the_universe );
+Sound_Destroy ( &the_universe );
 Event_Destroy( &the_universe );
 Command_Destroy( &the_universe );
 Universe_Destroy( &the_universe );
