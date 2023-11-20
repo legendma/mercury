@@ -209,6 +209,20 @@ typedef struct _PendingCommandComponent
 
 /*******************************************************************
 *
+*   COMPONENT_SOUNDS - SoundsComponent
+*
+*******************************************************************/
+
+
+typedef struct _SoundsComponent
+{
+void                   *sound_event_description;
+void                   *sound_event_instance;
+}SoundsComponent;
+
+
+/*******************************************************************
+*
 *   COMPONENT_SINGLETON_COMMAND - SingletonCommandComponent
 *
 *******************************************************************/
@@ -240,6 +254,7 @@ typedef enum
     COMPONENT_SINGLETON_PLAYER_INPUT,
     COMPONENT_SINGLETON_RENDER,
     COMPONENT_SINGLETON_SOUND_SYSTEM,
+    COMPONENT_SOUNDS,
     /* count */
     COMPONENT_CNT
     } ComponentClass;
@@ -260,7 +275,8 @@ static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in
     { COMPONENT_SINGLETON_GAME_MODE,        sizeof( SingletonGameModeComponent )        },
     { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent )     },
     { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )          },
-    { COMPONENT_SINGLETON_SOUND_SYSTEM,     sizeof( SingletonSoundSystemComponent )     }
+    { COMPONENT_SINGLETON_SOUND_SYSTEM,     sizeof( SingletonSoundSystemComponent )     },
+    { COMPONENT_SOUNDS,                     sizeof( SoundsComponent )                   }
     };
 compiler_assert( cnt_of_array( COMPONENT_CLASS_SIZES ) == COMPONENT_CNT, component_class_hpp );
 

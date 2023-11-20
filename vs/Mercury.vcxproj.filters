@@ -43,16 +43,9 @@
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ecs\Command.cpp">
-      <Filter>ecs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ecs\Event.cpp">
-      <Filter>ecs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\game\ResourceManager.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp">
+    <ClCompile Include="..\src\ecs\Command.cpp" />
+    <ClCompile Include="..\src\ecs\Event.cpp" />
+    <ClCompile Include="ControllerInputUtilities.cpp">
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\Sound.cpp">

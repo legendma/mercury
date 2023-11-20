@@ -4,7 +4,7 @@
 
 #include "Math.hpp"
 
-#define MAX_FILEPATH_LENGTH         ( 100 )
+#define MAX_FILEPATH_LENGTH         ( 400 )
 static const char *RELATIVE_ROOT_DIRECTORY[] =
     {
     ".\\",                          /* deployed (w/ asset deploy)   */
