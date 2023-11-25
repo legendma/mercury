@@ -8,8 +8,7 @@
 static const char *RELATIVE_ROOT_DIRECTORY[] =
     {
     ".\\",                          /* deployed (w/ asset deploy)   */
-    "..\\..\\",                     /* deployed (w/o asset deploy)  */
-    "..\\"                          /* non-deployed (visual studio) */
+    "..\\bin\\deploy\\"             /* non-deployed (visual studio) */
     };
 
 typedef Vec4 Color4f;
