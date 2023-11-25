@@ -162,7 +162,8 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
-xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"</Command>
+xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
+..\bin\deploy\tools\ResourcePackager.exe -d ..\assets\assets.json -o ..\bin\deploy\AllAssets.bin -r ..\assets</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -183,7 +184,8 @@ xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"</Com
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
-xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"</Command>
+xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
+..\bin\deploy\tools\ResourcePackager.exe -d ..\assets\assets.json -o ..\bin\deploy\AllAssets.bin -r ..\assets</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
