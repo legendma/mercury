@@ -30,6 +30,7 @@
     <ClCompile Include="..\src\game\ResourceManager.cpp" />
     <ClCompile Include="..\src\game\Sound.cpp" />
     <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
+    <ClCompile Include="..\src\utils\HashMap.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="..\src\game\Sound.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\game\GameMode.hpp" />
+    <ClInclude Include="..\src\utils\HashMap.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
@@ -111,11 +113,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>

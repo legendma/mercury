@@ -58,6 +58,9 @@
     <ClCompile Include="..\src\game\Sound.cpp">
       <Filter>game</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utils\HashMap.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -116,6 +119,9 @@
     </ClInclude>
     <ClInclude Include="..\src\game\Sound.hpp">
       <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\HashMap.hpp">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

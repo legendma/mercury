@@ -1,4 +1,3 @@
-//#include <fbxsdk.h>
 #include <cstring>
 
 //#include "Utilities.hpp"
