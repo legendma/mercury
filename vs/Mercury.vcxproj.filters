@@ -13,6 +13,9 @@
     <Filter Include="game">
       <UniqueIdentifier>{348f5a52-4498-49dc-af8c-6a8e46d96fc5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{77282b91-67e0-4371-84d5-9dcf387fb6c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ecs\Component.cpp">
@@ -43,9 +46,16 @@
     <ClCompile Include="..\src\ecs\NonOwningGroup.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ecs\Command.cpp" />
-    <ClCompile Include="..\src\ecs\Event.cpp" />
-    <ClCompile Include="ControllerInputUtilities.cpp">
+    <ClCompile Include="..\src\ecs\Command.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ecs\Event.cpp">
+      <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\ResourceManager.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp">
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\Sound.cpp">
@@ -53,6 +63,9 @@
     </ClCompile>
     <ClCompile Include="..\src\utils\HashMap.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tools\ResourcePackager\src\AssetFile.cpp">
+      <Filter>game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,5 +129,10 @@
     <ClInclude Include="..\src\utils\HashMap.hpp">
       <Filter>utils</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

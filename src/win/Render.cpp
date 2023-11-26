@@ -8,8 +8,8 @@
 #include <winuser.h>
 
 #include "ComUtilities.hpp"
-#include "Event.hpp" // TODO <MPA>
 #include "Render.hpp"
+#include "ResourceManager.hpp"
 #include "Universe.hpp"
 #include "Utilities.hpp"
 
@@ -17,6 +17,7 @@ using namespace ECS;
 
 #define SWAP_CHAIN_DOUBLE_BUFFER    ( 2 )
 #define NODE_MASK_SINGLE_GPU        ( 0 )
+#define SCRATCH_SIZE                ( 1024 * 1024 )
 
 typedef enum _BackbufferSwapResult
     {
@@ -24,8 +25,16 @@ typedef enum _BackbufferSwapResult
     BACKBUFFER_SWAP_RESULT_BACKBUFFER,
     } BackbufferSwapResult;
 
+typedef struct _Scratch
+    {
+    void               *ptr;        /* scratch memory               */
+    size_t              size;       /* scratch size                 */
+    } Scratch;
+
 typedef struct _DX12Render
     {
+    Scratch             scratch;
+    ResourceManager     resources;
     ID3D12Device       *device;
     IDXGIFactory4      *dxgi_factory;
     UINT                descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
@@ -144,6 +153,15 @@ if( !component->ptr )
 
 DX12Render *render = (DX12Render*)component->ptr;
 *render = {};
+render->scratch.size = SCRATCH_SIZE;
+render->scratch.ptr = malloc( render->scratch.size );
+if( !render->scratch.ptr )
+    {
+    return( false );
+    }
+
+ResourceManager_Init( &render->resources );
+
 render->msaa_count           = 1;
 render->msaa_quality         = 0;
 render->render_target_format = DXGI_FORMAT_R8G8B8A8_UNORM;

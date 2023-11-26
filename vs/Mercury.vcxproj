@@ -35,6 +35,7 @@
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
     <ClCompile Include="..\src\win\Render.cpp" />
+    <ClCompile Include="..\tools\ResourcePackager\src\AssetFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Command.hpp" />
@@ -57,6 +58,11 @@
     <ClInclude Include="..\src\win\PlayerInput.hpp" />
     <ClInclude Include="..\src\win\Render.hpp" />
     <ClInclude Include="ControllerInputUtilities.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -163,7 +169,8 @@
       <AdditionalDependencies>d3d12.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
+      <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"
+xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
 xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
 ..\bin\deploy\tools\ResourcePackager.exe -d ..\assets\assets.json -o ..\bin\deploy\AllAssets.bin -r ..\assets</Command>
     </PostBuildEvent>
@@ -185,7 +192,8 @@ xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
       <AdditionalDependencies>d3d12.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
+      <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"
+xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
 xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
 ..\bin\deploy\tools\ResourcePackager.exe -d ..\assets\assets.json -o ..\bin\deploy\AllAssets.bin -r ..\assets</Command>
     </PostBuildEvent>

@@ -25,7 +25,6 @@ static Universe the_universe;
 
 bool Engine_Init()
 {
-ResourceManager_Init();
 Universe_Init( &the_universe );
 
 if( !Command_Init( &the_universe ) )		 return( false );
