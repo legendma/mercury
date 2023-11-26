@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <GameInput.h>
-#include <cassert>
 
 #include "ApplicationTimer.hpp"
 #include "Engine.hpp"

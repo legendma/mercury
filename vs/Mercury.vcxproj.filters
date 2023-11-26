@@ -70,6 +70,21 @@
     <ClCompile Include="..\src\utils\MathVector.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\win\RenderShaders.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\LinearAllocator.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\RenderInitializers.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\RenderModels.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\RenderPipelines.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -131,6 +146,24 @@
     </ClInclude>
     <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\RenderShaders.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\LinearAllocator.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\RenderInitializers.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\RenderModels.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\RenderPipelines.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\RenderEngine.hpp">
+      <Filter>win</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

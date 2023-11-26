@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include "HashMap.hpp"
+#include "Utilities.hpp"
 
 
 static bool At( const uint32_t key, const HashMap *h, uint32_t *out );
@@ -72,13 +73,13 @@ return( false );
 *
 *******************************************************************/
 
-void HashMap_Insert( const uint32_t key, const void *value, HashMap *h )
+void * HashMap_Insert( const uint32_t key, const void *value, HashMap *h )
 {
 if( h->size >= h->capacity )
     {
     /* Exceeded map capacity */
     assert( false );
-    return;
+    return( NULL );
     }
 
 uint32_t found_index;
@@ -86,14 +87,16 @@ if( At( key, h, &found_index ) )
     {
     /* key already existed, so overwrite */
     EnterAtIndex( found_index, key, value, h );
-    return;
+    return( GetStorageAtIndex( found_index, h ) );
     }
 
 uint32_t empty_index;
-assert( AtAvailable( key, h, &empty_index ) );
+do_debug_assert( AtAvailable( key, h, &empty_index ) );
 EnterAtIndex( empty_index, key, value, h );
 
 h->size++;
+
+return( GetStorageAtIndex( empty_index, h ) );
 
 } /* HashMap_Insert() */
 
@@ -178,7 +181,7 @@ return( false );
 static bool AtAvailable( const uint32_t key, const HashMap *h, uint32_t *out )
 {
 *out = (uint32_t) - 1;
-if( h->size == 0 )
+if( h->size >= h->capacity )
     {
     return( false );
     }
@@ -284,7 +287,11 @@ static void EnterAtIndex( const uint32_t index, const uint32_t key, const void *
 {
 h->keys[ index ].is_used = true;
 h->keys[ index ].key     = key;
-memcpy( GetStorageAtIndex( index, h ), value, h->value_stride );
+
+if( value )
+    {
+    memcpy( GetStorageAtIndex( index, h ), value, h->value_stride );
+    }
 
 } /* EnterAtIndex() */
 

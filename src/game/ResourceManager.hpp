@@ -1,30 +1,26 @@
 #pragma once
 
 #include "AssetFile.hpp"
-#include "HashMap.hpp"
 
-
-#define MAX_UNIQUE_RESOURCES        ( 1000 )
-#define HASH_MAP_LUFT               ( 1.3f )
-#define hash_map_capacity( _count ) \
-    (uint32_t)( HASH_MAP_LUFT * (float)(_count) )
-
-typedef struct _RMHashMapValue
-    {
-    uint32_t            ref_count;  /* reference count              */
-    } RMHashMapValue;
-
-typedef struct _RMHashMap
-    {
-    HashMapKey          keys[ hash_map_capacity( MAX_UNIQUE_RESOURCES ) ];
-    RMHashMapValue      values[ hash_map_capacity( MAX_UNIQUE_RESOURCES ) ];
-    HashMap             map;
-    } RMHashMap;
 
 typedef struct _ResourceManager
     {
-    RMHashMap           map;
     AssetFileReader     reader;
     } ResourceManager;
 
-bool ResourceManager_Init( ResourceManager *manager );
+typedef struct _ResourceManagerModelStats
+    {
+    uint32_t            vertex_count;
+    uint32_t            vertex_stride;
+    uint32_t            index_count;
+    uint32_t            index_stride;
+    uint32_t            mesh_count;
+    uint32_t            node_count;
+    } ResourceManagerModelStats;
+
+bool     ResourceManager_Destroy( ResourceManager *manager );
+uint32_t ResourceManager_GetModelMeshIndices( const AssetFileAssetId asset_id, const uint32_t mesh_index, const uint32_t index_capacity, AssetFileModelIndex *indices, ResourceManager *manager );
+uint32_t ResourceManager_GetModelMeshVertices( const AssetFileAssetId asset_id, const uint32_t mesh_index, const uint32_t vertex_capacity, AssetFileModelVertex *vertices, ResourceManager *manager );
+bool     ResourceManager_GetModelStats( const AssetFileAssetId asset_id, ResourceManagerModelStats *out_stats, ResourceManager *manager );
+bool     ResourceManager_GetShader( const AssetFileAssetId asset_id, uint32_t *sz, uint8_t *bytes, ResourceManager *manager );
+bool     ResourceManager_Init( ResourceManager *manager );

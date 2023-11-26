@@ -1,6 +1,8 @@
 #pragma once
 #include <cassert>
 #include <climits>
+#include <cstdlib>
+#include <cstring>
 
 #include "Math.hpp"
 
@@ -12,6 +14,59 @@ static const char *RELATIVE_ROOT_DIRECTORY[] =
     };
 
 typedef Float4 Color4f;
+
+
+/*******************************************************************
+*
+*   align_of_t()
+*
+*   DESCRIPTION:
+*       Calculate the alignment of the given type.
+*
+*******************************************************************/
+
+#if defined( _MSC_VER )
+#define align_of_t( _type ) \
+    ( alignof( _type ) )
+#endif
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       align_adjust
+*
+*   DESCRIPTION:
+*       Calculate the amount the given address needs adjusting to
+*       meet the given required alignment
+*
+*********************************************************************/
+
+static __inline uint8_t align_adjust
+    (
+    const void         *address,    /* base address                 */
+    const uint8_t       alignment   /* bytes alignment of type      */
+    )
+{
+uint8_t ret = alignment;
+ret -= 1 + (uint8_t)( ( (uintptr_t)address + alignment - 1 ) % alignment );
+
+return( ret );
+
+}   /* align_adjust() */
+
+
+/*******************************************************************
+*
+*   clr_struct()
+*
+*   DESCRIPTION:
+*       Always assert in debug mode.
+*
+*******************************************************************/
+
+#define clr_struct( _ptr ) \
+    memset( _ptr, 0, sizeof(*_ptr) )
 
 
 /*******************************************************************
@@ -119,6 +174,75 @@ typedef Float4 Color4f;
 
 #define debug_assert_always() \
     debug_assert( false )
+
+
+/*******************************************************************
+*
+*   debug_if()
+*
+*   DESCRIPTION:
+*       Do something if the test is true and in debug mode.
+*
+*******************************************************************/
+
+#if defined( _DEBUG )
+#define debug_if( _test, _statements ) \
+    if( _test )                        \
+        {                              \
+        _statements                    \
+        }
+#else
+#define debug_if( _test, _statements )
+#endif
+
+
+/*******************************************************************
+*
+*   do_debug_assert()
+*
+*   DESCRIPTION:
+*       Assert an expression, but still execute it in non-debug
+*       mode.
+*
+*******************************************************************/
+
+#if defined( _DEBUG )
+#define do_debug_assert( _expression ) \
+    assert( _expression )
+#else
+#define do_debug_assert( _expression ) \
+    (void)(_expression)
+#endif
+
+
+/*******************************************************************
+*
+*   hard_assert()
+*
+*   DESCRIPTION:
+*       Assert an expression, and abort if it fails (even in
+*       release).
+*
+*******************************************************************/
+
+#define hard_assert( _expression ) \
+    if( !_expression )                \
+        {                             \
+        abort();                      \
+        }
+
+
+/*******************************************************************
+*
+*   hard_assert_always()
+*
+*   DESCRIPTION:
+*       Abort program.
+*
+*******************************************************************/
+
+#define hard_assert_always() \
+        abort();
 
 
 /*******************************************************************

@@ -56,19 +56,19 @@ bool Sound_AssignSoundtToEntity( const char *sound_name, const bool overwrite_so
 	FMODSoundSystem *system = AsFMODSoundSystem( universe );
 
 	/* attach the sound component to the entity or return the component if it already exists */
-	SoundsComponent *component = (SoundsComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_SOUNDS, universe );
+	SoundsComponent *sound = (SoundsComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_SOUNDS, universe );
 	
 	/* If the entity already has a component and we don't want to overright it then exit*/
-	if( component->sound_event_description != NULL
+	if( sound->event_description != NULL
      && !overwrite_sound )
 	{
 	return( false );
 	}
 	
 	/* add the sound to the component */
-	GetFMODSoundEvent( sound_name, system, (FMOD_STUDIO_EVENTDESCRIPTION **)&component->sound_event_description );
+	GetFMODSoundEvent( sound_name, system, (FMOD_STUDIO_EVENTDESCRIPTION **)&sound->event_description );
 
-	fmod_error_code = FMOD_Studio_EventDescription_CreateInstance( (FMOD_STUDIO_EVENTDESCRIPTION*)component->sound_event_description, (FMOD_STUDIO_EVENTINSTANCE **)&component->sound_event_instance );
+	fmod_error_code = FMOD_Studio_EventDescription_CreateInstance( (FMOD_STUDIO_EVENTDESCRIPTION*)sound->event_description, (FMOD_STUDIO_EVENTINSTANCE **)&sound->event_instance );
 	if( fmod_error_code != FMOD_OK )
 	{
 		printf( "ERROR: FMOD failed to create an instance of the sound. (%s) \n", FMOD_ErrorString( fmod_error_code ) );
@@ -180,8 +180,8 @@ return true;
 bool Sound_PlaySound( const EntityId entity, Universe *universe )
 {
 	FMODSoundSystem *system = AsFMODSoundSystem( universe );
-	SoundsComponent *component = (SoundsComponent *)Universe_TryGetComponent( entity, COMPONENT_SOUNDS, universe );
-	if( component == NULL )
+	SoundsComponent *sound = (SoundsComponent *)Universe_TryGetComponent( entity, COMPONENT_SOUNDS, universe );
+	if( sound == NULL )
 	{
 		printf( " ERROR: This Entity does not have a sound component. Sound cannot be played" );
 		return (false);
@@ -189,7 +189,7 @@ bool Sound_PlaySound( const EntityId entity, Universe *universe )
 
 	/* check if a sound is already playing or about to be played */
 	FMOD_STUDIO_PLAYBACK_STATE sound_state = {};
-	fmod_error_code = FMOD_Studio_EventInstance_GetPlaybackState( (FMOD_STUDIO_EVENTINSTANCE *)component->sound_event_instance, &sound_state );
+	fmod_error_code = FMOD_Studio_EventInstance_GetPlaybackState( (FMOD_STUDIO_EVENTINSTANCE *)sound->event_instance, &sound_state );
 	if( fmod_error_code != FMOD_OK )
 	{
 		printf( "ERROR: FMOD failed to check a sound instance playback state (%s %d) \n", FMOD_ErrorString( fmod_error_code ), sound_state );
@@ -204,7 +204,7 @@ bool Sound_PlaySound( const EntityId entity, Universe *universe )
 	}
 
 	/* play the sound instance */
-	fmod_error_code = FMOD_Studio_EventInstance_Start( (FMOD_STUDIO_EVENTINSTANCE*)component->sound_event_instance );
+	fmod_error_code = FMOD_Studio_EventInstance_Start( (FMOD_STUDIO_EVENTINSTANCE*)sound->event_instance );
 	if( fmod_error_code != FMOD_OK )
 	{
 		printf( "ERROR: FMOD failed to play sound (%s) \n", FMOD_ErrorString( fmod_error_code ) );

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "AssetFile.hpp"
 #include "Entity.hpp"
 #include "Math.hpp"
 #include "Utilities.hpp"
@@ -175,6 +176,17 @@ typedef struct _EventNotificationComponent
 
 /*******************************************************************
 *
+*   COMPONENT_MODEL - ModelComponent
+*
+*******************************************************************/
+
+typedef struct _ModelComponent
+    {
+    AssetFileAssetId    asset_id;
+    } ModelComponent;
+
+/*******************************************************************
+*
 *   COMPONENT_PENDING_COMMAND - PendingCommandComponent
 *
 *******************************************************************/
@@ -209,17 +221,28 @@ typedef struct _PendingCommandComponent
 
 /*******************************************************************
 *
+*   COMPONENT_RELATIONSHIP - RelationshipComponent
+*
+*******************************************************************/
+
+typedef struct _RelationshipComponent
+    {
+    EntityId            parent;
+    EntityId            first_child;
+    EntityId            first_sibling;
+    } RelationshipComponent;
+
+/*******************************************************************
+*
 *   COMPONENT_SOUNDS - SoundsComponent
 *
 *******************************************************************/
 
-
 typedef struct _SoundsComponent
-{
-void                   *sound_event_description;
-void                   *sound_event_instance;
-}SoundsComponent;
-
+    {
+    void               *event_description;
+    void               *event_instance;
+    } SoundsComponent;
 
 /*******************************************************************
 *
@@ -246,7 +269,9 @@ IMPLEMENT_SINGLETON_VOID( SingletonEventComponent );
 typedef enum
     {
     COMPONENT_EVENT_NOTIFICATION,
+    COMPONENT_MODEL,
     COMPONENT_PENDING_COMMAND,
+    COMPONENT_RELATIONSHIP,
     COMPONENT_SINGLETON_COMMAND,
     COMPONENT_SINGLETON_CONTROLLER_INPUT,
     COMPONENT_SINGLETON_GAME_MODE,
@@ -268,7 +293,9 @@ typedef struct _ComponentClassSizes
 static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in the future this table needs to be referenced in update() time, need to store it in the universe as size_t array[ COMPONENT_CNT ] for quick lookup */
     {
     { COMPONENT_EVENT_NOTIFICATION,         sizeof( EventNotificationComponent )        },
+    { COMPONENT_MODEL,                      sizeof( ModelComponent )                    },
     { COMPONENT_PENDING_COMMAND,            sizeof( PendingCommandComponent )           },
+    { COMPONENT_RELATIONSHIP,               sizeof( RelationshipComponent )             },
     { COMPONENT_SINGLETON_COMMAND,          sizeof( SingletonCommandComponent )         },
     { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent ) },
     { COMPONENT_SINGLETON_EVENT,            sizeof( SingletonEventComponent )           },

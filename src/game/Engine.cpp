@@ -55,6 +55,18 @@ PlayerInput_DoFrame( frame_delta, &the_universe );
 Render_DoFrame( frame_delta, &the_universe );
 Sound_Update( frame_delta, &the_universe );
 
+// TODO - <MPA> TESTING REMOVE
+static bool do_once = true;
+if( do_once )
+    {
+    EntityId model_entity = Universe_CreateNewEntity( &the_universe );
+
+    Render_LoadModel( "model_fmod_splash", model_entity, &the_universe );
+    do_once = false;
+    }
+
+// END TODO
+
 /* always last */
 Event_DoFrame( frame_delta, &the_universe );
 Command_DoFrame( frame_delta, &the_universe );

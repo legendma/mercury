@@ -21,7 +21,7 @@ typedef struct _HashMap
 
 void * HashMap_At( const uint32_t key, HashMap *h );
 bool   HashMap_Delete( const uint32_t key, HashMap *h );
-void   HashMap_Insert( const uint32_t key, const void *value, HashMap *h );
+void * HashMap_Insert( const uint32_t key, const void *value, HashMap *h );
 void   HashMap_Init( const size_t capacity, const size_t value_stride, HashMap *h, HashMapKey *keys, void *values );
 
 
