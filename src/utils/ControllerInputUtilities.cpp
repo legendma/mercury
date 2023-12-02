@@ -422,7 +422,7 @@ return( Math_BitArrayIsSet( component->button_state.ba, CONTROLLER_BUTTON_RIGHT_
 *
 *******************************************************************/
 
-Vec2 LeftStickQuery( const SingletonControllerInputComponent *component )
+Float2 LeftStickQuery( const SingletonControllerInputComponent *component )
 {
 return(component->axis_state[ CONTROLLER_AXIS_LEFT_STICK ]);
 
@@ -438,7 +438,7 @@ return(component->axis_state[ CONTROLLER_AXIS_LEFT_STICK ]);
 *
 *******************************************************************/
 
-Vec2 RightStickQuery( const SingletonControllerInputComponent *component )
+Float2 RightStickQuery( const SingletonControllerInputComponent *component )
 {
 return(component->axis_state[ CONTROLLER_AXIS_RIGHT_STICK ]);
 

@@ -29,7 +29,7 @@ ECS::ControllerButtonQuery IsLeftButtonPressed;
 ECS::ControllerButtonQuery IsRightButtonPressed;
 
 
-typedef Vec2 ControllerStickVectorQuery( const ECS::SingletonControllerInputComponent *component );
+typedef Float2 ControllerStickVectorQuery( const ECS::SingletonControllerInputComponent *component );
 
 ControllerStickVectorQuery LeftStickQuery;
 ControllerStickVectorQuery RightStickQuery;

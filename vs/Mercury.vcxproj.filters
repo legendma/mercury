@@ -67,6 +67,9 @@
     <ClCompile Include="..\tools\ResourcePackager\src\AssetFile.cpp">
       <Filter>game</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utils\MathVector.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -114,9 +117,6 @@
     <ClInclude Include="..\src\ecs\Event.hpp">
       <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerInputUtilities.hpp">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\HardwareIDs.hpp">
       <Filter>utils</Filter>
     </ClInclude>
@@ -127,6 +127,9 @@
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utils\HashMap.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp">
       <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>

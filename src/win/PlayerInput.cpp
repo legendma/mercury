@@ -588,8 +588,8 @@ static void WriteControllerTriggerAndStickAxisDataToComponent( SingletonControll
     }
 
     /* write stick data */
-    Vec2 left_stick_vector = {0};
-    Vec2 right_stick_vector = {0};
+    Float2 left_stick_vector = {0};
+    Float2 right_stick_vector = {0};
     
     left_stick_vector.v.x = stick_array->left_stick[CONTROLLER_STICK_AXIS_FLOAT_DATA_X];
     left_stick_vector.v.y = stick_array->left_stick[CONTROLLER_STICK_AXIS_FLOAT_DATA_Y];

@@ -11,7 +11,7 @@ static const char *RELATIVE_ROOT_DIRECTORY[] =
     "..\\bin\\deploy\\"             /* non-deployed (visual studio) */
     };
 
-typedef Vec4 Color4f;
+typedef Float4 Color4f;
 
 
 /*******************************************************************
@@ -29,6 +29,19 @@ typedef Vec4 Color4f;
 
 #define cnt_of_array( _arr ) \
     ( sizeof( _arr ) / sizeof( _arr[ 0 ] ) )
+
+
+/*******************************************************************
+*
+*   cnt_of_array_type()
+*
+*   DESCRIPTION:
+*       Evaluate to the integer number of items in an array type.
+*
+*******************************************************************/
+
+#define cnt_of_array_type( _type ) \
+    ( sizeof( *( (_type*)NULL ) / sizeof( ( (_type*)NULL ) )[ 0 ] ) )
 
 
 /*******************************************************************
