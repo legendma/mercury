@@ -13,6 +13,7 @@
 #include "Render.hpp"
 #include "RenderEngine.hpp"
 #include "RenderInitializers.hpp"
+#include "RenderScene.hpp"
 #include "RenderShaders.hpp"
 #include "ResourceManager.hpp"
 #include "Universe.hpp"
@@ -24,6 +25,40 @@
 
 using namespace ECS;
 using namespace RenderEngine;
+
+
+/*******************************************************************
+*
+*   AdvanceFrame()
+*
+*   DESCRIPTION:
+*       Advance the render engine one frame.
+*
+*******************************************************************/
+
+static inline void AdvanceFrame( Engine *engine )
+{
+debug_assert( Engine_CurrentFrame( engine )->per_object_data.mapped == NULL );
+debug_assert( Engine_CurrentFrame( engine )->per_pass_data.mapped.none == NULL );
+++engine->current_frame %= cnt_of_array( engine->frames );
+
+} /* AdvanceFrame() */
+
+
+/*******************************************************************
+*
+*   CalculateConstantBufferSize()
+*
+*   DESCRIPTION:
+*       The constant buffer must be a multiple of 256 bytes.
+*
+*******************************************************************/
+
+static inline uint32_t CalculateConstantBufferSize( const uint32_t size )
+{
+return( ( size + 255 ) & 0xff );
+
+} /* CalculateConstantBufferSize() */
 
 
 /*******************************************************************
@@ -77,136 +112,98 @@ return( engine->depth_stencil_heap->GetCPUDescriptorHandleForHeapStart() );
 } /* GetDepthStencilView() */
 
 
-static Engine *     AsRenderEngine( Universe* universe );
-static void         ClearBackbuffer( const Color4f clear_color, Engine *engine );
-static void         ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine );
-static bool         CreateCommandObjects( Engine *engine );
-static bool         CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
-static bool         CreateDepthStencil( Engine *engine );
-static bool         CreateDescriptorHeaps( Engine *engine );
-static bool         CreateDevice( Engine *engine );
-static bool         CreateRenderTargetViews( Engine *engine );
-static bool         CreateSwapChain( Engine *engine );
-static bool         CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
-static void         ExecuteCommandLists( Engine *engine );
-static bool         FlushCommandQueue( Engine *engine );
-static bool         GetWindowExtent( HWND window, UINT *width, UINT *height );
-static void         Reset( Engine *engine );
-static bool         ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
-static void         SetDefaultViewport( Engine *engine );
+static Engine * AsRenderEngine( Universe* universe );
+static bool     BeginFrame( Engine *engine );
+static void     ClearBackbuffer( const Color4f clear_color, Engine *engine );
+static void     ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine );
+static bool     CreateCommandObjects( Engine *engine );
+static bool     CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static bool     CreateDepthStencil( Engine *engine );
+static bool     CreateDescriptorHeaps( Engine *engine );
+static bool     CreateDevice( Engine *engine );
+static bool     CreateRenderTargetViews( Engine *engine );
+static bool     CreateSwapChain( Engine *engine );
+static bool     CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static bool     EndFrame( Engine *engine );
+static void     ExecuteCommandLists( Engine *engine );
+static bool     FlushCommandQueue( Engine *engine );
+static bool     GetWindowExtent( HWND window, UINT *width, UINT *height );
+static bool     InitDirectX( Engine *engine );
+static bool     InitFrames( Engine *engine );
+static void     Reset( Engine *engine );
+static bool     ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
+static void     SetDefaultViewport( Engine *engine );
+static bool     WaitForFrameToFinish( uint64_t frame_num, Engine *engine );
 
 
 /*******************************************************************
 *
-*   Render_Init()
+*   Engine_CurrentFrame()
 *
 *   DESCRIPTION:
-*       Initialize the graphics engine.
-*       Returns TRUE if the DirectX 12 library was successfully
-*       loaded.
+*       Get the frame that is currently being built.
 *
 *******************************************************************/
 
-bool Render_Init( Universe *universe )
-{    
-SingletonRenderComponent* component = (SingletonRenderComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_RENDER, universe );
-component->ptr = malloc( sizeof( Engine ) );
-if( !component->ptr )
+Frame * RenderEngine::Engine_CurrentFrame( Engine *engine )
+{
+return( &engine->frames[ engine->current_frame ] );
+
+} /* Engine_CurrentFrame() */
+
+
+/*******************************************************************
+*
+*   Render_ChangeResolutions()
+*
+*   DESCRIPTION:
+*       Change the graphics screen resolution.
+*
+*******************************************************************/
+
+void Render_ChangeResolutions( const uint16_t width, const uint16_t height, Universe *universe )
+{
+Engine *engine = AsRenderEngine( universe );
+
+FlushCommandQueue( engine );
+if( FAILED( engine->gfx->Reset( engine->spare_command_allocator, NULL ) ) )
     {
-    return( false );
+    debug_assert_always();
+    return;
     }
 
-Engine *engine = (Engine*)component->ptr;
-clr_struct( engine );
-
-/* obtain handle to main application window */
-engine->hwnd = ::GetActiveWindow();
-if( engine->hwnd == NULL )
+for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
     {
-    goto failure;
-    }
-    
-/* get the native dimensions of the application window */
-if( !GetWindowExtent( engine->hwnd, &engine->window_width, &engine->window_height ) )
-    {
-    return( false );
+    ComSafeRelease( &engine->backbuffers[ i ] );
     }
 
-/* device and graphics interface factory */
-if( !CreateDevice( engine ) )
+ComSafeRelease( &engine->depth_stencil_buffer );
+
+engine->window_width  = width;
+engine->window_height = height;
+
+if( FAILED( engine->swap_chain->ResizeBuffers( cnt_of_array( engine->backbuffers ), width, height, RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
+ || !CreateRenderTargetViews( engine ) )
     {
-    goto failure;
+    debug_assert_always();
+    return;
     }
 
-/* descriptor sizes */
-for( uint32_t i = 0; i < cnt_of_array( engine->descriptor_sizes ); i++ )
-    {
-    engine->descriptor_sizes[ i ] = engine->device->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
-    }
-
-/* fence */
-if( FAILED( engine->device->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &engine->fence ) ) ) )
-    {
-    goto failure;
-    }
-
-/* command buffer, command lists, and allocator */
-if( !CreateCommandObjects( engine ) )
-    {
-    goto failure;
-    }
-
-/* swap chain */
-if( !CreateSwapChain( engine ) )
-    {
-    goto failure;
-    }
-
-/* desciptor heaps */
-if( !CreateDescriptorHeaps( engine ) )
-    {
-    goto failure;
-    }
-
-/* backbuffer views */
-if( !CreateRenderTargetViews( engine ) )
-    {
-    goto failure;
-    }
-
-/* depth/stencil */
-if( !CreateDepthStencil( engine ) )
-    {
-    goto failure;
-    }
-
-/* set the viewport */
+CreateDepthStencil( engine );
 SetDefaultViewport( engine );
 
 if( FAILED( engine->gfx->Close() ) )
     {
-    goto failure;
+    assert( false );
+    return;
     }
 
 ExecuteCommandLists( engine );
-if( !FlushCommandQueue( engine ) )
-    {
-    goto failure;
-    }
+FlushCommandQueue( engine );
 
-RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &engine->models );
-RenderShaders::ShaderCache_Init( SHADER_CACHE_SZ, &engine->shaders );
+engine->backbuffer_current = 0;
 
-return( true );
-
-failure:
-    {
-    assert( false );
-    Reset( engine );
-    return( false );
-    }
-
-} /* Render_Init() */
+} /* Render_ChangeResolutions() */
 
 
 /*******************************************************************
@@ -243,14 +240,7 @@ component->ptr = NULL;
 void Render_DoFrame( float frame_delta, Universe *universe )
 {
 Engine *engine = AsRenderEngine( universe );
-
-if( FAILED( engine->command_allocator->Reset() ) )
-    {
-    assert( false );
-    return;
-    }
-
-if( FAILED( engine->gfx->Reset( engine->command_allocator, NULL ) ) )
+if( !BeginFrame( engine ) )
     {
     assert( false );
     return;
@@ -278,16 +268,7 @@ if( FAILED( engine->gfx->Close() ) )
 
 ExecuteCommandLists( engine );
 
-/* flip the backbuffer */
-if( FAILED( engine->swap_chain->Present( 0, 0 ) ) )
-    {
-    assert( false );
-    return;
-    }
-
-engine->backbuffer_current = ( engine->backbuffer_current + 1 ) % SWAP_CHAIN_DOUBLE_BUFFER;
-
-if( !FlushCommandQueue( engine ) )
+if( !EndFrame( engine ) )
     {
     assert( false );
     return;
@@ -331,6 +312,42 @@ Universe_RemoveComponentFromEntity( entity, COMPONENT_MODEL, universe );
 return( true );
 
 } /* Render_FreeModel() */
+
+
+/*******************************************************************
+*
+*   Render_Init()
+*
+*   DESCRIPTION:
+*       Initialize the graphics engine.
+*       Returns TRUE if the DirectX 12 library was successfully
+*       loaded.
+*
+*******************************************************************/
+
+bool Render_Init( Universe *universe )
+{    
+SingletonRenderComponent* component = (SingletonRenderComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_RENDER, universe );
+component->ptr = malloc( sizeof( Engine ) );
+if( !component->ptr )
+    {
+    return( false );
+    }
+
+Engine *engine = (Engine*)component->ptr;
+clr_struct( engine );
+
+if( !InitDirectX( engine ) )
+    {
+    return( false );
+    }
+
+RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &engine->models );
+RenderShaders::ShaderCache_Init( SHADER_CACHE_SZ, &engine->shaders );
+
+return( true );
+
+} /* Render_Init() */
 
 
 /*******************************************************************
@@ -381,6 +398,41 @@ SingletonRenderComponent * component = (SingletonRenderComponent*)Universe_GetSi
 return( (Engine*)component->ptr );
 
 } /* AsRenderEngine() */
+
+
+/*******************************************************************
+*
+*   BeginFrame()
+*
+*   DESCRIPTION:
+*       Begin a new render frame.
+*
+*******************************************************************/
+
+static bool BeginFrame( Engine *engine )
+{
+Frame *frame = Engine_CurrentFrame( engine );
+
+uint64_t last_completed_frame = engine->fence->GetCompletedValue();
+if( frame->frame_count != 0
+ && last_completed_frame < frame->frame_count )
+    {
+    WaitForFrameToFinish( frame->frame_count, engine );
+    }
+
+if( FAILED( frame->command_allocator->Reset() ) )
+    {
+    return( false );
+    }
+
+if( FAILED( engine->gfx->Reset( frame->command_allocator, NULL ) ) )
+    {
+    return( false );
+    }
+
+return( true );
+
+} /* BeginFrame() */
 
 
 /*******************************************************************
@@ -437,14 +489,14 @@ if( FAILED( engine->device->CreateCommandQueue( &desc, IID_PPV_ARGS( &engine->co
     return( false );
     }
 
-/* allocator */
-if( FAILED( engine->device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &engine->command_allocator ) ) ) )
+/* spare allocator - we'll use to the issue 'important' commands which fall outside the realm of per-frame */
+if( FAILED( engine->device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &engine->spare_command_allocator ) ) ) )
     {
     return( false );
     }
 
 /* command recording list */
-if( FAILED( engine->device->CreateCommandList( NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->command_allocator, NULL, IID_PPV_ARGS( &engine->gfx ) ) ) )
+if( FAILED( engine->device->CreateCommandList( NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->spare_command_allocator, NULL, IID_PPV_ARGS( &engine->gfx ) ) ) )
     {
     return( false );
     }
@@ -661,6 +713,40 @@ return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE
 
 /*******************************************************************
 *
+*   EndFrame()
+*
+*   DESCRIPTION:
+*       End the current frame.
+*
+*******************************************************************/
+
+static bool EndFrame( Engine *engine )
+{
+Frame *frame = Engine_CurrentFrame( engine );
+
+/* flip the backbuffer (this is weird, apparently it automagically posts to the same GPU command buffer as a command queue) */
+if( FAILED( engine->swap_chain->Present( 0, 0 ) ) )
+    {
+    return( false );
+    }
+
+engine->backbuffer_current = ( engine->backbuffer_current + 1 ) % SWAP_CHAIN_DOUBLE_BUFFER;
+frame->frame_count = ++engine->last_submitted_frame;
+
+if( FAILED( engine->command_queue->Signal( engine->fence, engine->last_submitted_frame ) ) )
+    {
+    return( false );
+    }
+
+AdvanceFrame( engine );
+
+return( true );
+
+} /* EndFrame() */
+
+
+/*******************************************************************
+*
 *   ExecuteCommandLists()
 *
 *   DESCRIPTION:
@@ -681,32 +767,13 @@ engine->command_queue->ExecuteCommandLists( 1, &command_list );
 *   FlushCommandQueue()
 *
 *   DESCRIPTION:
-*       Block until all the graphics commands in the queue have
-*       been completed.
+*       Wait for all unfinished GPU commands to complete.
 *
 *******************************************************************/
 
 static bool FlushCommandQueue( Engine *engine )
 {
-if( FAILED( engine->command_queue->Signal( engine->fence, ++engine->fence_current ) ) )
-    {
-    return( false );
-    }
-
-if( engine->fence->GetCompletedValue() < engine->fence_current )
-    {
-    HANDLE blocking = ::CreateEventEx( NULL, NULL, 0, EVENT_ALL_ACCESS );
-    if( blocking == NULL
-     || FAILED( engine->fence->SetEventOnCompletion( engine->fence_current, blocking ) ) )
-        {
-        return( false );
-        }
-
-    ::WaitForSingleObject( blocking, INFINITE );
-    ::CloseHandle( blocking );
-    }
-
-return( true );
+return( WaitForFrameToFinish( engine->last_submitted_frame, engine ) );
 
 } /* FlushCommandQueue() */
 
@@ -738,6 +805,151 @@ return( true );
 
 /*******************************************************************
 *
+*   InitDirectX()
+*
+*   DESCRIPTION:
+*       Initialize the DirectX driver.
+*
+*******************************************************************/
+
+static bool InitDirectX( Engine *engine )
+{
+/* obtain handle to main application window */
+engine->hwnd = ::GetActiveWindow();
+if( engine->hwnd == NULL )
+    {
+    return( false );
+    }
+    
+/* get the native dimensions of the application window */
+if( !GetWindowExtent( engine->hwnd, &engine->window_width, &engine->window_height ) )
+    {
+    return( false );
+    }
+
+/* device and graphics interface factory */
+if( !CreateDevice( engine ) )
+    {
+    goto failure;
+    }
+
+/* descriptor sizes */
+for( uint32_t i = 0; i < cnt_of_array( engine->descriptor_sizes ); i++ )
+    {
+    engine->descriptor_sizes[ i ] = engine->device->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
+    }
+
+/* fence */
+if( FAILED( engine->device->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &engine->fence ) ) ) )
+    {
+    goto failure;
+    }
+
+if( !InitFrames( engine ) )
+    {
+    goto failure;
+    }
+
+/* command buffer, command lists, and allocator */
+if( !CreateCommandObjects( engine ) )
+    {
+    goto failure;
+    }
+
+/* swap chain */
+if( !CreateSwapChain( engine ) )
+    {
+    goto failure;
+    }
+
+/* desciptor heaps */
+if( !CreateDescriptorHeaps( engine ) )
+    {
+    goto failure;
+    }
+
+/* backbuffer views */
+if( !CreateRenderTargetViews( engine ) )
+    {
+    goto failure;
+    }
+
+/* depth/stencil */
+if( !CreateDepthStencil( engine ) )
+    {
+    goto failure;
+    }
+
+/* set the viewport */
+SetDefaultViewport( engine );
+
+if( FAILED( engine->gfx->Close() ) )
+    {
+    goto failure;
+    }
+
+ExecuteCommandLists( engine );
+if( !FlushCommandQueue( engine ) )
+    {
+    goto failure;
+    }
+
+return( true );
+
+failure:
+    {
+    assert( false );
+    Reset( engine );
+    return( false );
+    }
+
+} /* InitDirectX() */
+
+
+/*******************************************************************
+*
+*   InitFrames()
+*
+*   DESCRIPTION:
+*       Initialize the per-frame resources.
+*
+*******************************************************************/
+
+static bool InitFrames( Engine *engine )
+{
+#define INITIAL_PER_OBJECT_ELEMENT_CNT \
+                                    ( 20 )
+
+for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
+    {
+    Frame *frame = &engine->frames[ i ];
+
+    /* per-object constant buffer */
+    uint32_t element_cnt = INITIAL_PER_OBJECT_ELEMENT_CNT;
+    uint32_t byte_size = CalculateConstantBufferSize( sizeof( GPUObjectData ) * element_cnt );
+
+    if( !CreateUploadBuffer( byte_size, engine->device, &frame->per_object_data.elements ) )
+        {
+        return( false );
+        }
+
+    frame->per_object_data.max_elements = element_cnt;
+
+    /* command allocator */
+    if( FAILED( engine->device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &frame->command_allocator ) ) ) )
+        {
+        return( false );
+        }
+    }
+
+return( true );
+
+#undef INITIAL_PER_OBJECT_ELEMENT_CNT
+} /* InitFrames() */
+
+
+/*******************************************************************
+*
 *   Reset()
 *
 *   DESCRIPTION:
@@ -747,6 +959,13 @@ return( true );
 
 static void Reset( Engine *engine )
 {
+for( uint32_t i = 0; i < cnt_of_array( engine->frames ); i++ )
+    {
+    Frame *frame = &engine->frames[ i ];
+    ComSafeRelease( &frame->per_object_data.elements );
+    ComSafeRelease( &frame->command_allocator );
+    }
+
 ComSafeRelease( &engine->depth_stencil_buffer );
 for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
     {
@@ -756,10 +975,9 @@ for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
 ComSafeRelease( &engine->depth_stencil_heap );
 ComSafeRelease( &engine->render_target_heap );
 ComSafeRelease( &engine->swap_chain );
+ComSafeRelease( &engine->fence );
 ComSafeRelease( &engine->gfx );
 ComSafeRelease( &engine->command_queue );
-ComSafeRelease( &engine->command_allocator );
-ComSafeRelease( &engine->fence );
 ComSafeRelease( &engine->device );
 ComSafeRelease( &engine->dxgi_factory );
 
@@ -846,3 +1064,30 @@ viewport.MaxDepth = 1.0f;
 engine->gfx->RSSetViewports( 1, &viewport );
 
 } /* SetDefaultViewport() */
+
+
+/*******************************************************************
+*
+*   WaitForFrameToFinish()
+*
+*   DESCRIPTION:
+*       Block until all the graphics commands in the queue have
+*       been completed.
+*
+*******************************************************************/
+
+static bool WaitForFrameToFinish( uint64_t frame_num, Engine *engine )
+{
+HANDLE blocking = ::CreateEventEx( NULL, NULL, 0, EVENT_ALL_ACCESS );
+if( blocking == NULL
+ || FAILED( engine->fence->SetEventOnCompletion( frame_num, blocking ) ) )
+    {
+    return( false );
+    }
+
+::WaitForSingleObject( blocking, INFINITE );
+::CloseHandle( blocking );
+
+return( true );
+
+} /* WaitForFrameToFinish() */

@@ -40,6 +40,7 @@
     <ClCompile Include="..\src\win\RenderInitializers.cpp" />
     <ClCompile Include="..\src\win\RenderModels.cpp" />
     <ClCompile Include="..\src\win\RenderPipelines.cpp" />
+    <ClCompile Include="..\src\win\RenderScene.cpp" />
     <ClCompile Include="..\src\win\RenderShaders.cpp" />
     <ClCompile Include="..\tools\ResourcePackager\src\AssetFile.cpp" />
   </ItemGroup>
@@ -69,6 +70,7 @@
     <ClInclude Include="..\src\win\RenderInitializers.hpp" />
     <ClInclude Include="..\src\win\RenderModels.hpp" />
     <ClInclude Include="..\src\win\RenderPipelines.hpp" />
+    <ClInclude Include="..\src\win\RenderScene.hpp" />
     <ClInclude Include="..\src\win\RenderShaders.hpp" />
     <ClInclude Include="ControllerInputUtilities.hpp" />
   </ItemGroup>

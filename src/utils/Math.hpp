@@ -38,6 +38,37 @@ typedef union _Float4
 
 typedef Float4 Quaternion;
 
+typedef union _Float4x4
+    {
+    float f[ 4 ][ 4 ];
+    struct
+        {
+        float           _11;
+        float           _12;
+        float           _13;
+        float           _14;
+        float           _21;
+        float           _22;
+        float           _23;
+        float           _24;
+        float           _31;
+        float           _32;
+        float           _33;
+        float           _34;
+        float           _41;
+        float           _42;
+        float           _43;
+        float           _44;
+        } v;
+    struct
+        {
+        Float2          x_basis;
+        Float2          y_basis;
+        Float2          z_basis;
+        Float2          translation;
+        } n;
+    } Float4x4;
+
 /**************************/
 /* Vector Math Functions*/
 /**************************/

@@ -16,6 +16,22 @@ static Universe the_universe;
 
 /*******************************************************************
 *
+*   Engine_ChangeResolutions()
+*
+*   DESCRIPTION:
+*       Change the display resolution of the game.
+*
+*******************************************************************/
+
+void Engine_ChangeResolutions( const uint16_t width, const uint16_t height )
+{
+Render_ChangeResolutions( width, height, &the_universe );
+
+} /* Engine_ChangeResolutions() */
+
+
+/*******************************************************************
+*
 *   Engine_Init()
 *
 *   DESCRIPTION:

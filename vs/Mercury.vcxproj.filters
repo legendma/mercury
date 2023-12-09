@@ -85,6 +85,9 @@
     <ClCompile Include="..\src\win\RenderPipelines.cpp">
       <Filter>win</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\win\RenderScene.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">
@@ -163,6 +166,10 @@
       <Filter>win</Filter>
     </ClInclude>
     <ClInclude Include="..\src\win\RenderEngine.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInputUtilities.hpp" />
+    <ClInclude Include="..\src\win\RenderScene.hpp">
       <Filter>win</Filter>
     </ClInclude>
   </ItemGroup>
