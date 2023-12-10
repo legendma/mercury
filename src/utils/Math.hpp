@@ -3,6 +3,9 @@
 #include <cstdint>
 
 
+#define NUM_BITS_PER_BYTE \
+    CHAR_BIT
+
 typedef union _Float2
     {
     float f[ 2 ];
@@ -59,19 +62,67 @@ typedef union _Float4x4
         float           _42;
         float           _43;
         float           _44;
-        } v;
-    struct
-        {
-        Float2          x_basis;
-        Float2          y_basis;
-        Float2          z_basis;
-        Float2          translation;
         } n;
     } Float4x4;
 
 /**************************/
 /* Vector Math Functions*/
 /**************************/
+
+/*******************************************************************
+*
+*   Math_Float2Make()
+*
+*******************************************************************/
+
+static inline Float2 Math_Float2Make( const float x, const float y )
+{
+Float2 ret;
+ret.v.x = x;
+ret.v.y = y;
+
+return( ret );
+
+} /* Math_Float2Make() */
+
+
+/*******************************************************************
+*
+*   Math_Float3Make()
+*
+*******************************************************************/
+
+static inline Float3 Math_Float3Make( const float x, const float y, const float z )
+{
+Float3 ret;
+ret.v.x = x;
+ret.v.y = y;
+ret.v.z = z;
+
+return( ret );
+
+} /* Math_Float3Make() */
+
+
+/*******************************************************************
+*
+*   Math_Float4Make()
+*
+*******************************************************************/
+
+static inline Float4 Math_Float4Make( const float x, const float y, const float z, const float w )
+{
+Float4 ret;
+ret.v.x = x;
+ret.v.y = y;
+ret.v.z = z;
+ret.v.w = w;
+
+return( ret );
+
+} /* Math_Float4Make() */
+
+
 
 Float2 Math_Float2Addition( const Float2 A, const Float2 B );
 Float3 Math_Float3Addition( const Float3 A, const Float3 B );
@@ -116,40 +167,49 @@ float Math_Float2SquareMagnitude( const Float2 A );
 float Math_Float3SquareMagnitude( const Float3 A );
 float Math_Float4SquareMagnitude( const Float4 A );
 
-float Math_AngleBetweenFloat2( const Float2 A, const Float2 B );
-float Math_AngleBetweenFloat3( const Float3 A, const Float3 B );
-float Math_AngleBetweenFloat4( const Float4 A, const Float4 B );
+float Math_Float2AngleBetween( const Float2 A, const Float2 B );
+float Math_Float3AngleBetween( const Float3 A, const Float3 B );
+float Math_Float4AngleBetween( const Float4 A, const Float4 B );
 
-bool Math_IsAngleObtuseFloat2( const Float2 A, const Float2 B );
-bool Math_IsAngleObtuseFloat3( const Float3 A, const Float3 B );
-bool Math_IsAngleObtuseFloat4( const Float4 A, const Float4 B );
+bool Math_Float2IsAngleObtuse( const Float2 A, const Float2 B );
+bool Math_Float3IsAngleObtuse( const Float3 A, const Float3 B );
+bool Math_Float4IsAngleObtuse( const Float4 A, const Float4 B );
 
-bool Math_IsAngleAcuteFloat2( const Float2 A, const Float2 B );
-bool Math_IsAngleAcuteFloat3( const Float3 A, const Float3 B );
-bool Math_IsAngleAcuteFloat4( const Float4 A, const Float4 B );
+bool Math_Float2IsAngleAcute( const Float2 A, const Float2 B );
+bool Math_Float3IsAngleAcute( const Float3 A, const Float3 B );
+bool Math_Float4IsAngleAcute( const Float4 A, const Float4 B );
 
-bool Math_IsAnglePerpendicularFloat2( const Float2 A, const Float2 B );
-bool Math_IsAnglePerpendicularFloat3( const Float3 A, const Float3 B );
-bool Math_IsAnglePerpendicularFloat4( const Float4 A, const Float4 B );
+bool Math_Float2IsAnglePerpendicular( const Float2 A, const Float2 B );
+bool Math_Float3IsAnglePerpendicular( const Float3 A, const Float3 B );
+bool Math_Float4IsAnglePerpendicular( const Float4 A, const Float4 B );
 
-float Math_DistanceBetweenFloat2( const Float2 A, const Float2 B );
-float Math_DistanceBetweenFloat3( const Float3 A, const Float3 B );
-float Math_DistanceBetweenFloat4( const Float4 A, const Float4 B );
+float Math_Float2DistanceBetween( const Float2 A, const Float2 B );
+float Math_Float3DistanceBetween( const Float3 A, const Float3 B );
+float Math_Float4DistanceBetween( const Float4 A, const Float4 B );
 
-float Math_SquaredDistanceBetweenFloat2( const Float2 A, const Float2 B );
-float Math_SquaredDistanceBetweenFloat3( const Float3 A, const Float3 B );
-float Math_SquaredDistanceBetweenFloat4( const Float4 A, const Float4 B );
+float Math_Float2SquaredDistanceBetween( const Float2 A, const Float2 B );
+float Math_Float3SquaredDistanceBetween( const Float3 A, const Float3 B );
+float Math_Float4SquaredDistanceBetween( const Float4 A, const Float4 B );
 
+
+/*****************************/
+/* Quaternion Math Functions */
+/*****************************/
+void Math_QuaternionToFloat4x4( const Quaternion in, Float4x4 *out );
+
+
+/*****************************/
+/* Matrix Math Functions */
+/*****************************/
+void Math_Float4x4MakeScaleFromFloat3( const Float3 scale, Float4x4 *out );
+void Math_Float4x4MakeTranslateFromFloat3( const Float3 translation, Float4x4 *out );
+void Math_Float4x4MultiplyByFloat4x4( const Float4x4 *a, const Float4x4 *b, Float4x4 *out );
+void Math_Float4x4TransformSpin( const Float3 translation, const Quaternion rotation, const Float3 scale, Float4x4 *out );
 
 
 /*************************/
-/* Bit Array Functions */
+/*  Bit Array Functions  */
 /*************************/
-
-
-
-#define NUM_BITS_PER_BYTE \
-    CHAR_BIT
 
 /*******************************************************************
 *

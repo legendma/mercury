@@ -182,7 +182,8 @@ typedef struct _EventNotificationComponent
 
 typedef struct _ModelComponent
     {
-    AssetFileAssetId    asset_id;
+    uint32_t            scene_name_hash;
+    AssetFileNameString asset_name;
     } ModelComponent;
 
 /*******************************************************************
@@ -201,15 +202,26 @@ typedef enum _PendingCommandClass
 
 typedef union _PendingCommandCommand
     {
-    struct
-        {
-        EntityId        entity;
-        } destroy_entity;           /* PENDING_COMMAND_DESTROY_ENTITY */
+    /* PENDING_COMMAND_CHANGE_GAME_MODE */
     struct
         {
         GameModeMainMode
                         new_mode;
-        } change_game_mode;         /* PENDING_COMMAND_CHANGE_GAME_MODE */
+        } change_game_mode;
+
+    /* PENDING_COMMAND_DESTROY_ENTITY */
+    struct
+        {
+        EntityId        entity;
+        } destroy_entity;
+
+    /* PENDING_COMMAND_LOAD_MODEL */
+    struct
+        {
+        EntityId        entity;
+        AssetFileNameString
+                        asset_name;
+        } load_model;
     } PendingCommandCommand;
 
 typedef struct _PendingCommandComponent
@@ -221,16 +233,22 @@ typedef struct _PendingCommandComponent
 
 /*******************************************************************
 *
-*   COMPONENT_RELATIONSHIP - RelationshipComponent
+*   COMPONENT_SCENE - SceneComponent
 *
 *******************************************************************/
 
-typedef struct _RelationshipComponent
+#define SCENE_COMPONENT_NAME_MAX_LEN \
+                                    ( 20 )
+
+typedef struct _SceneComponent
     {
-    EntityId            parent;
-    EntityId            first_child;
-    EntityId            first_sibling;
-    } RelationshipComponent;
+    Float2              viewport_top_left;
+    Float2              viewport_extent;
+    uint64_t            draw_order;
+    char                scene_name[ SCENE_COMPONENT_NAME_MAX_LEN ];
+    uint32_t            scene_name_hash;
+    void               *render_state;
+    } SceneComponent;
 
 /*******************************************************************
 *
@@ -262,6 +280,19 @@ IMPLEMENT_SINGLETON_VOID( SingletonEventComponent );
 
 /*******************************************************************
 *
+*   COMPONENT_TRANSFORM - TransformComponent
+*
+*******************************************************************/
+
+typedef struct _TransformComponent
+    {
+    Float3              position;
+    Quaternion          rotation;
+    Float3              scale;
+    } TransformComponent;
+
+/*******************************************************************
+*
 *   Component Classes
 *
 *******************************************************************/
@@ -271,7 +302,7 @@ typedef enum
     COMPONENT_EVENT_NOTIFICATION,
     COMPONENT_MODEL,
     COMPONENT_PENDING_COMMAND,
-    COMPONENT_RELATIONSHIP,
+    COMPONENT_SCENE,
     COMPONENT_SINGLETON_COMMAND,
     COMPONENT_SINGLETON_CONTROLLER_INPUT,
     COMPONENT_SINGLETON_GAME_MODE,
@@ -280,6 +311,7 @@ typedef enum
     COMPONENT_SINGLETON_RENDER,
     COMPONENT_SINGLETON_SOUND_SYSTEM,
     COMPONENT_SOUNDS,
+    COMPONENT_TRANSFORM,
     /* count */
     COMPONENT_CNT
     } ComponentClass;
@@ -290,12 +322,12 @@ typedef struct _ComponentClassSizes
     size_t              size;
     } ComponentClassSizes;
 
-static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in the future this table needs to be referenced in update() time, need to store it in the universe as size_t array[ COMPONENT_CNT ] for quick lookup */
+static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
     {
     { COMPONENT_EVENT_NOTIFICATION,         sizeof( EventNotificationComponent )        },
     { COMPONENT_MODEL,                      sizeof( ModelComponent )                    },
     { COMPONENT_PENDING_COMMAND,            sizeof( PendingCommandComponent )           },
-    { COMPONENT_RELATIONSHIP,               sizeof( RelationshipComponent )             },
+    { COMPONENT_SCENE,                      sizeof( SceneComponent )                    },
     { COMPONENT_SINGLETON_COMMAND,          sizeof( SingletonCommandComponent )         },
     { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent ) },
     { COMPONENT_SINGLETON_EVENT,            sizeof( SingletonEventComponent )           },
@@ -303,7 +335,8 @@ static const ComponentClassSizes COMPONENT_CLASS_SIZES[] = /* TODO <MPA> - If in
     { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent )     },
     { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )          },
     { COMPONENT_SINGLETON_SOUND_SYSTEM,     sizeof( SingletonSoundSystemComponent )     },
-    { COMPONENT_SOUNDS,                     sizeof( SoundsComponent )                   }
+    { COMPONENT_SOUNDS,                     sizeof( SoundsComponent )                   },
+    { COMPONENT_TRANSFORM,                  sizeof( TransformComponent )                }
     };
 compiler_assert( cnt_of_array( COMPONENT_CLASS_SIZES ) == COMPONENT_CNT, component_class_hpp );
 

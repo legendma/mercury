@@ -98,6 +98,8 @@ return( ret );
 *       Optionally returns the controlling component, which is
 *       unknown to the caller most of the time, and shouldn't be
 *       used unless the iterator has just a single component class.
+*		Don't assume you know the controlling component unless there
+*		is only one possibility!
 *
 *******************************************************************/
 

@@ -58,10 +58,23 @@ return( ret );
 
 /*******************************************************************
 *
+*   clr_array()
+*
+*   DESCRIPTION:
+*       Set the array's memory to all zeroes.
+*
+*******************************************************************/
+
+#define clr_array( _arr ) \
+    memset( _arr, 0, cnt_of_array( _arr ) * sizeof(*_arr) )
+
+
+/*******************************************************************
+*
 *   clr_struct()
 *
 *   DESCRIPTION:
-*       Always assert in debug mode.
+*       Set the given structure's memory to all zeroes.
 *
 *******************************************************************/
 
@@ -226,7 +239,7 @@ return( ret );
 *******************************************************************/
 
 #define hard_assert( _expression ) \
-    if( !_expression )                \
+    if( !(_expression) )              \
         {                             \
         abort();                      \
         }
@@ -284,6 +297,88 @@ return( ret );
 
 #define max_of_vals( _a, _b ) \
     ( _a > _b ? _a : _b )
+
+
+/*******************************************************************
+*
+*   Utilities_HashString
+*
+*   DESCRIPTION:
+*       Compute a hash key from the given string.
+*
+*******************************************************************/
+
+static inline uint32_t Utilities_HashString( const char *str, const size_t len )
+{
+static const uint32_t SEED  = 0x811c9dc5;
+static const uint32_t PRIME = 0x01000193;
+
+uint32_t ret = SEED;
+for( uint32_t i = 0; i < len; i++ )
+    {
+    ret ^= str[ i ];
+    ret *= PRIME;
+    }
+
+return( ret );
+
+} /* Utilities_HashString() */
+
+
+/*******************************************************************
+*
+*   Utilities_HashPointer
+*
+*   DESCRIPTION:
+*       Compute a hash key from the given pointer.
+*
+*******************************************************************/
+
+static inline uint32_t Utilities_HashPointer( const void *ptr )
+{
+typedef union
+    {
+    const void         *ptr;
+    struct
+        {
+        char            arr[ sizeof(void*) ];
+        } a;
+    } AsChars;
+
+AsChars as;
+as.ptr = ptr;
+
+return( Utilities_HashString( as.a.arr, cnt_of_array( as.a.arr ) ) );
+
+} /* Utilities_HashPointer() */
+
+
+/*******************************************************************
+*
+*   Utilities_HashU32
+*
+*   DESCRIPTION:
+*       Compute a hash key from the given uint32.
+*
+*******************************************************************/
+
+static inline uint32_t Utilities_HashU32( const uint32_t value )
+{
+typedef union
+    {
+    uint32_t            u32;
+    struct
+        {
+        char            arr[ sizeof(uint32_t) ];
+        } a;
+    } AsChars;
+
+AsChars as;
+as.u32 = value;
+
+return( Utilities_HashString( as.a.arr, cnt_of_array( as.a.arr ) ) );
+
+} /* Utilities_HashU32() */
 
 
 /*******************************************************************

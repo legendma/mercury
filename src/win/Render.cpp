@@ -8,8 +8,11 @@
 #include <winbase.h>
 #include <winuser.h>
 
+#include "AssetFile.hpp"
+#include "Command.hpp"
 #include "ComUtilities.hpp"
 #include "HashMap.hpp"
+#include "NonOwningGroup.hpp"
 #include "Render.hpp"
 #include "RenderEngine.hpp"
 #include "RenderInitializers.hpp"
@@ -20,7 +23,6 @@
 #include "Utilities.hpp"
 
 
-#define MODEL_CACHE_SZ              ( 800 * 1024 * 1024 )
 #define SHADER_CACHE_SZ             ( 250 * 1024 * 1024 )
 
 using namespace ECS;
@@ -72,7 +74,7 @@ return( ( size + 255 ) & 0xff );
 
 static inline ID3D12Resource * GetCurrentBackbuffer( Engine *engine )
 {
-return( engine->backbuffers[ engine->backbuffer_current ] );
+return( engine->surfaces.backbuffers[ engine->surfaces.backbuffer_current ] );
 
 } /* GetCurrentBackbuffer() */
 
@@ -88,8 +90,8 @@ return( engine->backbuffers[ engine->backbuffer_current ] );
 
 static inline D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentBackbufferView( Engine *engine )
 {
-D3D12_CPU_DESCRIPTOR_HANDLE ret = engine->render_target_heap->GetCPUDescriptorHandleForHeapStart();
-ret.ptr += engine->backbuffer_current * engine->descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ];
+D3D12_CPU_DESCRIPTOR_HANDLE ret = engine->surfaces.rtv_heap->GetCPUDescriptorHandleForHeapStart();
+ret.ptr += engine->surfaces.backbuffer_current * engine->surfaces.descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ];
 
 return( ret );
 
@@ -107,7 +109,7 @@ return( ret );
 
 static inline D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView( Engine *engine )
 {
-return( engine->depth_stencil_heap->GetCPUDescriptorHandleForHeapStart() );
+return( engine->surfaces.dsv_heap->GetCPUDescriptorHandleForHeapStart() );
 
 } /* GetDepthStencilView() */
 
@@ -115,7 +117,6 @@ return( engine->depth_stencil_heap->GetCPUDescriptorHandleForHeapStart() );
 static Engine * AsRenderEngine( Universe* universe );
 static bool     BeginFrame( Engine *engine );
 static void     ClearBackbuffer( const Color4f clear_color, Engine *engine );
-static void     ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine );
 static bool     CreateCommandObjects( Engine *engine );
 static bool     CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
 static bool     CreateDepthStencil( Engine *engine );
@@ -124,15 +125,20 @@ static bool     CreateDevice( Engine *engine );
 static bool     CreateRenderTargetViews( Engine *engine );
 static bool     CreateSwapChain( Engine *engine );
 static bool     CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static void     DrawScenes( Engine *engine, Universe *universe );
 static bool     EndFrame( Engine *engine );
 static void     ExecuteCommandLists( Engine *engine );
 static bool     FlushCommandQueue( Engine *engine );
 static bool     GetWindowExtent( HWND window, UINT *width, UINT *height );
 static bool     InitDirectX( Engine *engine );
 static bool     InitFrames( Engine *engine );
+static UniverseComponentOnAttachProc
+                OnSceneAttach;
+static UniverseComponentOnAttachProc
+                OnSceneRemove;
 static void     Reset( Engine *engine );
 static bool     ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
-static void     SetDefaultViewport( Engine *engine );
+static void     SetViewport( const Float2 top_left, const Float2 extent, Engine *engine );
 static bool     WaitForFrameToFinish( uint64_t frame_num, Engine *engine );
 
 
@@ -154,6 +160,23 @@ return( &engine->frames[ engine->current_frame ] );
 
 /*******************************************************************
 *
+*   Engine_ClearDepthStencil()
+*
+*   DESCRIPTION:
+*       Clear the depth/stencil buffer to the given depth and
+*       stencil values.
+*
+*******************************************************************/
+
+void RenderEngine::Engine_ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine )
+{
+engine->commands.gfx->ClearDepthStencilView( GetDepthStencilView( engine ), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, clear_depth, clear_stencil, 0, NULL );
+
+} /* Engine_ClearDepthStencil() */
+
+
+/*******************************************************************
+*
 *   Render_ChangeResolutions()
 *
 *   DESCRIPTION:
@@ -166,23 +189,23 @@ void Render_ChangeResolutions( const uint16_t width, const uint16_t height, Univ
 Engine *engine = AsRenderEngine( universe );
 
 FlushCommandQueue( engine );
-if( FAILED( engine->gfx->Reset( engine->spare_command_allocator, NULL ) ) )
+if( FAILED( engine->commands.gfx->Reset( engine->commands.spare_allocator, NULL ) ) )
     {
     debug_assert_always();
     return;
     }
 
-for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
+for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     {
-    ComSafeRelease( &engine->backbuffers[ i ] );
+    ComSafeRelease( &engine->surfaces.backbuffers[ i ] );
     }
 
-ComSafeRelease( &engine->depth_stencil_buffer );
+ComSafeRelease( &engine->surfaces.depth_stencil );
 
-engine->window_width  = width;
-engine->window_height = height;
+engine->window.width  = width;
+engine->window.height = height;
 
-if( FAILED( engine->swap_chain->ResizeBuffers( cnt_of_array( engine->backbuffers ), width, height, RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
+if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
  || !CreateRenderTargetViews( engine ) )
     {
     debug_assert_always();
@@ -190,9 +213,9 @@ if( FAILED( engine->swap_chain->ResizeBuffers( cnt_of_array( engine->backbuffers
     }
 
 CreateDepthStencil( engine );
-SetDefaultViewport( engine );
+SetViewport( Math_Float2Make( 0.0f, 0.0f ), Math_Float2Make( (float)engine->window.width, (float)engine->window.height ), engine );
 
-if( FAILED( engine->gfx->Close() ) )
+if( FAILED( engine->commands.gfx->Close() ) )
     {
     assert( false );
     return;
@@ -201,7 +224,7 @@ if( FAILED( engine->gfx->Close() ) )
 ExecuteCommandLists( engine );
 FlushCommandQueue( engine );
 
-engine->backbuffer_current = 0;
+engine->surfaces.backbuffer_current = 0;
 
 } /* Render_ChangeResolutions() */
 
@@ -246,27 +269,7 @@ if( !BeginFrame( engine ) )
     return;
     }
 
-D3D12_RESOURCE_BARRIER as_backbuffer = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_RENDER_TARGET, GetCurrentBackbuffer( engine ) );
-engine->gfx->ResourceBarrier( 1, &as_backbuffer );
-
-SetDefaultViewport( engine );
-ClearBackbuffer( Utilities_MakeColor4f( 0.3f, 0.3f, 1.0f, 1.0f ), engine );
-ClearDepthStencil( FAR_DEPTH_VALUE, 0, engine );
-
-D3D12_CPU_DESCRIPTOR_HANDLE backbuffer_view    = GetCurrentBackbufferView( engine );
-D3D12_CPU_DESCRIPTOR_HANDLE depth_stencil_view = GetDepthStencilView( engine );
-engine->gfx->OMSetRenderTargets( 1, &backbuffer_view, TRUE, &depth_stencil_view );
-
-D3D12_RESOURCE_BARRIER as_presentation = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_PRESENT, GetCurrentBackbuffer( engine ) );
-engine->gfx->ResourceBarrier( 1, &as_presentation );
-
-if( FAILED( engine->gfx->Close() ) )
-    {
-    assert( false );
-    return;
-    }
-
-ExecuteCommandLists( engine );
+DrawScenes( engine, universe );
 
 if( !EndFrame( engine ) )
     {
@@ -342,7 +345,8 @@ if( !InitDirectX( engine ) )
     return( false );
     }
 
-RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &engine->models );
+Universe_RegisterComponentLifetime( COMPONENT_SCENE, OnSceneAttach, OnSceneRemove, universe );
+
 RenderShaders::ShaderCache_Init( SHADER_CACHE_SZ, &engine->shaders );
 
 return( true );
@@ -359,26 +363,19 @@ return( true );
 *
 *******************************************************************/
 
-bool Render_LoadModel( const char *asset_name, const EntityId entity, Universe *universe )
+void Render_LoadModel( const char *asset_name, const EntityId entity, Universe *universe )
 {
-Engine *engine = (Engine*)AsRenderEngine( universe );
-/* TODO <MPA> TESTING REMOVE */
-RenderShaders::ShaderModule *shader = RenderShaders::ShaderCache_GetShader( "shader_vs_mvp", &engine->shaders );
+/* entity needs to have a transform component to own a model instance */
+debug_assert( Universe_TryGetComponent( entity, COMPONENT_TRANSFORM, universe ) != NULL );
 
+/* TODO <MPA> TESTING REMOVE */
+Engine *engine = (Engine*)AsRenderEngine( universe );
+RenderShaders::ShaderModule *shader = RenderShaders::ShaderCache_GetShader( "shader_vs_mvp", &engine->shaders );
 /* TODO <MPA> TESTING REMOVE */
 
 (void)Render_FreeModel( entity, universe );
-
-RenderModels::Model *model = RenderModels::ModelCache_GetModel( asset_name, &engine->models );
-if( !model )
-    {
-    return( false );
-    }
-
 ModelComponent *instance = (ModelComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_MODEL, universe );
-instance->asset_id = model->asset_id;
-
-return( true );
+instance->asset_name = AssetFile_CopyNameString( asset_name );
 
 } /* Render_LoadModel() */
 
@@ -413,7 +410,7 @@ static bool BeginFrame( Engine *engine )
 {
 Frame *frame = Engine_CurrentFrame( engine );
 
-uint64_t last_completed_frame = engine->fence->GetCompletedValue();
+uint64_t last_completed_frame = engine->commands.fence->GetCompletedValue();
 if( frame->frame_count != 0
  && last_completed_frame < frame->frame_count )
     {
@@ -425,10 +422,14 @@ if( FAILED( frame->command_allocator->Reset() ) )
     return( false );
     }
 
-if( FAILED( engine->gfx->Reset( frame->command_allocator, NULL ) ) )
+if( FAILED( engine->commands.gfx->Reset( frame->command_allocator, NULL ) ) )
     {
     return( false );
     }
+
+D3D12_RESOURCE_BARRIER as_backbuffer = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_RENDER_TARGET, GetCurrentBackbuffer( engine ) );
+engine->commands.gfx->ResourceBarrier( 1, &as_backbuffer );
+ClearBackbuffer( Utilities_MakeColor4f( 0.3f, 0.3f, 1.0f, 1.0f ), engine );
 
 return( true );
 
@@ -446,26 +447,9 @@ return( true );
 
 static void ClearBackbuffer( const Color4f clear_color, Engine *engine )
 {
-engine->gfx->ClearRenderTargetView( GetCurrentBackbufferView( engine ), clear_color.f, 0, NULL );
+engine->commands.gfx->ClearRenderTargetView( GetCurrentBackbufferView( engine ), clear_color.f, 0, NULL );
 
 } /* ClearBackbuffer() */
-
-
-/*******************************************************************
-*
-*   ClearDepthStencil()
-*
-*   DESCRIPTION:
-*       Clear the depth/stencil buffer to the given depth and
-*       stencil values.
-*
-*******************************************************************/
-
-static void ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine )
-{
-engine->gfx->ClearDepthStencilView( GetDepthStencilView( engine ), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, clear_depth, clear_stencil, 0, NULL );
-
-} /* ClearDepthStencil() */
 
 
 /*******************************************************************
@@ -484,19 +468,19 @@ static bool CreateCommandObjects( Engine *engine )
 D3D12_COMMAND_QUEUE_DESC desc = {};
 desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-if( FAILED( engine->device->CreateCommandQueue( &desc, IID_PPV_ARGS( &engine->command_queue ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommandQueue( &desc, IID_PPV_ARGS( &engine->commands.queue ) ) ) )
     {
     return( false );
     }
 
 /* spare allocator - we'll use to the issue 'important' commands which fall outside the realm of per-frame */
-if( FAILED( engine->device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &engine->spare_command_allocator ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &engine->commands.spare_allocator ) ) ) )
     {
     return( false );
     }
 
 /* command recording list */
-if( FAILED( engine->device->CreateCommandList( NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->spare_command_allocator, NULL, IID_PPV_ARGS( &engine->gfx ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommandList( NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->commands.spare_allocator, NULL, IID_PPV_ARGS( &engine->commands.gfx ) ) ) )
     {
     return( false );
     }
@@ -539,24 +523,24 @@ static bool CreateDepthStencil( Engine *engine )
 {
 /* stencil buffer */
 D3D12_HEAP_PROPERTIES heap_props = RenderInitializers::GetDefaultHeapProperties();
-D3D12_RESOURCE_DESC desc = RenderInitializers::GetDepthStencilResourceDescriptor( engine->window_width, engine->window_height );
+D3D12_RESOURCE_DESC desc = RenderInitializers::GetDepthStencilResourceDescriptor( engine->window.width, engine->window.height );
 
 D3D12_CLEAR_VALUE clear_value = {};
 clear_value.Format               = desc.Format;
 clear_value.DepthStencil.Depth   = FAR_DEPTH_VALUE;
 clear_value.DepthStencil.Stencil = 0;
 
-if( FAILED( engine->device->CreateCommittedResource( &heap_props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, &clear_value, IID_PPV_ARGS( &engine->depth_stencil_buffer ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommittedResource( &heap_props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, &clear_value, IID_PPV_ARGS( &engine->surfaces.depth_stencil ) ) ) )
     {
     return( false );
     }
 
 /* depth/stencil view */
-engine->device->CreateDepthStencilView( engine->depth_stencil_buffer, NULL, GetDepthStencilView( engine ) );
+engine->device.ptr->CreateDepthStencilView( engine->surfaces.depth_stencil, NULL, GetDepthStencilView( engine ) );
 
 /* transition the texture for depth/stencil writes */
-D3D12_RESOURCE_BARRIER barrier = RenderInitializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE, engine->depth_stencil_buffer );
-engine->gfx->ResourceBarrier( 1, &barrier );
+D3D12_RESOURCE_BARRIER barrier = RenderInitializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE, engine->surfaces.depth_stencil );
+engine->commands.gfx->ResourceBarrier( 1, &barrier );
 
 return( true );
 
@@ -576,14 +560,14 @@ static bool CreateDescriptorHeaps( Engine *engine )
 {
 /* swap chain */
 D3D12_DESCRIPTOR_HEAP_DESC swap_chain = RenderInitializers::GetHeapDescriptor( 2, false, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-if( FAILED( engine->device->CreateDescriptorHeap( &swap_chain, IID_PPV_ARGS( &engine->render_target_heap ) ) ) )
+if( FAILED( engine->device.ptr->CreateDescriptorHeap( &swap_chain, IID_PPV_ARGS( &engine->surfaces.rtv_heap ) ) ) )
     {
     return( false );
     }
 
 /* depth stencil */
 D3D12_DESCRIPTOR_HEAP_DESC depth_stencil = RenderInitializers::GetHeapDescriptor( 1, false, D3D12_DESCRIPTOR_HEAP_TYPE_DSV );
-if( FAILED( engine->device->CreateDescriptorHeap( &depth_stencil, IID_PPV_ARGS( &engine->depth_stencil_heap ) ) ) )
+if( FAILED( engine->device.ptr->CreateDescriptorHeap( &depth_stencil, IID_PPV_ARGS( &engine->surfaces.dsv_heap ) ) ) )
     {
     return( false );
     }
@@ -615,21 +599,21 @@ if( SUCCEEDED( D3D12GetDebugInterface( IID_PPV_ARGS( &debug_info ) ) ) )
     }
 #endif
 
-if( FAILED( CreateDXGIFactory2( debug_flags, IID_PPV_ARGS( &engine->dxgi_factory ) ) ) )
+if( FAILED( CreateDXGIFactory2( debug_flags, IID_PPV_ARGS( &engine->device.dxgi ) ) ) )
     {
     return( false );
     }
 
-if( FAILED( D3D12CreateDevice( NULL, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &engine->device ) ) ) )
+if( FAILED( D3D12CreateDevice( NULL, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &engine->device.ptr ) ) ) )
     {
     IDXGIAdapter       *warp;
-    if( FAILED( engine->dxgi_factory->EnumWarpAdapter( IID_PPV_ARGS( &warp ) ) ) )
+    if( FAILED( engine->device.dxgi->EnumWarpAdapter( IID_PPV_ARGS( &warp ) ) ) )
         {
         ComSafeRelease( &warp );
         return( false );
         }
 
-    if( FAILED( D3D12CreateDevice( NULL, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &engine->device ) ) ) )
+    if( FAILED( D3D12CreateDevice( NULL, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &engine->device.ptr ) ) ) )
         {
         ComSafeRelease( &warp );
         return( false );
@@ -652,16 +636,16 @@ return( true );
 
 static bool CreateRenderTargetViews( Engine *engine )
 {
-D3D12_CPU_DESCRIPTOR_HANDLE heap_location = engine->render_target_heap->GetCPUDescriptorHandleForHeapStart();
-for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
+D3D12_CPU_DESCRIPTOR_HANDLE heap_location = engine->surfaces.rtv_heap->GetCPUDescriptorHandleForHeapStart();
+for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     {
-    if( FAILED( engine->swap_chain->GetBuffer( (UINT)i, IID_PPV_ARGS( &engine->backbuffers[ i ] ) ) ) )
+    if( FAILED( engine->surfaces.swap_chain->GetBuffer( (UINT)i, IID_PPV_ARGS( &engine->surfaces.backbuffers[ i ] ) ) ) )
         {
         return( false );
         }
 
-    engine->device->CreateRenderTargetView( engine->backbuffers[ i ], NULL, heap_location );
-    heap_location.ptr += engine->descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ];
+    engine->device.ptr->CreateRenderTargetView( engine->surfaces.backbuffers[ i ], NULL, heap_location );
+    heap_location.ptr += engine->surfaces.descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ];
     }
 
 return( true );
@@ -681,8 +665,8 @@ return( true );
 static bool CreateSwapChain( Engine *engine )
 {
 /* fill out the descriptions */
-DXGI_SWAP_CHAIN_DESC desc = RenderInitializers::GetSwapChainDescriptor( engine->window_width, engine->window_height, engine->hwnd );
-if( FAILED( engine->dxgi_factory->CreateSwapChain( engine->command_queue, &desc, &engine->swap_chain ) ) )
+DXGI_SWAP_CHAIN_DESC desc = RenderInitializers::GetSwapChainDescriptor( engine->window.width, engine->window.height, engine->window.handle );
+if( FAILED( engine->device.dxgi->CreateSwapChain( engine->commands.queue, &desc, &engine->surfaces.swap_chain ) ) )
     {
     return( false );
     }
@@ -713,6 +697,86 @@ return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE
 
 /*******************************************************************
 *
+*   DrawScenes()
+*
+*   DESCRIPTION:
+*       Update and draw each scene.
+*
+*******************************************************************/
+
+static void DrawScenes( Engine *engine, Universe *universe )
+{
+#define MAX_SCENE_CNT               ( 10 )
+
+/* Update all the scenes with their objects */
+HashMapKey              keys[ MAX_SCENE_CNT ];
+RenderScene::Scene     *values[ MAX_SCENE_CNT ];
+HashMap                 map;
+SceneComponent         *draw_order[ MAX_SCENE_CNT ];
+
+HashMap_Init( cnt_of_array( keys ), sizeof(*values), &map, keys, values );
+
+NonOwningGroup_CreateIterator( universe, &engine->group, group_ids( COMPONENT_SCENE ) );
+SceneComponent *seen_scene;
+clr_array( draw_order );
+while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&seen_scene ) )
+    {
+    debug_assert( HashMap_At( seen_scene->scene_name_hash, &map ) == NULL );
+    
+    RenderScene::Scene *render_scene = (RenderScene::Scene*)seen_scene->render_state;
+    RenderScene::Scene_BeginFrame( render_scene );
+
+    hard_assert( HashMap_Insert( seen_scene->scene_name_hash, &seen_scene, &map ) != NULL );
+    draw_order[ map.size - 1 ] = seen_scene;
+    }
+
+if( map.size == 0 )
+    {
+    return;
+    }
+
+EntityId model_entity;
+NonOwningGroup_CreateIterator( universe, &engine->group, group_ids( COMPONENT_MODEL, COMPONENT_TRANSFORM ) );
+while( NonOwningGroup_GetNext( &engine->group, &model_entity, NULL ) )
+    {
+    ModelComponent     *model     = (ModelComponent*)NonOwningGroup_GetComponent( COMPONENT_MODEL, &engine->group );
+    TransformComponent *transform = (TransformComponent*)NonOwningGroup_GetComponent( COMPONENT_TRANSFORM, &engine->group );
+
+    Float4x4 mtx_world;
+    Math_Float4x4TransformSpin( transform->position, transform->rotation, transform->scale, &mtx_world );
+
+    RenderScene::Scene *home_scene = (RenderScene::Scene*)HashMap_At( model->scene_name_hash, &map ); // TODO <MPA> - Do we want an entity to be able to belong to more than one scene?
+    Scene_RegisterObject( model->asset_name.str, model, &mtx_world, home_scene );
+    }
+
+/* do a quick and dirty bubble sort on the scenes to prioritize them by draw order */
+for( uint32_t i = 0; i < map.size; i++ )
+    {
+    for( uint32_t j = 0; j < map.size - i - 1; j++ )
+        {
+        if( draw_order[ j ]->draw_order < draw_order[ j + 1 ]->draw_order )
+            {
+            continue;
+            }
+
+        SceneComponent *temp = draw_order[ j ];
+        draw_order[ j ] = draw_order[ j + 1 ];
+        draw_order[ j + 1 ] = temp;
+        }
+    }
+
+for( uint32_t i = 0; i < map.size; i++ )
+    {
+    SetViewport( draw_order[ i ]->viewport_top_left, draw_order[ i ]->viewport_extent, engine );
+    RenderScene::Scene_Draw( (RenderScene::Scene*)draw_order[ i ]->render_state );
+    }
+
+#undef MAX_SCENE_CNT
+} /* DrawScenes() */
+
+
+/*******************************************************************
+*
 *   EndFrame()
 *
 *   DESCRIPTION:
@@ -724,16 +788,30 @@ static bool EndFrame( Engine *engine )
 {
 Frame *frame = Engine_CurrentFrame( engine );
 
-/* flip the backbuffer (this is weird, apparently it automagically posts to the same GPU command buffer as a command queue) */
-if( FAILED( engine->swap_chain->Present( 0, 0 ) ) )
+D3D12_CPU_DESCRIPTOR_HANDLE backbuffer_view    = GetCurrentBackbufferView( engine );
+D3D12_CPU_DESCRIPTOR_HANDLE depth_stencil_view = GetDepthStencilView( engine );
+engine->commands.gfx->OMSetRenderTargets( 1, &backbuffer_view, TRUE, &depth_stencil_view );
+
+D3D12_RESOURCE_BARRIER as_presentation = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_PRESENT, GetCurrentBackbuffer( engine ) );
+engine->commands.gfx->ResourceBarrier( 1, &as_presentation );
+
+if( FAILED( engine->commands.gfx->Close() ) )
     {
     return( false );
     }
 
-engine->backbuffer_current = ( engine->backbuffer_current + 1 ) % SWAP_CHAIN_DOUBLE_BUFFER;
-frame->frame_count = ++engine->last_submitted_frame;
+ExecuteCommandLists( engine );
 
-if( FAILED( engine->command_queue->Signal( engine->fence, engine->last_submitted_frame ) ) )
+/* flip the backbuffer (this is weird, apparently it automagically posts to the same GPU command buffer as a command queue) */
+if( FAILED( engine->surfaces.swap_chain->Present( 0, 0 ) ) )
+    {
+    return( false );
+    }
+
+engine->surfaces.backbuffer_current = ( engine->surfaces.backbuffer_current + 1 ) % SWAP_CHAIN_DOUBLE_BUFFER;
+frame->frame_count = ++engine->commands.last_submitted_frame;
+
+if( FAILED( engine->commands.queue->Signal( engine->commands.fence, engine->commands.last_submitted_frame ) ) )
     {
     return( false );
     }
@@ -756,8 +834,8 @@ return( true );
 
 static void ExecuteCommandLists( Engine *engine )
 {
-ID3D12CommandList *command_list = engine->gfx;
-engine->command_queue->ExecuteCommandLists( 1, &command_list );
+ID3D12CommandList *command_list = engine->commands.gfx;
+engine->commands.queue->ExecuteCommandLists( 1, &command_list );
 
 } /* ExecuteCommandLists() */
 
@@ -773,7 +851,7 @@ engine->command_queue->ExecuteCommandLists( 1, &command_list );
 
 static bool FlushCommandQueue( Engine *engine )
 {
-return( WaitForFrameToFinish( engine->last_submitted_frame, engine ) );
+return( WaitForFrameToFinish( engine->commands.last_submitted_frame, engine ) );
 
 } /* FlushCommandQueue() */
 
@@ -815,14 +893,14 @@ return( true );
 static bool InitDirectX( Engine *engine )
 {
 /* obtain handle to main application window */
-engine->hwnd = ::GetActiveWindow();
-if( engine->hwnd == NULL )
+engine->window.handle = ::GetActiveWindow();
+if( engine->window.handle == NULL )
     {
     return( false );
     }
     
 /* get the native dimensions of the application window */
-if( !GetWindowExtent( engine->hwnd, &engine->window_width, &engine->window_height ) )
+if( !GetWindowExtent( engine->window.handle, &engine->window.width, &engine->window.height ) )
     {
     return( false );
     }
@@ -834,13 +912,13 @@ if( !CreateDevice( engine ) )
     }
 
 /* descriptor sizes */
-for( uint32_t i = 0; i < cnt_of_array( engine->descriptor_sizes ); i++ )
+for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.descriptor_sizes ); i++ )
     {
-    engine->descriptor_sizes[ i ] = engine->device->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
+    engine->surfaces.descriptor_sizes[ i ] = engine->device.ptr->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
     }
 
 /* fence */
-if( FAILED( engine->device->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &engine->fence ) ) ) )
+if( FAILED( engine->device.ptr->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &engine->commands.fence ) ) ) )
     {
     goto failure;
     }
@@ -881,9 +959,9 @@ if( !CreateDepthStencil( engine ) )
     }
 
 /* set the viewport */
-SetDefaultViewport( engine );
+SetViewport( Math_Float2Make( 0.0f, 0.0f ), Math_Float2Make( (float)engine->window.width, (float)engine->window.height ), engine );
 
-if( FAILED( engine->gfx->Close() ) )
+if( FAILED( engine->commands.gfx->Close() ) )
     {
     goto failure;
     }
@@ -928,7 +1006,7 @@ for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     uint32_t element_cnt = INITIAL_PER_OBJECT_ELEMENT_CNT;
     uint32_t byte_size = CalculateConstantBufferSize( sizeof( GPUObjectData ) * element_cnt );
 
-    if( !CreateUploadBuffer( byte_size, engine->device, &frame->per_object_data.elements ) )
+    if( !CreateUploadBuffer( byte_size, engine->device.ptr, &frame->per_object_data.elements ) )
         {
         return( false );
         }
@@ -936,7 +1014,7 @@ for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     frame->per_object_data.max_elements = element_cnt;
 
     /* command allocator */
-    if( FAILED( engine->device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &frame->command_allocator ) ) ) )
+    if( FAILED( engine->device.ptr->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &frame->command_allocator ) ) ) )
         {
         return( false );
         }
@@ -946,6 +1024,49 @@ return( true );
 
 #undef INITIAL_PER_OBJECT_ELEMENT_CNT
 } /* InitFrames() */
+
+
+/*******************************************************************
+*
+*   OnSceneAttach()
+*
+*   DESCRIPTION:
+*       Handle a scene component being created, and create its
+*       private render state.
+*
+*******************************************************************/
+
+static void OnSceneAttach( const EntityId entity, const ComponentClass cls, void *component, Universe *universe )
+{
+debug_assert( cls == COMPONENT_SCENE );
+SceneComponent *new_scene = (SceneComponent*)component;
+
+RenderScene::Scene *render_scene = (RenderScene::Scene*)malloc( sizeof( RenderScene::Scene ) );
+new_scene->render_state = render_scene;
+
+RenderScene::Scene_Init( AsRenderEngine( universe ), render_scene );
+
+} /* OnSceneAttach() */
+
+
+/*******************************************************************
+*
+*   OnSceneRemove()
+*
+*   DESCRIPTION:
+*       Handle a scene component being created, and destroy its
+*       private render state.
+*
+*******************************************************************/
+
+static void OnSceneRemove( const EntityId entity, const ComponentClass cls, void *component, Universe *universe )
+{
+debug_assert( cls == COMPONENT_SCENE );
+SceneComponent *dying_scene = (SceneComponent*)component;
+
+free( dying_scene->render_state );
+
+} /* OnSceneRemove() */
 
 
 /*******************************************************************
@@ -968,25 +1089,49 @@ for( uint32_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     ComSafeRelease( &frame->command_allocator );
     }
 
-ComSafeRelease( &engine->depth_stencil_buffer );
-for( uint32_t i = 0; i < cnt_of_array( engine->backbuffers ); i++ )
+ComSafeRelease( &engine->surfaces.depth_stencil );
+for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     {
-    ComSafeRelease( &engine->backbuffers[ i ] );
+    ComSafeRelease( &engine->surfaces.backbuffers[ i ] );
     }
 
-ComSafeRelease( &engine->depth_stencil_heap );
-ComSafeRelease( &engine->render_target_heap );
-ComSafeRelease( &engine->swap_chain );
-ComSafeRelease( &engine->fence );
-ComSafeRelease( &engine->gfx );
-ComSafeRelease( &engine->spare_command_allocator );
-ComSafeRelease( &engine->command_queue );
-ComSafeRelease( &engine->device );
-ComSafeRelease( &engine->dxgi_factory );
+ComSafeRelease( &engine->surfaces.dsv_heap );
+ComSafeRelease( &engine->surfaces.rtv_heap );
+ComSafeRelease( &engine->surfaces.swap_chain );
+ComSafeRelease( &engine->commands.fence );
+ComSafeRelease( &engine->commands.gfx );
+ComSafeRelease( &engine->commands.spare_allocator );
+ComSafeRelease( &engine->commands.queue );
+ComSafeRelease( &engine->device.ptr );
+ComSafeRelease( &engine->device.dxgi );
 
-*engine = {0};
+clr_struct( engine );
 
 } /* Reset() */
+
+
+/*******************************************************************
+*
+*   SetViewport()
+*
+*   DESCRIPTION:
+*       Set the given viewport.
+*
+*******************************************************************/
+
+static void SetViewport( const Float2 top_left, const Float2 extent, Engine *engine )
+{
+D3D12_VIEWPORT viewport = {};
+viewport.Width    = (float)engine->window.width;
+viewport.Height   = (float)engine->window.height;
+viewport.TopLeftX = 0.0f;
+viewport.TopLeftY = 0.0f;
+viewport.MinDepth = 0.0f;
+viewport.MaxDepth = 1.0f;
+
+engine->commands.gfx->RSSetViewports( 1, &viewport );
+
+} /* SetViewport() */
 
 
 /*******************************************************************
@@ -1047,30 +1192,6 @@ return( true );
 
 /*******************************************************************
 *
-*   SetDefaultViewport()
-*
-*   DESCRIPTION:
-*       Create the DirectX device.
-*
-*******************************************************************/
-
-static void SetDefaultViewport( Engine *engine )
-{
-D3D12_VIEWPORT viewport = {};
-viewport.Width    = (float)engine->window_width;
-viewport.Height   = (float)engine->window_height;
-viewport.TopLeftX = 0.0f;
-viewport.TopLeftY = 0.0f;
-viewport.MinDepth = 0.0f;
-viewport.MaxDepth = 1.0f;
-
-engine->gfx->RSSetViewports( 1, &viewport );
-
-} /* SetDefaultViewport() */
-
-
-/*******************************************************************
-*
 *   WaitForFrameToFinish()
 *
 *   DESCRIPTION:
@@ -1083,7 +1204,7 @@ static bool WaitForFrameToFinish( uint64_t frame_num, Engine *engine )
 {
 HANDLE blocking = ::CreateEventEx( NULL, NULL, 0, EVENT_ALL_ACCESS );
 if( blocking == NULL
- || FAILED( engine->fence->SetEventOnCompletion( frame_num, blocking ) ) )
+ || FAILED( engine->commands.fence->SetEventOnCompletion( frame_num, blocking ) ) )
     {
     return( false );
     }

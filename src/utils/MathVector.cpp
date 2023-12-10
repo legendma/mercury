@@ -184,12 +184,12 @@ Float3 Math_Float3ScalarMultiply( const Float3 A, const float scalar )
 
 Float4 Math_Float4ScalarMultiply( const Float4 A, const float scalar )
 {
-    Float4 B = {};
-    for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
-    {
-        B.f[i] = A.f[i] * scalar;
-    }
-    return B;
+Float4 B = {};
+for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
+{
+    B.f[i] = A.f[i] * scalar;
+}
+return B;
 
 } /*  Math_Float4ScalarMultiply() */
 
@@ -204,14 +204,13 @@ Float4 Math_Float4ScalarMultiply( const Float4 A, const float scalar )
 *
 *******************************************************************/
 
-Float2 Math_Float2Negative( const Float2 A )
+Float2 Math_Float2Negative( const Float2 a )
 {
-    Float2 B = {};
-    for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
-    {
-        B.f[i] = -A.f[i];
-    }
-    return B;
+Float2 b;
+b.v.x = -a.v.x;
+b.v.y = -a.v.y;
+
+return( b );
 
 } /*  Math_Float2Negative() */
 
@@ -226,14 +225,14 @@ Float2 Math_Float2Negative( const Float2 A )
 *
 *******************************************************************/
 
-Float3 Math_Float3Negative( const Float3 A )
+Float3 Math_Float3Negative( const Float3 a )
 {
-    Float3 B = {};
-    for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
-    {
-        B.f[i] = -A.f[i];
-    }
-    return B;
+Float3 b;
+b.v.x = -a.v.x;
+b.v.y = -a.v.y;
+b.v.z = -a.v.z;
+
+return( b );
 
 } /*  Math_Float3Negative() */
 
@@ -250,12 +249,13 @@ Float3 Math_Float3Negative( const Float3 A )
 
 Float4 Math_Float4Negative( const Float4 A )
 {
-    Float4 B = {};
-    for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
-    {
-        B.f[i] = -A.f[i];
-    }
-    return B;
+Float4 B;
+B.v.x = -A.v.x;
+B.v.y = -A.v.y;
+B.v.z = -A.v.z;
+B.v.w = -A.v.w;
+
+return B;
 
 } /*  Math_Float4Negative() */
 
@@ -271,7 +271,8 @@ Float4 Math_Float4Negative( const Float4 A )
 
 float Math_Float2DotProduct( const Float2 A, const Float2 B )
 {
-    return (A.v.x * B.v.x + A.v.y * B.v.y);
+return (A.v.x * B.v.x + A.v.y * B.v.y);
+
 } /*  Math_Float2DotProduct() */
 
 
@@ -286,7 +287,8 @@ float Math_Float2DotProduct( const Float2 A, const Float2 B )
 
 float Math_Float3DotProduct( const Float3 A, const Float3 B )
 {
-    return (A.v.x * B.v.x + A.v.y * B.v.y + A.v.z * B.v.z);
+return (A.v.x * B.v.x + A.v.y * B.v.y + A.v.z * B.v.z);
+
 } /*  Math_Float3DotProduct() */
 
 
@@ -301,7 +303,8 @@ float Math_Float3DotProduct( const Float3 A, const Float3 B )
 
 float Math_Float4DotProduct( const Float4 A, const Float4 B )
 {
-    return (A.v.x * B.v.x + A.v.y * B.v.y + A.v.z * B.v.z + A.v.w * B.v.w);
+return (A.v.x * B.v.x + A.v.y * B.v.y + A.v.z * B.v.z + A.v.w * B.v.w);
+
 } /*  Math_Float3DotProduct() */
 
 
@@ -318,11 +321,12 @@ float Math_Float4DotProduct( const Float4 A, const Float4 B )
 
 float Math_Float2PseudoCrossProduct( const Float2 A, const Float2 B )
 {
-    Float2 C = {};
-    C.v.x = -B.v.y;
-    C.v.y = B.v.x;
+Float2 C = {};
+C.v.x = -B.v.y;
+C.v.y = B.v.x;
 
-    return (Math_Float2DotProduct(C,A));
+return (Math_Float2DotProduct(C,A));
+
 } /*  Math_Float2PseudoCrossProduct() */
 
 
@@ -337,15 +341,15 @@ float Math_Float2PseudoCrossProduct( const Float2 A, const Float2 B )
 
 Float3 Math_Float3CrossProduct( const Float3 A, const Float3 B )
 {
-    Float3 C = {};
-    float t1 = A.v.x - B.v.y;
-    float t2 = B.v.y + B.v.z;
-    float t3 = A.v.x * B.v.z;
-    float t4 = t1*t2 - t3;
-    C.v.x = B.v.y * (t1 - A.v.z) - t4;
-    C.v.y = A.v.z * B.v.x - t3;
-    C.v.z = t4 - A.v.y * ( B.v.x - t2);
-    return C;
+Float3 C = {};
+float t1 = A.v.x - B.v.y;
+float t2 = B.v.y + B.v.z;
+float t3 = A.v.x * B.v.z;
+float t4 = t1*t2 - t3;
+C.v.x = B.v.y * (t1 - A.v.z) - t4;
+C.v.y = A.v.z * B.v.x - t3;
+C.v.z = t4 - A.v.y * ( B.v.x - t2);
+return C;
 
 } /*  Math_Float3CrossProduct() */
 
@@ -361,11 +365,11 @@ Float3 Math_Float3CrossProduct( const Float3 A, const Float3 B )
 
 float Math_Float3CrossProductMagnitude( const Float3 A, const Float3 B )
 {
-    float magA = Math_Float3Magnitude( A );
-    float magB = Math_Float3Magnitude( B );
-    float angle = Math_AngleBetweenFloat3 (A, B);
+float magA = Math_Float3Magnitude( A );
+float magB = Math_Float3Magnitude( B );
+float angle = Math_Float3AngleBetween (A, B);
 
-    return (magA * magB * (float) sin( angle ));
+return (magA * magB * (float) sin( angle ));
 
 } /*  Math_Float3CrossProductMagnitude() */
 
@@ -381,11 +385,11 @@ float Math_Float3CrossProductMagnitude( const Float3 A, const Float3 B )
 
 float Math_Float4CrossProductMagnitude( const Float4 A, const Float4 B )
 {
-    float magA = Math_Float4Magnitude( A );
-    float magB = Math_Float4Magnitude( B );
-    float angle = Math_AngleBetweenFloat4( A, B );
+float magA = Math_Float4Magnitude( A );
+float magB = Math_Float4Magnitude( B );
+float angle = Math_Float4AngleBetween( A, B );
 
-    return (magA * magB * (float)sin( angle ));
+return (magA * magB * (float)sin( angle ));
 
 } /*  Math_Float4CrossProductMagnitude() */
 
@@ -403,10 +407,10 @@ float Math_Float4CrossProductMagnitude( const Float4 A, const Float4 B )
 
 float Math_Float3BoxProduct( const Float3 A, const Float3 B, const Float3 C )
 {
-    Float3 AxB = {};
-    AxB = Math_Float3CrossProduct(A, B);
+Float3 AxB = {};
+AxB = Math_Float3CrossProduct(A, B);
 
-    return (Math_Float3DotProduct(AxB, C));
+return (Math_Float3DotProduct(AxB, C));
 
 } /*  Math_Float3BoxProduct() */
 
@@ -422,12 +426,12 @@ float Math_Float3BoxProduct( const Float3 A, const Float3 B, const Float3 C )
 
 Float2 Math_Float2TrippleProduct( const Float2 A, const Float2 B, const Float2 C )
 {
-    float scalar1 = Math_Float2DotProduct( A, C );
-    float scalar2 = Math_Float2DotProduct( A, B );
-    Float2 modB = Math_Float2ScalarMultiply( B, scalar1 );
-    Float2 modC = Math_Float2ScalarMultiply( C, scalar2);
+float scalar1 = Math_Float2DotProduct( A, C );
+float scalar2 = Math_Float2DotProduct( A, B );
+Float2 modB = Math_Float2ScalarMultiply( B, scalar1 );
+Float2 modC = Math_Float2ScalarMultiply( C, scalar2);
 
-    return ( Math_Float2Subtraction( modB, modC));
+return ( Math_Float2Subtraction( modB, modC));
 
 } /*  Math_Float2TrippleProduct() */
 
@@ -443,12 +447,12 @@ Float2 Math_Float2TrippleProduct( const Float2 A, const Float2 B, const Float2 C
 
 Float3 Math_Float3TrippleProduct( const Float3 A, const Float3 B, const Float3 C )
 {
-    float scalar1 = Math_Float3DotProduct( A, C );
-    float scalar2 = Math_Float3DotProduct( A, B );
-    Float3 modB = Math_Float3ScalarMultiply( B, scalar1 );
-    Float3 modC = Math_Float3ScalarMultiply( C, scalar2 );
+float scalar1 = Math_Float3DotProduct( A, C );
+float scalar2 = Math_Float3DotProduct( A, B );
+Float3 modB = Math_Float3ScalarMultiply( B, scalar1 );
+Float3 modC = Math_Float3ScalarMultiply( C, scalar2 );
 
-    return (Math_Float3Subtraction( modB, modC ));
+return (Math_Float3Subtraction( modB, modC ));
 
 } /*  Math_Float3TrippleProduct() */
 
@@ -464,12 +468,12 @@ Float3 Math_Float3TrippleProduct( const Float3 A, const Float3 B, const Float3 C
 
 Float4 Math_Float4TrippleProduct( const Float4 A, const Float4 B, const Float4 C )
 {
-    float scalar1 = Math_Float4DotProduct( A, C );
-    float scalar2 = Math_Float4DotProduct( A, B );
-    Float4 modB = Math_Float4ScalarMultiply( B, scalar1 );
-    Float4 modC = Math_Float4ScalarMultiply( C, scalar2 );
+float scalar1 = Math_Float4DotProduct( A, C );
+float scalar2 = Math_Float4DotProduct( A, B );
+Float4 modB = Math_Float4ScalarMultiply( B, scalar1 );
+Float4 modC = Math_Float4ScalarMultiply( C, scalar2 );
 
-    return (Math_Float4Subtraction( modB, modC ));
+return (Math_Float4Subtraction( modB, modC ));
 
 } /*  Math_Float3TrippleProduct() */
 
@@ -485,7 +489,7 @@ Float4 Math_Float4TrippleProduct( const Float4 A, const Float4 B, const Float4 C
 
 float Math_Float2Magnitude( const Float2 A )
 {
-    return ((float) sqrt( Math_Float2DotProduct( A, A )));
+return ((float) sqrt( Math_Float2DotProduct( A, A )));
 
 } /*  Math_Float2Magnitude */
 
@@ -501,7 +505,7 @@ float Math_Float2Magnitude( const Float2 A )
 
 float Math_Float3Magnitude( const Float3 A )
 {
-    return ((float)sqrt( Math_Float3DotProduct( A, A ) ));
+return ((float)sqrt( Math_Float3DotProduct( A, A ) ));
 
 } /*  Math_Float3Magnitude */
 
@@ -517,7 +521,7 @@ float Math_Float3Magnitude( const Float3 A )
 
 float Math_Float4Magnitude( const Float4 A )
 {
-    return ((float) sqrt( Math_Float4DotProduct( A, A ) ));
+return ((float) sqrt( Math_Float4DotProduct( A, A ) ));
 
 } /*  Math_Float4Magnitude */
 
@@ -533,7 +537,7 @@ float Math_Float4Magnitude( const Float4 A )
 
 float Math_Float2SquareMagnitude( const Float2 A )
 {
-    return ( Math_Float2DotProduct( A, A ) );
+return ( Math_Float2DotProduct( A, A ) );
 
 } /*  Math_Float2SquareMagnitude */
 
@@ -549,7 +553,7 @@ float Math_Float2SquareMagnitude( const Float2 A )
 
 float Math_Float3SquareMagnitude( const Float3 A )
 {
-    return (Math_Float3DotProduct( A, A ) );
+return (Math_Float3DotProduct( A, A ) );
 
 } /*  Math_Float3SquareMagnitude */
 
@@ -565,41 +569,41 @@ float Math_Float3SquareMagnitude( const Float3 A )
 
 float Math_Float4SquareMagnitude( const Float4 A )
 {
-    return ( Math_Float4DotProduct( A, A ) );
+return ( Math_Float4DotProduct( A, A ) );
 
 } /*  Math_Float4SquareMagnitude */
 
 
 /*******************************************************************
 *
-*   Math_AngleBetweenFloat2()
+*   Math_Float2AngleBetween()
 *
 *   DESCRIPTION:
 *       Calculates the angle between the two vectors
 *
 *******************************************************************/
 
-float Math_AngleBetweenFloat2( const Float2 A, const Float2 B )
+float Math_Float2AngleBetween( const Float2 A, const Float2 B )
 {
-    float magA = Math_Float2Magnitude( A );
-    float magB = Math_Float2Magnitude( B );
-    float AdotB = Math_Float2DotProduct(  A, B );
+float magA = Math_Float2Magnitude( A );
+float magB = Math_Float2Magnitude( B );
+float AdotB = Math_Float2DotProduct(  A, B );
 
-    return ((float) acos(AdotB/(magA * magB)) );
+return ((float) acos(AdotB/(magA * magB)) );
 
-} /*  Math_AngleBetweenFloat2() */
+} /*  Math_Float2AngleBetween() */
 
 
 /*******************************************************************
 *
-*   Math_AngleBetweenFloat3()
+*   Math_Float3AngleBetween()
 *
 *   DESCRIPTION:
 *       Calculates the angle between the two vectors
 *
 *******************************************************************/
 
-float Math_AngleBetweenFloat3( const Float3 A, const Float3 B )
+float Math_Float3AngleBetween( const Float3 A, const Float3 B )
 {
     float magA = Math_Float3Magnitude( A );
     float magB = Math_Float3Magnitude( B );
@@ -607,19 +611,19 @@ float Math_AngleBetweenFloat3( const Float3 A, const Float3 B )
 
     return ((float)acos( AdotB / (magA * magB) ));
 
-} /*  Math_AngleBetweenFloat3() */
+} /*  Math_Float3AngleBetween() */
 
 
 /*******************************************************************
 *
-*   Math_AngleBetweenFloat4()
+*   Math_Float4AngleBetween()
 *
 *   DESCRIPTION:
 *       Calculates the angle between the two vectors
 *
 *******************************************************************/
 
-float Math_AngleBetweenFloat4( const Float4 A, const Float4 B )
+float Math_Float4AngleBetween( const Float4 A, const Float4 B )
 {
     float magA = Math_Float4Magnitude( A );
     float magB = Math_Float4Magnitude( B );
@@ -627,19 +631,19 @@ float Math_AngleBetweenFloat4( const Float4 A, const Float4 B )
 
     return ((float) acos( AdotB / (magA * magB) ));
 
-} /*  Math_AngleBetweenFloat4() */
+} /*  Math_Float4AngleBetween() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleObtuseFloat2()
+*   Math_Float2IsAngleObtuse()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors > 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleObtuseFloat2( const Float2 A, const Float2 B )
+bool Math_Float2IsAngleObtuse( const Float2 A, const Float2 B )
 {
     if( Math_Float2DotProduct( A, B ) < 0.0)
     {
@@ -647,19 +651,19 @@ bool Math_IsAngleObtuseFloat2( const Float2 A, const Float2 B )
     }
     return false;
 
-} /*  Math_IsAngleObtuseFloat2() */
+} /*  Math_Float2IsAngleObtuse() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleObtuseFloat3()
+*   Math_Float3IsAngleObtuse()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors > 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleObtuseFloat3( const Float3 A, const Float3 B )
+bool Math_Float3IsAngleObtuse( const Float3 A, const Float3 B )
 {
     if( Math_Float3DotProduct( A, B ) < 0.0 )
     {
@@ -667,19 +671,19 @@ bool Math_IsAngleObtuseFloat3( const Float3 A, const Float3 B )
     }
     return false;
 
-} /*  Math_IsAngleObtuseFloat3() */
+} /*  Math_Float3IsAngleObtuse() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleObtuseFloat4()
+*   Math_Float4IsAngleObtuse()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors > 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleObtuseFloat4( const Float4 A, const Float4 B )
+bool Math_Float4IsAngleObtuse( const Float4 A, const Float4 B )
 {
     if( Math_Float4DotProduct( A, B ) < 0.0 )
     {
@@ -687,19 +691,19 @@ bool Math_IsAngleObtuseFloat4( const Float4 A, const Float4 B )
     }
     return false;
 
-} /*  Math_IsAngleObtuseFloat4() */
+} /*  Math_Float4IsAngleObtuse() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleAcuteFloat2()
+*   Math_Float2IsAngleAcute()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors < 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleAcuteFloat2( const Float2 A, const Float2 B )
+bool Math_Float2IsAngleAcute( const Float2 A, const Float2 B )
 {
     if( Math_Float2DotProduct( A, B ) > 0.0 )
     {
@@ -707,19 +711,19 @@ bool Math_IsAngleAcuteFloat2( const Float2 A, const Float2 B )
     }
     return false;
 
-} /*  Math_IsAngleAcuteFloat2() */
+} /*  Math_Float2IsAngleAcute() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleAcuteFloat3()
+*   Math_Float3IsAngleAcute()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors < 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleAcuteFloat3( const Float3 A, const Float3 B )
+bool Math_Float3IsAngleAcute( const Float3 A, const Float3 B )
 {
     if( Math_Float3DotProduct( A, B ) > 0.0 )
     {
@@ -727,19 +731,19 @@ bool Math_IsAngleAcuteFloat3( const Float3 A, const Float3 B )
     }
     return false;
 
-} /*  Math_IsAngleAcuteFloat3() */
+} /*  Math_Float3IsAngleAcute() */
 
 
 /*******************************************************************
 *
-*   Math_IsAngleAcuteFloat4()
+*   Math_Float4IsAngleAcute()
 *
 *   DESCRIPTION:
 *       is the Angle between two vectors < 90 degrees
 *
 *******************************************************************/
 
-bool Math_IsAngleAcuteFloat4( const Float4 A, const Float4 B )
+bool Math_Float4IsAngleAcute( const Float4 A, const Float4 B )
 {
     if( Math_Float4DotProduct( A, B ) > 0.0 )
     {
@@ -747,19 +751,19 @@ bool Math_IsAngleAcuteFloat4( const Float4 A, const Float4 B )
     }
     return false;
 
-} /*  Math_IsAngleAcuteFloat4() */
+} /*  Math_Float4IsAngleAcute() */
 
 
 /*******************************************************************
 *
-*   Math_IsAnglePerpendicularFloat2()
+*   Math_Float2IsAnglePerpendicular()
 *
 *   DESCRIPTION:
 *       Are the two vectors perpendicular?
 *
 *******************************************************************/
 
-bool Math_IsAnglePerpendicularFloat2( const Float2 A, const Float2 B )
+bool Math_Float2IsAnglePerpendicular( const Float2 A, const Float2 B )
 {
     if( Math_Float2DotProduct( A, B ) == 0.0 )
     {
@@ -767,19 +771,19 @@ bool Math_IsAnglePerpendicularFloat2( const Float2 A, const Float2 B )
     }
     return false;
 
-} /*  Math_IsAnglePerpendicularFloat2() */
+} /*  Math_Float2IsAnglePerpendicular() */
 
 
 /*******************************************************************
 *
-*   Math_IsAnglePerpendicularFloat3()
+*   Math_Float3IsAnglePerpendicular()
 *
 *   DESCRIPTION:
 *        Are the two vectors perpendicular?
 *
 *******************************************************************/
 
-bool Math_IsAnglePerpendicularFloat3( const Float3 A, const Float3 B )
+bool Math_Float3IsAnglePerpendicular( const Float3 A, const Float3 B )
 {
     if( Math_Float3DotProduct( A, B ) == 0.0 )
     {
@@ -787,19 +791,19 @@ bool Math_IsAnglePerpendicularFloat3( const Float3 A, const Float3 B )
     }
     return false;
 
-} /*  Math_IsAnglePerpendicularFloat3() */
+} /*  Math_Float3IsAnglePerpendicular() */
 
 
 /*******************************************************************
 *
-*   Math_IsAnglePerpendicularFloat4()
+*   Math_Float4IsAnglePerpendicular()
 *
 *   DESCRIPTION:
 *        Are the two vectors perpendicular?
 *
 *******************************************************************/
 
-bool Math_IsAnglePerpendicularFloat4( const Float4 A, const Float4 B )
+bool Math_Float4IsAnglePerpendicular( const Float4 A, const Float4 B )
 {
     if( Math_Float4DotProduct( A, B ) == 0.0 )
     {
@@ -807,118 +811,118 @@ bool Math_IsAnglePerpendicularFloat4( const Float4 A, const Float4 B )
     }
     return false;
 
-} /*  Math_IsAnglePerpendicularFloat4() */
+} /*  Math_Float4IsAnglePerpendicular() */
 
 
 /*******************************************************************
 *
-*   Math_DistanceBetweenFloat2()
+*   Math_Float2DistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude of the B - A vector
 *
 *******************************************************************/
 
-float Math_DistanceBetweenFloat2( const Float2 A, const Float2 B )
+float Math_Float2DistanceBetween( const Float2 A, const Float2 B )
 {
     Float2 C = {};
     C = Math_Float2Subtraction( B, A );
 
     return ( Math_Float2Magnitude( C ));
 
-} /*  Math_DistanceBetweenFloat2() */
+} /*  Math_Float2DistanceBetween() */
 
 
 /*******************************************************************
 *
-*   Math_DistanceBetweenFloat3()
+*   Math_Float3DistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude of the B - A vector
 *
 *******************************************************************/
 
-float Math_DistanceBetweenFloat3( const Float3 A, const Float3 B )
+float Math_Float3DistanceBetween( const Float3 A, const Float3 B )
 {
     Float3 C = {};
     C = Math_Float3Subtraction( B, A );
 
     return (Math_Float3Magnitude( C ));
 
-} /*  Math_DistanceBetweenFloat3() */
+} /*  Math_Float3DistanceBetween() */
 
 
 /*******************************************************************
 *
-*   Math_DistanceBetweenFloat4()
+*   Math_Float4DistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude of the B - A vector
 *
 *******************************************************************/
 
-float Math_DistanceBetweenFloat4( const Float4 A, const Float4 B )
+float Math_Float4DistanceBetween( const Float4 A, const Float4 B )
 {
     Float4 C = {};
     C = Math_Float4Subtraction( B, A );
 
     return (Math_Float4Magnitude( C ));
 
-} /*  Math_DistanceBetweenFloat4() */
+} /*  Math_Float4DistanceBetween() */
 
 
 /*******************************************************************
 *
-*   Math_SquaredDistanceBetweenFloat2()
+*   Math_Float2SquaredDistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude^2 of the B - A vector
 *
 *******************************************************************/
 
-float Math_SquaredDistanceBetweenFloat2( const Float2 A, const Float2 B )
+float Math_Float2SquaredDistanceBetween( const Float2 A, const Float2 B )
 {
     Float2 C = {};
     C = Math_Float2Subtraction( B, A );
 
     return ( Math_Float2SquareMagnitude( C ));
 
-} /*  Math_SquaredDistanceBetweenFloat2() */
+} /*  Math_Float2SquaredDistanceBetween() */
 
 
 /*******************************************************************
 *
-*   Math_SquaredDistanceBetweenFloat3()
+*   Math_Float3SquaredDistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude^2 of the B - A vector
 *
 *******************************************************************/
 
-float Math_SquaredDistanceBetweenFloat3( const Float3 A, const Float3 B )
+float Math_Float3SquaredDistanceBetween( const Float3 A, const Float3 B )
 {
     Float3 C = {};
     C = Math_Float3Subtraction( B, A );
 
     return (Math_Float3SquareMagnitude( C ));
 
-} /*  Math_SquaredDistanceBetweenFloat3() */
+} /*  Math_Float3SquaredDistanceBetween() */
 
 
 /*******************************************************************
 *
-*   Math_SquaredDistanceBetweenFloat4()
+*   Math_Float4SquaredDistanceBetween()
 *
 *   DESCRIPTION:
 *        Calculate the magnitude^2 of the B - A vector
 *
 *******************************************************************/
 
-float Math_SquaredDistanceBetweenFloat4( const Float4 A, const Float4 B )
+float Math_Float4SquaredDistanceBetween( const Float4 A, const Float4 B )
 {
     Float4 C = {};
     C = Math_Float4Subtraction( B, A );
 
     return (Math_Float4SquareMagnitude( C ));
 
-} /*  Math_SquaredDistanceBetweenFloat4() */
+} /*  Math_Float4SquaredDistanceBetween() */

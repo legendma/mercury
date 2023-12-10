@@ -9,9 +9,9 @@
 
 namespace ECS
 {
-static ComponentRegistry * GetComponentRegistry( const ComponentClass component, Universe *universe );
+static ComponentRegistry *       GetComponentRegistry( const ComponentClass component, Universe *universe );
 static const ComponentRegistry * GetComponentRegistryConst( const ComponentClass component, const Universe *universe );
-static CommandProcedure ProcessCommand;
+static CommandProcedure          ProcessCommand;
 
 
 /*******************************************************************
@@ -38,7 +38,14 @@ if( Component_EntityHasComponent( entity, component_registry ) )
     return( Component_GetComponent( entity, component_registry ) );
     }
 
-return( Component_AttachComponent( entity, component_registry ) );
+void *ret = Component_AttachComponent( entity, component_registry );
+ComponentLifetime *lifetime = &universe->lifetime[ component ];
+for( uint32_t i = 0; i < lifetime->notify_attach_count; i++ )
+    {
+    lifetime->notify_attach[ i ]( entity, component, ret, universe );
+    }
+
+return( ret );
 
 }   /* Universe_AttachComponentToEntity() */
 
@@ -96,11 +103,7 @@ void Universe_DestroyEntity( const EntityId entity, Universe *universe )
 {
 for( uint32_t i = 0; i < cnt_of_array( universe->components ); i++ )
     {
-    ComponentRegistry *component = &universe->components[ i ];
-    if( Component_EntityHasComponent( entity, component ) )
-        {
-        Component_RemoveComponent( entity, component );
-        }
+    Universe_RemoveComponentFromEntity( entity, (ComponentClass)i, universe );
     }
 
 Entity_DestroyEntity( entity, &universe->entities );
@@ -256,6 +259,34 @@ Command_AddCommandClass( COMMAND_PROCESSOR_UNIVERSE, PENDING_COMMAND_DESTROY_ENT
 
 /*******************************************************************
 *
+*   Universe_RegisterComponentLifetime()
+*
+*   DESCRIPTION:
+*       Register attach/detach component notification events.
+*
+*******************************************************************/
+
+void Universe_RegisterComponentLifetime( const ComponentClass component, UniverseComponentOnAttachProc *attach, UniverseComponentOnRemoveProc *remove, Universe *universe )
+{
+ComponentLifetime *lifetime = &universe->lifetime[ component ];
+
+if( attach )
+    {
+    hard_assert( lifetime->notify_attach_count < cnt_of_array( lifetime->notify_attach ) );
+    lifetime->notify_attach[lifetime->notify_attach_count++ ] = attach;
+    }
+
+if( remove )
+    {
+    hard_assert( lifetime->notify_remove_count < cnt_of_array( lifetime->notify_remove ) );
+    lifetime->notify_remove[lifetime->notify_remove_count++ ] = remove;
+    }
+
+}   /* Universe_RegisterComponentLifetime() */
+
+
+/*******************************************************************
+*
 *   Universe_RemoveComponentFromEntity()
 *
 *   DESCRIPTION:
@@ -271,6 +302,13 @@ if( !component_registry
  || !Component_EntityHasComponent( entity, component_registry ) )
     {
     return;
+    }
+
+void *the_component = Component_GetComponent( entity, component_registry );
+ComponentLifetime *lifetime = &universe->lifetime[ component ];
+for( uint32_t i = 0; i < lifetime->notify_remove_count; i++ )
+    {
+    lifetime->notify_remove[ i ]( entity, component, the_component, universe );
     }
 
 Component_RemoveComponent( entity, component_registry );

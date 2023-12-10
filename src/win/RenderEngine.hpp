@@ -4,8 +4,10 @@
 #include <dxgi1_4.h>
 
 #include "Math.hpp"
+#include "NonOwningGroup.hpp"
 #include "RenderInitializers.hpp"
 #include "RenderModels.hpp"
+#include "RenderScene.hpp"
 #include "RenderShaders.hpp"
 
 #define RENDER_ENGINE_FRAME_COUNT   ( 2 )
@@ -58,39 +60,60 @@ typedef struct _Frame
                        *command_allocator;
     } Frame;
 
-typedef struct _Engine
+typedef struct _Window
     {
-    Frame               frames[ RENDER_ENGINE_FRAME_COUNT ];
-    uint8_t             current_frame;
-    RenderShaders::ShaderCache
-                        shaders;
-    RenderModels::ModelCache
-                        models;
-    ID3D12Device       *device;
-    IDXGIFactory4      *dxgi_factory;
-    UINT                descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
-    HWND                hwnd;
+    UINT                width;
+    UINT                height;
+    HWND                handle;
+    } Window;
+
+typedef struct _Device
+    {
+    ID3D12Device       *ptr;
+    IDXGIFactory4      *dxgi;
+    } Device;
+
+typedef struct _Commands
+    {
     ID3D12GraphicsCommandList
                        *gfx;
-    ID3D12CommandQueue *command_queue;
+    ID3D12CommandQueue *queue;
     ID3D12CommandAllocator
-                       *spare_command_allocator;
+                       *spare_allocator;
     ID3D12Fence        *fence;
     uint64_t            last_submitted_frame;
+    } Commands;
+
+typedef struct _Surfaces
+    {
+    UINT                descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     IDXGISwapChain     *swap_chain;
     ID3D12DescriptorHeap
-                       *render_target_heap;
+                       *rtv_heap;
     ID3D12DescriptorHeap
-                       *depth_stencil_heap;
-    ID3D12Resource     *depth_stencil_buffer;
+                       *dsv_heap;
+    ID3D12Resource     *depth_stencil;
     ID3D12Resource     *backbuffers[ SWAP_CHAIN_DOUBLE_BUFFER ];
     uint8_t             backbuffer_current;
-    UINT                window_width;
-    UINT                window_height;
+    } Surfaces;
+
+typedef struct _Engine
+    {
+    Window              window;
+    Commands            commands;
+    Device              device;
+    Surfaces            surfaces;
+    Frame               frames[ RENDER_ENGINE_FRAME_COUNT ];
+    uint8_t             current_frame;
+    ECS::NonOwningGroupIterator
+                        group;
+    RenderShaders::ShaderCache
+                        shaders;
     } Engine;
 
 
 Frame * Engine_CurrentFrame( Engine *engine );
+void    Engine_ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine );
 
 
 } /* namespace RenderEngine */

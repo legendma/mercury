@@ -88,6 +88,12 @@
     <ClCompile Include="..\src\win\RenderScene.cpp">
       <Filter>win</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utils\MathMatrix.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\MathQuaternion.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">

@@ -110,7 +110,7 @@ return( GetStorageAtIndex( empty_index, h ) );
 *
 *******************************************************************/
 
-void HashMap_Init( const size_t capacity, const size_t value_stride, HashMap *h, HashMapKey *keys, void *values )
+void HashMap_Init( const uint32_t capacity, const size_t value_stride, HashMap *h, HashMapKey *keys, void *values )
 {
 *h = {};
 h->capacity = capacity;

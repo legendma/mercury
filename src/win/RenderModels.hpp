@@ -16,10 +16,7 @@ namespace RenderModels
                                     ( 2 )
 
 #define MAX_MODEL_COUNT             ( 1000 )
-#define MAX_MODEL_MESH_COUNT        ( 5 )          
-#define ASSETS_HASH_MAP_LUFT        ( 1.3f )
-#define asset_hash_map_capacity( _count ) \
-    (uint32_t)( ASSETS_HASH_MAP_LUFT * (float)(_count) )
+#define MAX_MODEL_MESH_COUNT        ( 5 )
 
 typedef AssetFileModelVertex Vertex;
 typedef AssetFileModelIndex Index;
@@ -49,12 +46,7 @@ typedef struct _Model
     uint32_t            mesh_count; /* number of meshes in model    */
     } Model;
 
-typedef struct _ModelCacheMap
-    {
-    HashMapKey          keys[ asset_hash_map_capacity( MAX_MODEL_COUNT ) ];
-    Model               values[ asset_hash_map_capacity( MAX_MODEL_COUNT ) ];
-    HashMap             map;
-    } ModelCacheMap;
+HASH_MAP_IMPLEMENT( ModelCacheMap, MAX_MODEL_COUNT, Model );
 
 typedef struct _ModelCache
     {

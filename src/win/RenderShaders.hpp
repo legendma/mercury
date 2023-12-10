@@ -10,11 +10,7 @@
 
 
 #define RENDER_SHADERS_SHADER_CACHE_MAX_COUNT \
-                                    ( 100 )     
-#define RENDER_SHADERS_SHADER_CACHE_HASH_MAP_LUFT \
-                                    ( 1.3f )
-#define render_shaders_shader_cache_hash_map_capacity( _count ) \
-    (uint32_t)( RENDER_SHADERS_SHADER_CACHE_HASH_MAP_LUFT * (float)(_count) )
+                                    ( 100 )
 
 #define RENDER_SHADERS_EFFECT_MAX_ROOT_PARAMETERS \
                                     ( 20 )
@@ -58,12 +54,7 @@ typedef struct _ShaderEffect
     /* TODO <MPA> - Look into reflecting root signature via ID3D12ShaderReflection, see https://rtarun9.github.io/blogs/shader_reflection/ */
     } ShaderEffect;
 
-typedef struct _ShaderCacheMap
-    {
-    HashMapKey          keys[ render_shaders_shader_cache_hash_map_capacity( RENDER_SHADERS_SHADER_CACHE_MAX_COUNT ) ];
-    ShaderModule        values[ render_shaders_shader_cache_hash_map_capacity( RENDER_SHADERS_SHADER_CACHE_MAX_COUNT ) ];
-    HashMap             map;
-    } ShaderCacheMap;
+HASH_MAP_IMPLEMENT( ShaderCacheMap, RENDER_SHADERS_SHADER_CACHE_MAX_COUNT, ShaderModule );
 
 typedef struct _ShaderCache
     {
