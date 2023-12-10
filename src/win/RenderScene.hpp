@@ -13,7 +13,7 @@ typedef struct _SceneObject
     {
     RenderModels::ModelMesh
                        *mesh;
-    Float4x4            world_xfm;
+    Float4x4            xfm_world;
     } SceneObject;
 
 typedef enum _ScenePassName

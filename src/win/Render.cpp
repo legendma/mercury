@@ -959,10 +959,12 @@ return( true );
 
 static void Reset( Engine *engine )
 {
+FlushCommandQueue( engine );
 for( uint32_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     {
     Frame *frame = &engine->frames[ i ];
     ComSafeRelease( &frame->per_object_data.elements );
+    ComSafeRelease( &frame->per_pass_data.elements );
     ComSafeRelease( &frame->command_allocator );
     }
 
@@ -977,6 +979,7 @@ ComSafeRelease( &engine->render_target_heap );
 ComSafeRelease( &engine->swap_chain );
 ComSafeRelease( &engine->fence );
 ComSafeRelease( &engine->gfx );
+ComSafeRelease( &engine->spare_command_allocator );
 ComSafeRelease( &engine->command_queue );
 ComSafeRelease( &engine->device );
 ComSafeRelease( &engine->dxgi_factory );

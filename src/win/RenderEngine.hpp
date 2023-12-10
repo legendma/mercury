@@ -17,9 +17,9 @@ namespace RenderEngine
 
 typedef struct _GPUForwardPassData
     {
-    Float4x4            mat_view;
-    Float4x4            mat_projection;
-    Float4x4            mat_view_projection;
+    Float4x4            xfm_view;
+    Float4x4            xfm_projection;
+    Float4x4            xfm_view_projection;
     } GPUForwardPassData;
 
 typedef union _MappedGPUPassData
@@ -37,7 +37,7 @@ typedef struct _GPUPassDataBuffer
 
 typedef struct _GPUObjectData
     {
-    Float4x4            mat_world;
+    Float4x4            xfm_world;
     } GPUObjectData;
 
 typedef struct GPUObjectDataBuffer
