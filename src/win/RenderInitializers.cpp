@@ -3,6 +3,7 @@
 #include <dxgi1_4.h>
 
 #include "RenderInitializers.hpp"
+#include "Utilities.hpp"
 
 
 #define IS_WINDOWED_MODE            TRUE
@@ -167,6 +168,25 @@ return( ret );
 
 /*******************************************************************
 *
+*   GetRenderTargetViewDescriptor()
+*
+*******************************************************************/
+
+D3D12_RENDER_TARGET_VIEW_DESC GetRenderTargetViewDescriptor( const DXGI_FORMAT format )
+{
+D3D12_RENDER_TARGET_VIEW_DESC ret = {};
+ret.Format               = format;
+ret.ViewDimension        = D3D12_RTV_DIMENSION_TEXTURE2D;
+ret.Texture2D.MipSlice   = 0;
+ret.Texture2D.PlaneSlice = 0;
+
+return( ret );
+
+} /* GetRenderTargetViewDescriptor() */
+
+
+/*******************************************************************
+*
 *   GetResourceTransition()
 *
 *******************************************************************/
@@ -304,6 +324,28 @@ return( ret );
 
 /*******************************************************************
 *
+*   GetShaderResourceViewDescriptorTexture2D()
+*
+*******************************************************************/
+
+D3D12_SHADER_RESOURCE_VIEW_DESC GetShaderResourceViewDescriptorTexture2D( const DXGI_FORMAT format, const uint16_t mip_levels )
+{
+D3D12_SHADER_RESOURCE_VIEW_DESC ret = {};
+ret.Format                        = format;
+ret.ViewDimension                 = D3D12_SRV_DIMENSION_TEXTURE2D;
+ret.Shader4ComponentMapping       = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+ret.Texture2D.MostDetailedMip     = 0;
+ret.Texture2D.MipLevels           = mip_levels;
+ret.Texture2D.PlaneSlice          = 0;
+ret.Texture2D.ResourceMinLODClamp = 0.0f;
+
+return( ret );
+
+} /* GetShaderResourceViewDescriptorTexture2D() */
+
+
+/*******************************************************************
+*
 *   GetSwapChainDescriptor()
 *
 *******************************************************************/
@@ -335,6 +377,47 @@ sample->Quality = MSSA_SAMPLE_QUALITY;
 return( ret );
 
 } /* GetSwapChainDescriptor() */
+
+
+/*******************************************************************
+*
+*   GetTexture2DResourceDescriptor()
+*
+*******************************************************************/
+
+D3D12_RESOURCE_DESC GetTexture2DResourceDescriptor( const uint16_t width, const uint16_t height, const TextureUsage usage, const DXGI_FORMAT format )
+{
+D3D12_RESOURCE_DESC ret = {};
+ret.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+ret.Alignment = 0;
+ret.Width     = width;
+ret.Height    = height;
+ret.DepthOrArraySize = 1;
+ret.MipLevels = 1;
+ret.Format    = format;
+ret.SampleDesc.Count = MSAA_SAMPLE_COUNT;
+ret.SampleDesc.Quality = MSSA_SAMPLE_QUALITY;
+ret.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+ret.Flags  = D3D12_RESOURCE_FLAG_NONE;
+
+switch( usage )
+    {
+    case TEXTURE_USAGE_RENDER_TARGET:
+        ret.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+        break;
+
+    case TEXTURE_USAGE_DEPTH_BUFFER:
+        ret.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+        break;
+
+    default:
+        debug_assert( usage == TEXTURE_USAGE_SHADER_RESOURCE_ONLY );
+        break;
+    }
+
+return( ret );
+
+} /* GetTexture2DResourceDescriptor() */
 
 
 /*******************************************************************

@@ -13,7 +13,7 @@
     <Filter Include="game">
       <UniqueIdentifier>{348f5a52-4498-49dc-af8c-6a8e46d96fc5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="shaders">
+    <Filter Include="win\shaders">
       <UniqueIdentifier>{77282b91-67e0-4371-84d5-9dcf387fb6c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -93,6 +93,9 @@
     </ClCompile>
     <ClCompile Include="..\src\utils\MathQuaternion.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\RenderPassDefault.cpp">
+      <Filter>win\shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,10 +181,13 @@
     <ClInclude Include="..\src\win\RenderScene.hpp">
       <Filter>win</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\win\RenderPassDefault.hpp">
+      <Filter>win\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>win\shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

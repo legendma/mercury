@@ -43,6 +43,7 @@ void Scene_Draw( Scene *scene )
 {
 Engine_ClearDepthStencil( FAR_DEPTH_VALUE, 0, scene->engine );
 
+
 Cleanup( scene );
 
 } /* Scene_Draw() */

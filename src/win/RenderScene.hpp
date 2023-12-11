@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HashMap.hpp"
 #include "Math.hpp"
 #include "RenderModels.hpp"
 
@@ -31,7 +32,6 @@ typedef enum _ScenePassName
 
 typedef struct _ScenePass
     {
-    int i;
     SceneObject        *objects[ RENDER_SCENE_SCENE_OBJECT_MAX_COUNT ];
     } ScenePass;
 
@@ -44,7 +44,6 @@ typedef struct _Scene
                         models;
     RenderEngine::_Engine
                        *engine;
-
     } Scene;
 
 

@@ -7,6 +7,7 @@
 #include "NonOwningGroup.hpp"
 #include "RenderInitializers.hpp"
 #include "RenderModels.hpp"
+#include "RenderPassDefault.hpp"
 #include "RenderScene.hpp"
 #include "RenderShaders.hpp"
 
@@ -17,47 +18,39 @@
 namespace RenderEngine
 {
 
-typedef struct _GPUForwardPassData
-    {
-    Float4x4            xfm_view;
-    Float4x4            xfm_projection;
-    Float4x4            xfm_view_projection;
-    } GPUForwardPassData;
-
-typedef union _MappedGPUPassData
-    {
-    GPUForwardPassData *forward;
-    void               *none;
-    } MappedGPUPassData;
-
-typedef struct _GPUPassDataBuffer
+typedef struct _DefaultPerPassBuffer
     {
     /* single element */
-    ID3D12Resource     *elements;
-    MappedGPUPassData   mapped;
-    } GPUPassDataBuffer;
+    ID3D12Resource     *cbuffer;
+    RenderPass::DefaultPerPass
+                       *mapped;
+    } DefaultPerPassBuffer;
 
-typedef struct _GPUObjectData
-    {
-    Float4x4            xfm_world;
-    } GPUObjectData;
-
-typedef struct GPUObjectDataBuffer
+typedef struct _DefaultPerObjectBuffer
     {
     uint32_t            max_elements;
-    ID3D12Resource     *elements;
-    GPUObjectData      *mapped;
-    } GPUObjectDataBuffer;
+    ID3D12Resource     *cbuffer;
+    RenderPass::DefaultPerObject
+                       *mapped;
+    } DefaultPerObjectBuffer;
+
+typedef struct _FrameDefaultPass
+    {
+    DefaultPerObjectBuffer
+                        per_object;
+    DefaultPerPassBuffer
+                        per_pass;
+    } FrameDefaultPass;
 
 typedef struct _Frame
     {
     uint64_t            frame_count;
-    GPUObjectDataBuffer per_object_data;
-    GPUPassDataBuffer   per_pass_data;
     uint32_t            trash_can_count;
     IUnknown           *trash_can[ RENDER_ENGINE_TRASH_CAN_MAX_COUNT ];
     ID3D12CommandAllocator
                        *command_allocator;
+    FrameDefaultPass    pass_default;
+    uint8_t             frame_index;
     } Frame;
 
 typedef struct _Window
@@ -71,6 +64,13 @@ typedef struct _Device
     {
     ID3D12Device       *ptr;
     IDXGIFactory4      *dxgi;
+    ID3D12DescriptorHeap
+                       *rtv_heap;
+    ID3D12DescriptorHeap
+                       *dsv_heap;
+    ID3D12DescriptorHeap
+                       *cbv_srv_heap;
+    UINT                descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     } Device;
 
 typedef struct _Commands
@@ -84,27 +84,28 @@ typedef struct _Commands
     uint64_t            last_submitted_frame;
     } Commands;
 
-typedef struct _Surfaces
+typedef struct _SwapChain
     {
-    UINT                descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
-    IDXGISwapChain     *swap_chain;
-    ID3D12DescriptorHeap
-                       *rtv_heap;
-    ID3D12DescriptorHeap
-                       *dsv_heap;
+    IDXGISwapChain     *ptr;
     ID3D12Resource     *depth_stencil;
     ID3D12Resource     *backbuffers[ SWAP_CHAIN_DOUBLE_BUFFER ];
     uint8_t             backbuffer_current;
-    } Surfaces;
+    } SwapChain;
+
+typedef struct _Passes
+    {
+    RenderPass::Default default_pass;
+    } Passes;
 
 typedef struct _Engine
     {
     Window              window;
     Commands            commands;
     Device              device;
-    Surfaces            surfaces;
+    SwapChain           swap_chain;
     Frame               frames[ RENDER_ENGINE_FRAME_COUNT ];
     uint8_t             current_frame;
+    Passes              passes;
     ECS::NonOwningGroupIterator
                         group;
     RenderShaders::ShaderCache
