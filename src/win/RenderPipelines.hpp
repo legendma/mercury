@@ -13,6 +13,12 @@ namespace RenderPipelines
 static const char *PIPELINE_NAME_DEFAULT_OPAQUE      = "default_opaque";
 static const char *PIPELINE_NAME_DEFAULT_TRANSPARENT = "default_transparent";
 
+static const char *ALL_PIPELINES[] =
+    {
+    PIPELINE_NAME_DEFAULT_OPAQUE,
+    PIPELINE_NAME_DEFAULT_TRANSPARENT
+    };
+
 typedef enum _BoundTextures
     {
     BOUND_TEXTURES_ALBEDO_MAP,            /* t0 */

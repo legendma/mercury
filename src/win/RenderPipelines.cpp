@@ -44,6 +44,19 @@ hard_assert( RenderShaders::ShaderEffect_PushStage( stage, effect ) );
 
 /*******************************************************************
 *
+*   GetBuilder()
+*
+*   DESCRIPTION:
+*       Get a builder from the builders map.
+*
+*******************************************************************/
+
+#define GetBuilder( _name, _map ) \
+    (PipelineBuilder*)HashMap_At( Utilities_HashString2( _name ), &(_map)->map )
+
+
+/*******************************************************************
+*
 *   GetEffect()
 *
 *   DESCRIPTION:
@@ -151,6 +164,15 @@ return( ret );
 void Pipelines_Destroy( Pipelines *pipelines )
 {
 RenderShaders::ShaderCache_Destroy( &pipelines->shader_cache );
+for( uint32_t i = 0; i < cnt_of_array( ALL_PIPELINES ); i++ )
+    {
+    PipelineBuilder *builder = GetBuilder( ALL_PIPELINES[ i ], &pipelines->builders );
+    if( builder )
+        {
+        ComSafeRelease( &builder->root_signature );
+        }
+    }
+
 *pipelines = {};
 
 } /* Pipelines_Destroy() */

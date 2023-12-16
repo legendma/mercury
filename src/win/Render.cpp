@@ -1284,9 +1284,9 @@ for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     ComSafeRelease( &engine->surfaces.backbuffers[ i ] );
     }
 
-RenderPipelines::Pipelines_Destroy( &engine->pipelines );
+DescriptorHeap_Destroy( &engine->surfaces.dsv_heap );
+DescriptorHeap_Destroy( &engine->surfaces.rtv_heap );
 
-ComSafeRelease( &engine->surfaces.dsv_heap );
 ComSafeRelease( &engine->surfaces.rtv_heap );
 ComSafeRelease( &engine->surfaces.swap_chain );
 ComSafeRelease( &engine->commands.fence );
