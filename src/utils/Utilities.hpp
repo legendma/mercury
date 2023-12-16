@@ -327,6 +327,19 @@ return( ret );
 
 /*******************************************************************
 *
+*   Utilities_HashString2
+*
+*   DESCRIPTION:
+*       Compute a hash key from the given string.
+*
+*******************************************************************/
+
+#define Utilities_HashString2( _str ) \
+    Utilities_HashString( _str, (uint32_t)strlen( _str ) )
+
+
+/*******************************************************************
+*
 *   Utilities_HashPointer
 *
 *   DESCRIPTION:

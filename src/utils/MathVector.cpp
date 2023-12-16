@@ -417,14 +417,68 @@ return (Math_Float3DotProduct(AxB, C));
 
 /*******************************************************************
 *
-*   Math_Float2TrippleProduct()
+*   Math_Float2HadamardProduct()
+*
+*   DESCRIPTION:
+*       Calculate the component-wise produt of two vectors. 
+*
+*******************************************************************/
+
+Float2 Math_Float2HadamardProduct( const Float2 a, const Float2 b )
+{
+Float2 ret = Math_Float2Make( a.v.x * b.v.x, a.v.y * b.v.y );
+
+return( ret );
+
+} /*  Math_Float2HadamardProduct() */
+
+
+/*******************************************************************
+*
+*   Math_Float3HadamardProduct()
+*
+*   DESCRIPTION:
+*       Calculate the component-wise produt of two vectors.
+*
+*******************************************************************/
+
+Float3 Math_Float3HadamardProduct( const Float3 a, const Float3 b )
+{
+Float3 ret = Math_Float3Make( a.v.x * b.v.x, a.v.y * b.v.y, a.v.z * b.v.z );
+
+return( ret );
+
+} /*  Math_Float3HadamardProduct() */
+
+
+/*******************************************************************
+*
+*   Math_Float4HadamardProduct()
+*
+*   DESCRIPTION:
+*       Calculate the component-wise produt of two vectors.
+*
+*******************************************************************/
+
+Float4 Math_Float4HadamardProduct( const Float4 a, const Float4 b )
+{
+Float4 ret = Math_Float4Make( a.v.x * b.v.x, a.v.y * b.v.y, a.v.z * b.v.z, a.v.w * b.v.w );
+
+return( ret );
+
+} /*  Math_Float4HadamardProduct() */
+
+
+/*******************************************************************
+*
+*   Math_Float2TripleProduct()
 *
 *   DESCRIPTION:
 *       Calculates the triple product for three vectors A x (B x C) 
 *
 *******************************************************************/
 
-Float2 Math_Float2TrippleProduct( const Float2 A, const Float2 B, const Float2 C )
+Float2 Math_Float2TripleProduct( const Float2 A, const Float2 B, const Float2 C )
 {
 float scalar1 = Math_Float2DotProduct( A, C );
 float scalar2 = Math_Float2DotProduct( A, B );
@@ -433,19 +487,19 @@ Float2 modC = Math_Float2ScalarMultiply( C, scalar2);
 
 return ( Math_Float2Subtraction( modB, modC));
 
-} /*  Math_Float2TrippleProduct() */
+} /*  Math_Float2TripleProduct() */
 
 
 /*******************************************************************
 *
-*   Math_Float3TrippleProduct()
+*   Math_Float3TripleProduct()
 *
 *   DESCRIPTION:
 *       Calculates the triple product for three vectors A x (B x C)
 *
 *******************************************************************/
 
-Float3 Math_Float3TrippleProduct( const Float3 A, const Float3 B, const Float3 C )
+Float3 Math_Float3TripleProduct( const Float3 A, const Float3 B, const Float3 C )
 {
 float scalar1 = Math_Float3DotProduct( A, C );
 float scalar2 = Math_Float3DotProduct( A, B );
@@ -454,19 +508,19 @@ Float3 modC = Math_Float3ScalarMultiply( C, scalar2 );
 
 return (Math_Float3Subtraction( modB, modC ));
 
-} /*  Math_Float3TrippleProduct() */
+} /*  Math_Float3TripleProduct() */
 
 
 /*******************************************************************
 *
-*   Math_Float4TrippleProduct()
+*   Math_Float4TripleProduct()
 *
 *   DESCRIPTION:
 *       Calculates the triple product for three vectors A x (B x C)
 *
 *******************************************************************/
 
-Float4 Math_Float4TrippleProduct( const Float4 A, const Float4 B, const Float4 C )
+Float4 Math_Float4TripleProduct( const Float4 A, const Float4 B, const Float4 C )
 {
 float scalar1 = Math_Float4DotProduct( A, C );
 float scalar2 = Math_Float4DotProduct( A, B );
@@ -475,7 +529,7 @@ Float4 modC = Math_Float4ScalarMultiply( C, scalar2 );
 
 return (Math_Float4Subtraction( modB, modC ));
 
-} /*  Math_Float3TrippleProduct() */
+} /*  Math_Float4TripleProduct() */
 
 
 /*******************************************************************

@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include "ComUtilities.hpp"
+#include "RenderPipelines.hpp"
 #include "RenderShaders.hpp"
 #include "RenderInitializers.hpp"
 #include "Utilities.hpp"
@@ -10,8 +11,76 @@
 namespace RenderShaders
 {
 
+static const D3D12_STATIC_SAMPLER_DESC SAMPLERS[] =
+	{
+	/* PointWrap   = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 0, D3D12_FILTER_MIN_MAG_MIP_POINT,  D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP  ),
+	/* PointClamp  = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 1, D3D12_FILTER_MIN_MAG_MIP_POINT,  D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP ),
+	/* LinearWrap  = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 2, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP  ),
+	/* LinearClamp = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 3, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP ),
+	/* AnisoWrap   = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 4, D3D12_FILTER_ANISOTROPIC,        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP,  D3D12_TEXTURE_ADDRESS_MODE_WRAP  ),
+	/* PointClamp  = */ RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( 5, D3D12_FILTER_ANISOTROPIC,        D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP )
+	};
+
 
 static ShaderModule * LoadShaderFromFile( const char *asset_name, const uint32_t asset_id, ShaderCache *cache );
+
+
+/*******************************************************************
+*
+*   ShaderEffect_GetRootSignature()
+*
+*   DESCRIPTION:
+*       Create the root signature and set it on the pipeline
+*       builder.
+*
+*******************************************************************/
+
+bool ShaderEffect_GetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, RenderPipelines::_PipelineBuilder *builder )
+{
+ID3DBlob *serialized = NULL;
+ID3DBlob *errors = NULL;
+D3D12_ROOT_SIGNATURE_DESC desc = RenderInitializers::GetRootSignatureDescriptor( shaders->signature_flags, shaders->parameters, shaders->parameter_count, SAMPLERS, cnt_of_array( SAMPLERS ) );
+if( FAILED( D3D12SerializeRootSignature( &desc, D3D_ROOT_SIGNATURE_VERSION_1_0, &serialized, &errors ) ) )
+    {
+    if( errors )
+        {
+        ::OutputDebugStringA( (char *)errors->GetBufferPointer() );
+        }
+    ComSafeRelease( &serialized );
+    ComSafeRelease( &errors );
+
+    return( false );
+    }
+
+ComSafeRelease( &errors );
+
+if( FAILED( device->CreateRootSignature( NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
+    {
+    ComSafeRelease( &serialized );
+    return( false );
+    }
+
+ComSafeRelease( &serialized );
+
+return( true );
+
+} /* ShaderEffect_GetRootSignature() */
+
+
+/*******************************************************************
+*
+*   ShaderCache_Destroy()
+*
+*   DESCRIPTION:
+*       Release the shader cache's resources.
+*
+*******************************************************************/
+
+void RenderShaders::ShaderCache_Destroy( ShaderCache *cache )
+{
+ResourceLoader_Destroy( &cache->loader );
+
+} /* ShaderCache_Destroy() */
 
 
 /*******************************************************************
@@ -54,7 +123,7 @@ return( ret );
 bool RenderShaders::ShaderCache_Init( const uint32_t cache_sz, ShaderCache *cache )
 {
 *cache = {};
-if( !ResourceManager_Init( &cache->loader ) )
+if( !ResourceLoader_Init( &cache->loader ) )
     {
     debug_assert_always();
     return( false );
@@ -66,7 +135,7 @@ if( !LinearAllocator_Init( cache_sz, &cache->pool ) )
     }
 
 compiler_assert( cnt_of_array( cache->cache.keys ) == cnt_of_array( cache->cache.values ), RenderShaders_cpp );
-HashMap_Init( cnt_of_array( cache->cache.values ), sizeof( *cache->cache.values ), &cache->cache.map, cache->cache.keys, cache->cache.values );
+HashMap_InitImplementation( &cache->cache );
 
 return( true );
 
@@ -75,40 +144,25 @@ return( true );
 
 /*******************************************************************
 *
-*   ShaderEffect_SetRootSignature()
+*   ShaderEffect_PushStage()
 *
 *   DESCRIPTION:
-*       Create the root signature and set it on the pipeline
-*       builder.
+*       Add a pipeline stage to the shader effect.
 *
 *******************************************************************/
 
-bool ShaderEffect_SetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, RenderPipelines::PipelineBuilder *builder )
+bool ShaderEffect_PushStage( const ShaderStage new_stage, ShaderEffect *shaders )
 {
-ID3DBlob *serialized;
-ID3DBlob *errors;
-D3D12_ROOT_SIGNATURE_DESC desc = RenderInitializers::GetRootSignatureDescriptor( shaders->signature_flags, shaders->parameters, shaders->parameter_count, NULL, 0 ); // TODO <MPA> - Pass samplers
-
-if( FAILED( D3D12SerializeRootSignature( &desc, D3D_ROOT_SIGNATURE_VERSION_1, &serialized, &errors ) ) )
+if( shaders->stage_count >= cnt_of_array( shaders->stages ) )
     {
-    printf_s( "%s", (const char*)errors->GetBufferPointer() );
-    ComSafeRelease( &serialized );
-    ComSafeRelease( &errors );
-
     return( false );
     }
 
-if( FAILED( device->CreateRootSignature( NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
-    {
-    ComSafeRelease( &serialized );
-    ComSafeRelease( &errors );
-
-    return( false );
-    }
+shaders->stages[ shaders->stage_count++ ] = new_stage;
 
 return( true );
 
-} /* ShaderEffect_SetRootSignature() */
+} /* ShaderEffect_PushStage() */
 
 
 /*******************************************************************
@@ -123,7 +177,7 @@ return( true );
 static ShaderModule * LoadShaderFromFile( const char *asset_name, const uint32_t asset_id, ShaderCache *cache )
 {
 uint32_t byte_code_sz = 0;
-if( !ResourceManager_GetShader( asset_id, &byte_code_sz, NULL, &cache->loader ) )
+if( !ResourceLoader_GetShader( asset_id, &byte_code_sz, NULL, &cache->loader ) )
     {
     debug_assert_always();
     return( NULL );
@@ -151,7 +205,7 @@ ret->byte_code_sz = byte_code_sz;
 
 strncpy_s( (char*)allocation, name_sz, asset_name, name_sz );
 
-hard_assert( ResourceManager_GetShader( asset_id, &byte_code_sz, ret->byte_code, &cache->loader ) );
+hard_assert( ResourceLoader_GetShader( asset_id, &byte_code_sz, ret->byte_code, &cache->loader ) );
 
 return( ret );
 

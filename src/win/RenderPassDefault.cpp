@@ -46,6 +46,8 @@ pass->rt_format = format;
 pass->rtv       = rtv;
 pass->srv       = srv;
 
+
+
 if( !CreateRenderTarget( pass ) )
     {
     return( false );

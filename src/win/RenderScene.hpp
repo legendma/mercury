@@ -6,6 +6,8 @@
 
 #define RENDER_SCENE_SCENE_OBJECT_MAX_COUNT \
                                     ( 100 )
+#define RENDER_SCENE_SHADER_RESOURCE_MAX_COUNT \
+                                    ( 100 )
 
 namespace RenderEngine { struct _Engine; }
 namespace RenderScene
@@ -32,13 +34,17 @@ typedef enum _ScenePassName
 
 typedef struct _ScenePass
     {
+    ScenePassName       name;
     SceneObject        *objects[ RENDER_SCENE_SCENE_OBJECT_MAX_COUNT ];
     } ScenePass;
+
+HASH_MAP_IMPLEMENT( SceneSRVMap, RENDER_SCENE_SHADER_RESOURCE_MAX_COUNT, D3D12_SHADER_RESOURCE_VIEW_DESC );
 
 typedef struct _Scene
     {
     SceneObject        *object_refs[ RENDER_SCENE_SCENE_OBJECT_MAX_COUNT ];
     SceneObjectMap      objects;
+    SceneSRVMap         shader_resources;
     ScenePass           passes[ SCENE_PASS_NAME_COUNT ];
     RenderModels::ModelCache
                         models;

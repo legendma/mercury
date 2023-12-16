@@ -33,6 +33,20 @@ typedef struct _HashMap
 
 
 void * HashMap_At( const uint32_t key, HashMap *h );
+void   HashMap_Clear( HashMap *h );
 bool   HashMap_Delete( const uint32_t key, HashMap *h );
 void * HashMap_Insert( const uint32_t key, const void *value, HashMap *h );
 void   HashMap_Init( const uint32_t capacity, const size_t value_stride, HashMap *h, HashMapKey *keys, void *values );
+
+
+/*******************************************************************
+*
+*   HashMap_InitImplementation()
+*
+*   DESCRIPTION:
+*       Initialize a hash map created by the default implementation.
+*
+*******************************************************************/
+
+#define HashMap_InitImplementation( _pimpl ) \
+    HashMap_Init( cnt_of_array( (_pimpl)->values ), sizeof(*(_pimpl)->values), &(_pimpl)->map, (_pimpl)->keys, (_pimpl)->values )

@@ -27,14 +27,14 @@ float q2xq3 = in.v.z * in.v.w;
 
 float q3xq3 = in.v.w * in.v.w;
 
-out->n._11 = 2.0f * ( q0xq0 + q1xq1 ) - 1.0f;
-out->n._12 = 2.0f * ( q1xq2 - q0xq3 );
-out->n._13 = 2.0f * ( q1xq3 + q0xq2 );
+out->n._11 = 1.0f - 2.0f * ( q0xq0 + q1xq1 );
+out->n._12 =        2.0f * ( q1xq2 - q0xq3 );
+out->n._13 =        2.0f * ( q1xq3 + q0xq2 );
 out->n._14 = 0.0f;
 
-out->n._21 = 2.0f * ( q1xq2 + q0xq3 );
-out->n._22 = 2.0f * ( q0xq0 + q2xq2 ) - 1.0f;
-out->n._23 = 2.0f * ( q2xq3 - q0xq1 );
+out->n._21 =        2.0f * ( q1xq2 + q0xq3 );
+out->n._22 = 1.0f - 2.0f * ( q0xq0 + q2xq2 );
+out->n._23 =        2.0f * ( q2xq3 - q0xq1 );
 out->n._24 = 0.0f;
 
 out->n._31 = 2.0f * ( q1xq3 - q0xq2 );

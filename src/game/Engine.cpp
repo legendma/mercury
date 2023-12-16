@@ -3,7 +3,7 @@
 #include "GameMode.hpp"
 #include "PlayerInput.hpp"
 #include "Render.hpp"
-#include "ResourceManager.hpp" // TODO <MPA> - REMOVE
+#include "ResourceLoader.hpp" // TODO <MPA> - REMOVE
 #include "Universe.hpp"
 #include "Sound.hpp"
 
@@ -123,10 +123,23 @@ return( true );
 static void OnFirstFrame()
 {
 // TODO <MPA> - Testing grounds, remove later
-EntityId test_entity = Universe_CreateNewEntity( &the_universe );
-Universe_AttachComponentToEntity( test_entity, COMPONENT_TRANSFORM, &the_universe );
+    {
+    EntityId scene_test_entity = Universe_CreateNewEntity( &the_universe );
+    SceneComponent *scene = (SceneComponent*)Universe_AttachComponentToEntity( scene_test_entity, COMPONENT_SCENE, &the_universe );
+    scene->viewport_top_left = Math_Float2Make( 0.0f, 0.0f );
+    scene->viewport_extent   = Math_Float2Make( 1.0f, 1.0f );
+    strcpy_s( scene->scene_name, cnt_of_array( scene->scene_name ), "test_scene" );
+    scene->scene_name_hash = Utilities_HashString2( scene->scene_name );
 
-Render_LoadModel( "model_fmod_splash", test_entity, &the_universe );
+    EntityId model_test_entity = Universe_CreateNewEntity( &the_universe );
+    TransformComponent *transform = (TransformComponent*)Universe_AttachComponentToEntity( model_test_entity, COMPONENT_TRANSFORM, &the_universe );
+    transform->position = Math_Float3Make( 0.0f, 0.0f, 0.0f );
+    transform->rotation = QUATERNION_IDENTITY;
+    transform->scale    = Math_Float3Make( 1.0f, 1.0f, 1.0f );
+
+    ModelComponent *model = Render_LoadModel( "model_fmod_splash", model_test_entity, &the_universe );
+    model->scene_name_hash = scene->scene_name_hash;
+    }
 // TODO <MPA> - Testing grounds, remove later
 
 } /* OnFirstFrame() */

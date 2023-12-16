@@ -1,3 +1,4 @@
+#include "HashMap.hpp"
 #include "RenderEngine.hpp"
 #include "RenderScene.hpp"
 #include "Utilities.hpp"
@@ -62,6 +63,8 @@ void Scene_Init( RenderEngine::_Engine *engine, Scene *scene )
 {
 scene->engine = engine;
 
+HashMap_InitImplementation( &scene->objects );
+HashMap_InitImplementation( &scene->shader_resources );
 RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &scene->models );
 
 } /* Scene_Init() */
@@ -86,22 +89,18 @@ for( uint32_t i = 0; i < model->mesh_count; i++ )
     // TODO <MPA> - Will need something a bit more clever once we have more than just mesh objects (e.g. lights, etc).
     uint32_t mesh_hash = Utilities_HashU32( starting_hash + i );
     SceneObject *so = (SceneObject*)HashMap_At( mesh_hash, &scene->objects.map );
-    if( so )
+    if( !so )
         {
-        so->seen_this_frame = true;
-        so->xfm_world = *mtx_world;
+        so = (SceneObject*)HashMap_Insert( mesh_hash, NULL, &scene->objects.map );
+        so->hash        = mesh_hash;
+        so->mesh_index  = i;
+        so->model       = model;
 
-        continue;
+        scene->object_refs[ scene->objects.map.size - 1 ] = so;
         }
 
-    so = (SceneObject*)HashMap_Insert( mesh_hash, NULL, &scene->objects.map );
-    so->hash            = mesh_hash;
-    so->mesh_index      = i;
-    so->model           = model;
     so->seen_this_frame = true;
-    so->xfm_world       = *mtx_world;
-
-    scene->object_refs[ scene->objects.map.size - 1 ] = so;
+    Math_Float4x4MultiplyByFloat4x4( mtx_world, &model->meshes[ i ].transform, &so->xfm_world );
     }
 
 } /* Scene_RegisterObject() */
@@ -136,6 +135,22 @@ for( uint32_t i = 0; i < scene->objects.map.size; i++ )
     }
 
 } /* Cleanup() */
+
+
+/*******************************************************************
+*
+*   LoadUnloadTexture()
+*
+*   DESCRIPTION:
+*       (Un)load a texture asset.
+*
+*******************************************************************/
+
+static void LoadTexture( Scene *scene )
+{
+
+
+} /* LoadUnloadTexture() */
 
 
 } /* namespace RenderScene */

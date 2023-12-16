@@ -5,12 +5,14 @@
 #include "HashMap.hpp"
 #include "LinearAllocator.hpp"
 #include "RenderModels.hpp"
+#include "ResourceLoader.hpp"
 #include "Utilities.hpp"
 
 namespace RenderModels
 {
 static ModelMesh * AllocateModelMesh( Model *model );
 static Model *     LoadModelFromFile( const char *asset_name, const uint32_t asset_id, ModelCache *cache );
+static void        SolveMeshTransforms( const uint32_t node_count, NodeScratch *nodes, Model *model );
 
 
 /*******************************************************************
@@ -36,7 +38,6 @@ debug_assert( ret );
 
 return( ret );
 
-
 } /* ModelCache_GetModel() */
 
 
@@ -52,7 +53,7 @@ return( ret );
 bool ModelCache_Init( const uint32_t cache_sz, ModelCache *cache )
 {
 clr_struct( cache );
-if( !ResourceManager_Init( &cache->loader ) )
+if( !ResourceLoader_Init( &cache->loader ) )
     {
     debug_assert_always();
     return( false );
@@ -64,7 +65,7 @@ if( !LinearAllocator_Init( cache_sz, &cache->pool ) )
     }
 
 compiler_assert( cnt_of_array( cache->cache.keys ) == cnt_of_array( cache->cache.values ), RenderModels_cpp );
-HashMap_Init( cnt_of_array( cache->cache.keys), sizeof(*cache->cache.values), &cache->cache.map, cache->cache.keys, cache->cache.values );
+HashMap_InitImplementation( &cache->cache );
 
 return( true );
 
@@ -158,8 +159,8 @@ if( !model )
 
 model->asset_id = asset_id;
 
-ResourceManagerModelStats stats = {};
-if( !ResourceManager_GetModelStats( asset_id, &stats, &cache->loader ) )
+ResourceLoaderModelStats stats = {};
+if( !ResourceLoader_GetModelStats( asset_id, &stats, &cache->loader ) )
     {
     hard_assert( HashMap_Delete( asset_id, &cache->cache.map ) );
     return( NULL );
@@ -189,20 +190,85 @@ for( uint32_t i = 0; i < stats.mesh_count; i++ )
         break;
         }
     
-    uint32_t vertex_count = ResourceManager_GetModelMeshVertices( asset_id, i, stats.vertex_count - vertex_start, &vertices[ vertex_start ], &cache->loader );
-    uint32_t index_count  = ResourceManager_GetModelMeshIndices(  asset_id, i, stats.index_count  - index_start,  &indices[ index_start ],   &cache->loader );
+    uint32_t vertex_count = ResourceLoader_GetModelMeshVertices( asset_id, i, stats.vertex_count - vertex_start, &vertices[ vertex_start ], &cache->loader );
+    uint32_t index_count  = ResourceLoader_GetModelMeshIndices(  asset_id, i, stats.index_count  - index_start,  &indices[ index_start ],   &cache->loader );
     
     mesh->vertex_offset = vertex_start;
     mesh->index_first   = index_start;
     mesh->index_count   = index_count;
+    memcpy( &mesh->transform, &FLOAT4x4_IDENTITY, sizeof( mesh->transform ) );
 
     vertex_start += vertex_count;
     index_start  += index_count;
     }
 
+uint32_t node_count = ResourceLoader_GetModelMeshNodes( asset_id, cnt_of_array( cache->node_scratch.nodes ), cache->node_scratch.nodes, &cache->loader );
+SolveMeshTransforms( node_count, &cache->node_scratch, model );
+
 return( model );
 
 } /* LoadModelFromFile() */
+
+
+/*******************************************************************
+*
+*   SolveMeshTransforms()
+*
+*   DESCRIPTION:
+*       Fill out each mesh's transforms by solving the node tree.
+*
+*******************************************************************/
+
+static void SolveMeshTransforms( const uint32_t node_count, NodeScratch *nodes, Model *model )
+{
+uint32_t remain_count = node_count;
+for( uint32_t i = 0; i < node_count; i++ )
+    {
+    nodes->remaining[ i ] = i;
+    }
+
+HashMap_InitImplementation( &nodes->seen );
+while( remain_count > 0 )
+    {
+    HashMap_Clear( &nodes->seen.map );
+    for( uint32_t i = 0; i < remain_count; i++ )
+        {
+        AssetFileModelIndex this_node_index = nodes->remaining[ i ];
+        AssetFileModelNode *this_node = &nodes->nodes[ this_node_index ];
+        for( uint32_t j = 0; j < this_node->child_node_count; j++ )
+            {
+            AssetFileModelIndex child_node_index = this_node->child_nodes[ j ];
+            HashMap_Insert( Utilities_HashU32( child_node_index ), NULL, &nodes->seen.map );
+            }
+        }
+
+    for( int32_t i = remain_count - 1; i >= 0; i-- )
+        {
+        AssetFileModelIndex this_node_index = nodes->remaining[ i ];
+        AssetFileModelNode *this_node = &nodes->nodes[ this_node_index ];
+        if( HashMap_At( this_node_index, &nodes->seen.map ) )
+            {
+            continue;
+            }
+
+        Float4x4 *this_matrix = (Float4x4*)&this_node->transform;
+        for( uint32_t j = 0; j < this_node->child_mesh_count; j++ )
+            {
+            ModelMesh *child_mesh = &model->meshes[ this_node->child_meshes[ j ] ];
+            memcpy( &child_mesh->transform, this_matrix, sizeof(child_mesh->transform) );
+            }
+
+        for( uint32_t j = 0; j < this_node->child_node_count; j++ )
+            {
+            Float4x4 *child_matrix = (Float4x4*)&nodes->nodes[ this_node->child_nodes[ j ] ].transform;
+            Math_Float4x4MultiplyByFloat4x4( this_matrix, child_matrix, child_matrix );
+            }
+
+        memcpy( &nodes->remaining[ i ], &nodes->remaining[ remain_count-- ], sizeof(*nodes->remaining) );
+        }
+    }
+
+} /* SolveMeshTransforms() */
 
 
 } /* namespace RenderModels */

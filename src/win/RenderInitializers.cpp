@@ -139,6 +139,32 @@ return( ret );
 
 /*******************************************************************
 *
+*   GetRasterizerDescriptorDefault()
+*
+*******************************************************************/
+
+D3D12_RASTERIZER_DESC GetRasterizerDescriptorDefault( const D3D12_FILL_MODE fill_mode )
+{
+D3D12_RASTERIZER_DESC ret = {};
+ret.FillMode              = fill_mode;
+ret.CullMode              = D3D12_CULL_MODE_BACK; /* TODO <MPA> - Revisit this after compute shader backface culling is in place */
+ret.FrontCounterClockwise = FALSE;
+ret.DepthBias             = 0;
+ret.DepthBiasClamp        = 0.0f;
+ret.SlopeScaledDepthBias  = 0.0f;
+ret.DepthClipEnable       = FALSE;
+ret.MultisampleEnable     = MSAA_IS_ON;
+ret.AntialiasedLineEnable = FALSE;
+ret.ForcedSampleCount     = 0;
+ret.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+return( ret );
+
+} /* GetRasterizerDescriptorDefault() */
+
+
+/*******************************************************************
+*
 *   GetRenderTargetTransition()
 *
 *******************************************************************/
@@ -228,11 +254,11 @@ return( ret );
 
 /*******************************************************************
 *
-*   GetRootParameterConstantBufferView()
+*   GetRootParameterDescriptorConstantBufferView()
 *
 *******************************************************************/
 
-D3D12_ROOT_PARAMETER GetRootParameterConstantBufferView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
+D3D12_ROOT_PARAMETER GetRootParameterDescriptorConstantBufferView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
 {
 D3D12_ROOT_PARAMETER ret = {};
 ret.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -242,7 +268,26 @@ ret.Descriptor.RegisterSpace  = space;
 
 return( ret );
 
-} /* GetRootParameterConstantBufferView() */
+} /* GetRootParameterDescriptorConstantBufferView() */
+
+
+/*******************************************************************
+*
+*   GetRootParameterDescriptorShaderResourceView()
+*
+*******************************************************************/
+
+D3D12_ROOT_PARAMETER GetRootParameterDescriptorShaderResourceView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
+{
+D3D12_ROOT_PARAMETER ret = {};
+ret.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_SRV;
+ret.ShaderVisibility          = visibility;
+ret.Descriptor.ShaderRegister = shader_register;
+ret.Descriptor.RegisterSpace  = space;
+
+return( ret );
+
+} /* GetRootParameterDescriptorShaderResourceView() */
 
 
 /*******************************************************************
@@ -266,30 +311,11 @@ return( ret );
 
 /*******************************************************************
 *
-*   GetRootParameterShaderResourceView()
+*   GetRootParameterDescriptorUnorderedAccessView()
 *
 *******************************************************************/
 
-D3D12_ROOT_PARAMETER GetRootParameterShaderResourceView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
-{
-D3D12_ROOT_PARAMETER ret = {};
-ret.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_SRV;
-ret.ShaderVisibility          = visibility;
-ret.Descriptor.ShaderRegister = shader_register;
-ret.Descriptor.RegisterSpace  = space;
-
-return( ret );
-
-} /* GetRootParameterShaderResourceView() */
-
-
-/*******************************************************************
-*
-*   GetRootParameterUnorderedAccessView()
-*
-*******************************************************************/
-
-D3D12_ROOT_PARAMETER GetRootParameterUnorderedAccessView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
+D3D12_ROOT_PARAMETER GetRootParameterDescriptorUnorderedAccessView( const D3D12_SHADER_VISIBILITY visibility, const uint8_t shader_register, const uint8_t space )
 {
 D3D12_ROOT_PARAMETER ret = {};
 ret.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_UAV;
@@ -299,7 +325,7 @@ ret.Descriptor.RegisterSpace  = space;
 
 return( ret );
 
-} /* GetRootParameterUnorderedAccessView() */
+} /* GetRootParameterDescriptorUnorderedAccessView() */
 
 
 /*******************************************************************

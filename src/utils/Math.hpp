@@ -41,6 +41,23 @@ typedef union _Float4
 
 typedef Float4 Quaternion;
 
+typedef union _Float3x3
+    {
+    float f[ 3 ][ 3 ];
+    struct
+        {
+        float           _11;
+        float           _12;
+        float           _13;
+        float           _21;
+        float           _22;
+        float           _23;
+        float           _31;
+        float           _32;
+        float           _33;
+        } n;
+    } Float3x3;
+
 typedef union _Float4x4
     {
     float f[ 4 ][ 4 ];
@@ -64,6 +81,26 @@ typedef union _Float4x4
         float           _44;
         } n;
     } Float4x4;
+
+static const Quaternion QUATERNION_IDENTITY =
+    {
+    0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+static const Float3x3 FLOAT3x3_IDENTITY =
+    {
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f
+    };
+
+static const Float4x4 FLOAT4x4_IDENTITY =
+    {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f
+    };
 
 /**************************/
 /* Vector Math Functions*/
@@ -155,9 +192,13 @@ float Math_Float4CrossProductMagnitude( const Float4 A, const Float4 B );
 float Math_Float3BoxProduct( const Float3 A, const Float3 B, const Float3 C );
 /* TODO Add 4D box product */
 
-Float2 Math_Float2TrippleProduct( const Float2 A, const Float2 B, const Float2 C );
-Float3 Math_Float3TrippleProduct( const Float3 A, const Float3 B, const Float3 C );
-Float4 Math_Float4TrippleProduct( const Float4 A, const Float4 B, const Float4 C );
+Float2 Math_Float2HadamardProduct( const Float2 a, const Float2 b );
+Float3 Math_Float3HadamardProduct( const Float3 a, const Float3 b );
+Float4 Math_Float4HadamardProduct( const Float4 a, const Float4 b );
+
+Float2 Math_Float2TripleProduct( const Float2 A, const Float2 B, const Float2 C );
+Float3 Math_Float3TripleProduct( const Float3 A, const Float3 B, const Float3 C );
+Float4 Math_Float4TripleProduct( const Float4 A, const Float4 B, const Float4 C );
 
 float Math_Float2Magnitude( const Float2 A );
 float Math_Float3Magnitude( const Float3 A );
@@ -201,9 +242,18 @@ void Math_QuaternionToFloat4x4( const Quaternion in, Float4x4 *out );
 /*****************************/
 /* Matrix Math Functions */
 /*****************************/
+void Math_Float3x3MakeScaleFromFloat2( const Float2 scale, Float3x3 *out );
 void Math_Float4x4MakeScaleFromFloat3( const Float3 scale, Float4x4 *out );
+
+void Math_Float3x3MakeTranslateFromFloat2( const Float2 translation, Float3x3 *out );
 void Math_Float4x4MakeTranslateFromFloat3( const Float3 translation, Float4x4 *out );
+
+void Math_Float3x3MakeRotation( const float theta, Float3x3 *out );
+
+void Math_Float3x3MultiplyByFloat3x3( const Float3x3 *a, const Float3x3 *b, Float3x3 *out );
 void Math_Float4x4MultiplyByFloat4x4( const Float4x4 *a, const Float4x4 *b, Float4x4 *out );
+
+void Math_Float3x3TransformSpin( const Float2 translation, const float rotation, const Float2 scale, Float3x3 *out );
 void Math_Float4x4TransformSpin( const Float3 translation, const Quaternion rotation, const Float3 scale, Float4x4 *out );
 
 

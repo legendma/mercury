@@ -27,7 +27,6 @@
     <ClCompile Include="..\src\ecs\Universe.cpp" />
     <ClCompile Include="..\src\game\Engine.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
-    <ClCompile Include="..\src\game\ResourceManager.cpp" />
     <ClCompile Include="..\src\game\Sound.cpp" />
     <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
     <ClCompile Include="..\src\utils\HashMap.cpp" />
@@ -35,6 +34,7 @@
     <ClCompile Include="..\src\utils\MathMatrix.cpp" />
     <ClCompile Include="..\src\utils\MathQuaternion.cpp" />
     <ClCompile Include="..\src\utils\MathVector.cpp" />
+    <ClCompile Include="..\src\utils\ResourceLoader.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
@@ -56,7 +56,6 @@
     <ClInclude Include="..\src\ecs\NonOwningGroup.hpp" />
     <ClInclude Include="..\src\ecs\Universe.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
-    <ClInclude Include="..\src\game\ResourceManager.hpp" />
     <ClInclude Include="..\src\game\Sound.hpp" />
     <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
@@ -64,6 +63,7 @@
     <ClInclude Include="..\src\utils\HashMap.hpp" />
     <ClInclude Include="..\src\utils\LinearAllocator.hpp" />
     <ClInclude Include="..\src\utils\Math.hpp" />
+    <ClInclude Include="..\src\utils\ResourceLoader.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
     <ClInclude Include="..\src\win\ComUtilities.hpp" />
@@ -80,6 +80,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\shader_ps_flat.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

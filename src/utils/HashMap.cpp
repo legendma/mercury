@@ -37,6 +37,25 @@ return( ret );
 
 /*******************************************************************
 *
+*   HashMap_Clear()
+*
+*   DESCRIPTION:
+*       Clear the map of values.
+*
+*******************************************************************/
+
+void HashMap_Clear( HashMap *h )
+{
+memset( h->keys, 0, h->size * sizeof(*h->keys) * h->capacity );
+memset( h->values, 0, h->value_stride * h->capacity );
+h->size = 0;
+
+
+} /* HashMap_Clear() */
+
+
+/*******************************************************************
+*
 *   HashMap_Delete()
 *
 *   DESCRIPTION:
@@ -113,9 +132,10 @@ return( GetStorageAtIndex( empty_index, h ) );
 void HashMap_Init( const uint32_t capacity, const size_t value_stride, HashMap *h, HashMapKey *keys, void *values )
 {
 *h = {};
-h->capacity = capacity;
-h->keys     = keys;
-h->values   = values;
+h->capacity     = capacity;
+h->keys         = keys;
+h->values       = values;
+h->value_stride = value_stride;
 
 } /* HashMap_Init() */
 
