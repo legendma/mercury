@@ -18,9 +18,12 @@ namespace RenderModels
 #define MODEL_MAX_COUNT             ( 1000 )
 #define MODEL_MESH_MAX_COUNT        ( 5 )
 #define MODEL_NODES_MAX_COUNT       ( 20 )
+#define MODEL_TEXTURES_MAX_COUNT    ( 400 )
 
 typedef AssetFileModelVertex Vertex;
 typedef AssetFileModelIndex Index;
+typedef AssetFileModelMaterial Material;
+typedef AssetFileModelTextures TextureNames;
 
 static const uint8_t VERTEX_UV_COUNT = ASSET_FILE_MODEL_VERTEX_UV_COUNT;
 
@@ -33,6 +36,8 @@ typedef struct _VertexDescriptor
 
 typedef struct _ModelMesh
     {
+    uint8_t             material_index;
+                                    /* material in model materials  */
     uint32_t            index_first;/* first index of this mesh     */
     uint32_t            index_count;/* number of indices            */
     uint32_t            vertex_offset;
@@ -47,6 +52,7 @@ typedef struct _Model
     Index              *indices;    /* cpu index buffer             */
     ModelMesh           meshes[ MODEL_MESH_MAX_COUNT ];
                                     /* this model's meshes          */
+    Material           *materials;  /* material array               */
     uint32_t            mesh_count; /* number of meshes in model    */
     } Model;
 
@@ -68,9 +74,28 @@ typedef struct _ModelCache
     NodeScratch         node_scratch;
     } ModelCache;
 
-        
-Model *          ModelCache_GetModel( const char *asset_name, ModelCache *cache );
+typedef struct _ModelTexture
+    {
+    uint16_t            width;
+    uint16_t            height;
+    char               *texture;
+    } ModelTexture;
+
+HASH_MAP_IMPLEMENT( TextureCacheMap, MODEL_TEXTURES_MAX_COUNT, ModelTexture );
+
+typedef struct _TextureCache
+    {
+    ResourceLoader      loader;
+    TextureCacheMap     cache;
+    LinearAllocator     pool;
+    NodeScratch         node_scratch;
+    } TextureCache;
+
+
+void             ModelCache_Destroy( ModelCache *cache );
+Model *          ModelCache_GetModel( const char *asset_name, bool *was_fresh_load, ModelCache *cache );
 bool             ModelCache_Init( const uint32_t cache_sz, ModelCache *cache );
+
 VertexDescriptor Vertex_GetDescriptor();
 
 } /* namespace RenderModels */

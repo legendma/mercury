@@ -1,10 +1,21 @@
+#include <cmath>
+#include <cstring>
+#include <d3d12.h>
+
+#include "ComUtilities.hpp"
 #include "HashMap.hpp"
+#include "Math.hpp"
 #include "RenderEngine.hpp"
+#include "RenderInitializers.hpp"
+#include "RenderModels.hpp"
+#include "RenderPipelines.hpp"
 #include "RenderScene.hpp"
 #include "Utilities.hpp"
 
 
 #define MODEL_CACHE_SZ              ( 800 * 1024 * 1024 )
+#define RTV_HEAP_CAPACITY           RENDER_SCENE_FULLSCREEN_RENDER_TARGET_COUNT
+#define DEFAULT_PASS_RT_FORMAT      DXGI_FORMAT_R8G8B8A8_UNORM
 
 using namespace RenderEngine;
 using namespace RenderModels;
@@ -12,7 +23,9 @@ using namespace RenderModels;
 namespace RenderScene
 {
 
-static void Cleanup( Scene *scene );
+static void CleanupFrame( Scene *scene );
+static void RegisterModelObject( const uint32_t starting_hash, const bool is_fresh_load, const Model *model, const Float4x4 *xfm_world, Scene *scene );
+static void ResizeSceneSurfaces( Scene *scene );
 
 
 /*******************************************************************
@@ -24,11 +37,59 @@ static void Cleanup( Scene *scene );
 *
 *******************************************************************/
 
-void Scene_BeginFrame( Scene *scene )
+void Scene_BeginFrame( const Float2 viewport, Scene *scene )
 {
+Float2 viewport_window = Math_Float2HadamardProduct( Math_Float2Make( (float)scene->engine->window.width, (float)scene->engine->window.height ), viewport );
+if( fabs( viewport_window.v.x - scene->viewport_window.v.x ) > 0.5
+ || fabs( viewport_window.v.y - scene->viewport_window.v.y ) > 0.5 )
+    {
+    scene->viewport_window = viewport_window;
+    ResizeSceneSurfaces( scene );
+    }
 
+scene->passes[ SCENE_PASS_NAME_FORWARD_OPAQUE ].object_count = 0;
+scene->passes[ SCENE_PASS_NAME_FORWARD_TRANSPARENT ].object_count = 0;
+for( uint32_t i = 0; i < scene->objects.map.size; i++ )
+    {
+    SceneObject *object = scene->object_refs[ i ];
+    if( !object->seen_this_frame )
+        {
+        continue;
+        }
+
+    //object->model->meshes[ object->mesh_index ].
+    
+    }
 
 } /* Scene_BeginFrame() */
+
+
+/*******************************************************************
+*
+*   Scene_Destroy()
+*
+*   DESCRIPTION:
+*       Free the scene's resources.
+*
+*******************************************************************/
+
+void Scene_Destroy( Scene *scene )
+{
+for( uint32_t i = 0; i < cnt_of_array( scene->passes ); i++ )
+    {
+    ComSafeRelease( &scene->passes[ i ].builder.root_signature );
+    Engine_TossTrash( &scene->passes[ i ].pso, scene->engine );
+    }
+
+for( uint32_t i = 0; i < cnt_of_array( scene->rt_fullscreen ); i++ )
+    {
+    Engine_TossTrash( &scene->rt_fullscreen[ i ].resource, scene->engine );
+    }
+
+ModelCache_Destroy( &scene->models );
+DescriptorHeap_Destroy( scene->engine, &scene->rtv_heap );
+
+} /* Scene_Destroy() */
 
 
 /*******************************************************************
@@ -42,10 +103,11 @@ void Scene_BeginFrame( Scene *scene )
 
 void Scene_Draw( Scene *scene )
 {
-Engine_ClearDepthStencil( FAR_DEPTH_VALUE, 0, scene->engine );
+Engine_ClearDepthStencil( RenderInitializers::FAR_DEPTH_VALUE, 0, scene->engine );
 
 
-Cleanup( scene );
+
+CleanupFrame( scene );
 
 } /* Scene_Draw() */
 
@@ -55,17 +117,44 @@ Cleanup( scene );
 *   Scene_Init()
 *
 *   DESCRIPTION:
-*       
+*       Initialize the scene render state.
 *
 *******************************************************************/
 
-void Scene_Init( RenderEngine::_Engine *engine, Scene *scene )
+void Scene_Init( RenderEngine::Engine *engine, Scene *scene )
 {
+memset( scene, 0, sizeof( *scene ) );
+
 scene->engine = engine;
 
 HashMap_InitImplementation( &scene->objects );
-HashMap_InitImplementation( &scene->shader_resources );
+DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, DESCRIPTOR_HEAP_IS_LINEAR, RTV_HEAP_CAPACITY, engine->device.ptr, &scene->rtv_heap );
 RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &scene->models );
+
+/* Forward opaque pass */
+    {
+    ScenePass *pass = &scene->passes[ SCENE_PASS_NAME_FORWARD_OPAQUE ];
+    pass->name = SCENE_PASS_NAME_FORWARD_OPAQUE;
+    pass->builder = *RenderPipelines::Pipelines_GetBuilder( RenderPipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
+    pass->builder.root_signature->AddRef();
+    pass->builder.num_render_targets = 1;
+    pass->builder.rt_formats[ 0 ]    = DEFAULT_PASS_RT_FORMAT;
+
+    pass->pso = RenderPipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    }
+
+/* Forward transparent pass */
+    {
+    ScenePass *pass = &scene->passes[ SCENE_PASS_NAME_FORWARD_TRANSPARENT ];
+    pass->name = SCENE_PASS_NAME_FORWARD_TRANSPARENT;
+    pass->builder = *RenderPipelines::Pipelines_GetBuilder( RenderPipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
+    pass->builder.root_signature->AddRef();
+    pass->builder.num_render_targets = 1;
+    pass->builder.rt_formats[ 0 ]    = DEFAULT_PASS_RT_FORMAT; pass->builder.blending.RenderTarget->BlendEnable = TRUE;
+    pass->builder.depth_stencil = RenderInitializers::GetDepthStencilDescriptor( RenderInitializers::ENABLE_DEPTH_TEST, RenderInitializers::DISABLE_DEPTH_WRITE );
+
+    pass->pso = RenderPipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    }
 
 } /* Scene_Init() */
 
@@ -79,28 +168,15 @@ RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &scene->models );
 *
 *******************************************************************/
 
-void Scene_RegisterObject( const char *asset_name, const void *object, const Float4x4 *mtx_world, Scene *scene )
+void Scene_RegisterObject( const char *asset_name, const void *object, const Float4x4 *xfm_world, Scene *scene )
 {
-Model *model = (Model*)ModelCache_GetModel( asset_name, &scene->models );
 uint32_t starting_hash = Utilities_HashPointer( object );
 
-for( uint32_t i = 0; i < model->mesh_count; i++ )
+bool new_model = false;
+const Model *model = (Model*)ModelCache_GetModel( asset_name, &new_model, &scene->models );
+if( model )
     {
-    // TODO <MPA> - Will need something a bit more clever once we have more than just mesh objects (e.g. lights, etc).
-    uint32_t mesh_hash = Utilities_HashU32( starting_hash + i );
-    SceneObject *so = (SceneObject*)HashMap_At( mesh_hash, &scene->objects.map );
-    if( !so )
-        {
-        so = (SceneObject*)HashMap_Insert( mesh_hash, NULL, &scene->objects.map );
-        so->hash        = mesh_hash;
-        so->mesh_index  = i;
-        so->model       = model;
-
-        scene->object_refs[ scene->objects.map.size - 1 ] = so;
-        }
-
-    so->seen_this_frame = true;
-    Math_Float4x4MultiplyByFloat4x4( mtx_world, &model->meshes[ i ].transform, &so->xfm_world );
+    RegisterModelObject( starting_hash, new_model, model, xfm_world, scene );
     }
 
 } /* Scene_RegisterObject() */
@@ -108,16 +184,16 @@ for( uint32_t i = 0; i < model->mesh_count; i++ )
 
 /*******************************************************************
 *
-*   Cleanup()
+*   CleanupFrame()
 *
 *   DESCRIPTION:
 *       
 *
 *******************************************************************/
 
-static void Cleanup( Scene *scene )
+static void CleanupFrame( Scene *scene )
 {
-for( uint32_t i = (uint32_t)scene->objects.map.size - 1; i < max_uint_value( i ); i-- )
+for( int32_t i = (int32_t)scene->objects.map.size - 1; i >= 0; i-- )
     {
     SceneObject *object = scene->object_refs[ i ];
     if( object->seen_this_frame )
@@ -134,23 +210,92 @@ for( uint32_t i = 0; i < scene->objects.map.size; i++ )
     scene->object_refs[ i ]->seen_this_frame = false;
     }
 
-} /* Cleanup() */
+} /* CleanupFrame() */
 
 
 /*******************************************************************
 *
-*   LoadUnloadTexture()
+*   RegisterModelObject()
 *
 *   DESCRIPTION:
-*       (Un)load a texture asset.
+*       Handle the change of scene display size.
 *
 *******************************************************************/
 
-static void LoadTexture( Scene *scene )
+static void RegisterModelObject( const uint32_t starting_hash, const bool is_fresh_load, const Model *model, const Float4x4 *xfm_world, Scene *scene )
 {
+/* meshes */
+for( uint32_t i = 0; i < model->mesh_count; i++ )
+    {
+    // TODO <MPA> - Will need something a bit more clever once we have more than just mesh objects (e.g. lights, etc).
+    uint32_t mesh_hash = Utilities_HashU32( starting_hash + i );
+    SceneObject *so = (SceneObject*)HashMap_At( mesh_hash, &scene->objects.map );
+    if( !so )
+        {
+        so = (SceneObject*)HashMap_Insert( mesh_hash, NULL, &scene->objects.map );
+        so->hash        = mesh_hash;
+        so->mesh_index  = i;
+        so->model       = model;
+
+        scene->object_refs[ scene->objects.map.size - 1 ] = so;
+        }
+
+    so->seen_this_frame = true;
+    Math_Float4x4MultiplyByFloat4x4( xfm_world, &model->meshes[ i ].transform, &so->xfm_world );
+    }
+
+/* textures */
+if( is_fresh_load )
+    {
+    for( uint32_t i = 0; i < model->mesh_count; i++ )
+        {
+        Material *material = &model->materials[ model->meshes[ i ].material_index ];
+        for( uint32_t j = 0; j < cnt_of_array( material->textures ); j++ )
+            {
+            if( !material->textures )
+                {
+                continue;
+                }
+
+            }
+        }
+    }
+
+} /* RegisterModelObject() */
 
 
-} /* LoadUnloadTexture() */
+/*******************************************************************
+*
+*   ResizeSceneSurfaces()
+*
+*   DESCRIPTION:
+*       Handle the change of scene display size.
+*
+*******************************************************************/
+
+static void ResizeSceneSurfaces( Scene *scene )
+{
+DescriptorHeap_Reset( &scene->rtv_heap );
+
+uint16_t viewport_width  = (uint16_t)( scene->viewport_window.v.x + 0.5f );
+uint16_t viewport_height = (uint16_t)( scene->viewport_window.v.y + 0.5f );
+
+D3D12_HEAP_PROPERTIES props = RenderInitializers::GetDefaultHeapProperties();
+D3D12_RESOURCE_DESC fullscreen_desc = RenderInitializers::GetTexture2DResourceDescriptor( viewport_width, viewport_height, RenderInitializers::TEXTURE_USAGE_RENDER_TARGET, DEFAULT_PASS_RT_FORMAT );
+
+for( uint32_t i = 0; i < cnt_of_array( scene->rt_fullscreen ); i++ )
+    {
+    Texture *texture = &scene->rt_fullscreen[ i ];
+
+    Engine_TossTrash( &texture->resource, scene->engine );
+    _hr( scene->engine->device.ptr->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE, &fullscreen_desc, D3D12_RESOURCE_STATE_RENDER_TARGET, NULL, IID_PPV_ARGS( &texture->resource ) ) );
+    
+    texture->handle = DescriptorHeap_Allocate( &scene->rtv_heap ).cpu_hndl;
+    D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = RenderInitializers::GetRenderTargetViewDescriptor( DEFAULT_PASS_RT_FORMAT );
+    scene->engine->device.ptr->CreateRenderTargetView( texture->resource, &rtv_desc, texture->handle );
+    }
+
+} /* ResizeSceneSurfaces() */
 
 
 } /* namespace RenderScene */

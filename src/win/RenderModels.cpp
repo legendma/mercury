@@ -17,6 +17,24 @@ static void        SolveMeshTransforms( const uint32_t node_count, NodeScratch *
 
 /*******************************************************************
 *
+*   ModelCache_Destroy()
+*
+*   DESCRIPTION:
+*       Free the model cache's resources.
+*
+*******************************************************************/
+
+void ModelCache_Destroy( ModelCache *cache )
+{
+hard_assert( ResourceLoader_Destroy( &cache->loader ) );
+LinearAllocator_Destroy( &cache->pool );
+
+
+} /* ModelCache_GetModel() */
+
+
+/*******************************************************************
+*
 *   ModelCache_GetModel()
 *
 *   DESCRIPTION:
@@ -24,8 +42,9 @@ static void        SolveMeshTransforms( const uint32_t node_count, NodeScratch *
 *
 *******************************************************************/
 
-Model * ModelCache_GetModel( const char *asset_name, ModelCache *cache )
+Model * ModelCache_GetModel( const char *asset_name, bool *was_fresh_load, ModelCache *cache )
 {
+*was_fresh_load = false;
 uint32_t key = AssetFile_MakeAssetIdFromName( asset_name, (uint32_t)strlen( asset_name ) );
 Model *ret = (Model*)HashMap_At( key, &cache->cache.map );
 if( ret )
@@ -35,6 +54,7 @@ if( ret )
 
 ret = LoadModelFromFile( asset_name, key, cache );
 debug_assert( ret );
+*was_fresh_load = true;
 
 return( ret );
 
@@ -166,17 +186,23 @@ if( !ResourceLoader_GetModelStats( asset_id, &stats, &cache->loader ) )
     return( NULL );
     }
 
-uint32_t total_index_sz  = stats.index_count  * stats.index_stride;
-uint32_t total_vertex_sz = stats.vertex_count * stats.vertex_stride;
+uint32_t total_index_sz    = stats.index_count    * stats.index_stride;
+uint32_t total_vertex_sz   = stats.vertex_count   * stats.vertex_stride;
+uint32_t total_material_sz = stats.material_count * stats.material_stride;
 
-AssetFileModelVertex *vertices = (AssetFileModelVertex*)LinearAllocator_AllocateAligned( total_index_sz + total_vertex_sz, align_of_t( AssetFileModelVertex ), &cache->pool );
-if( vertices == NULL )
+AssetFileModelVertex   *vertices   = (AssetFileModelVertex*)LinearAllocator_AllocateAligned(   total_vertex_sz,   align_of_t( AssetFileModelVertex   ), &cache->pool );
+AssetFileModelIndex    *indices    = (AssetFileModelIndex*)LinearAllocator_AllocateAligned(    total_index_sz,    align_of_t( AssetFileModelIndex    ), &cache->pool );
+AssetFileModelMaterial *materials  = (AssetFileModelMaterial*)LinearAllocator_AllocateAligned( total_material_sz, align_of_t( AssetFileModelMaterial ), &cache->pool );
+if( vertices  == NULL
+ || indices   == NULL
+ || materials == NULL )
     {
     hard_assert( HashMap_Delete( asset_id, &cache->cache.map ) );
     return( NULL );
     }
 
-AssetFileModelIndex *indices = (AssetFileModelIndex*)&vertices[ stats.vertex_count ];
+model->materials = materials;
+uint32_t material_count = ResourceLoader_GetModelMaterials( asset_id, stats.material_count, model->materials, &cache->loader );
 
 uint32_t vertex_start = 0;
 uint32_t index_start = 0;
@@ -190,19 +216,21 @@ for( uint32_t i = 0; i < stats.mesh_count; i++ )
         break;
         }
     
-    uint32_t vertex_count = ResourceLoader_GetModelMeshVertices( asset_id, i, stats.vertex_count - vertex_start, &vertices[ vertex_start ], &cache->loader );
-    uint32_t index_count  = ResourceLoader_GetModelMeshIndices(  asset_id, i, stats.index_count  - index_start,  &indices[ index_start ],   &cache->loader );
+    AssetFileModelIndex material_index;
+    uint32_t vertex_count = ResourceLoader_GetModelMeshVertices( asset_id, i, stats.vertex_count - vertex_start, &material_index, &vertices[ vertex_start ], &cache->loader );
+    uint32_t index_count  = ResourceLoader_GetModelMeshIndices(  asset_id, i, stats.index_count  - index_start,                   &indices[ index_start ],   &cache->loader );
     
-    mesh->vertex_offset = vertex_start;
-    mesh->index_first   = index_start;
-    mesh->index_count   = index_count;
+    mesh->vertex_offset  = vertex_start;
+    mesh->index_first    = index_start;
+    mesh->index_count    = index_count;
+    mesh->material_index = (uint8_t)material_index;
     memcpy( &mesh->transform, &FLOAT4x4_IDENTITY, sizeof( mesh->transform ) );
 
     vertex_start += vertex_count;
     index_start  += index_count;
     }
 
-uint32_t node_count = ResourceLoader_GetModelMeshNodes( asset_id, cnt_of_array( cache->node_scratch.nodes ), cache->node_scratch.nodes, &cache->loader );
+uint32_t node_count = ResourceLoader_GetModelNodes( asset_id, cnt_of_array( cache->node_scratch.nodes ), cache->node_scratch.nodes, &cache->loader );
 SolveMeshTransforms( node_count, &cache->node_scratch, model );
 
 return( model );

@@ -69,6 +69,35 @@ return( ret );
 
 /*******************************************************************
 *
+*   GetDepthStencilDescriptor()
+*
+*******************************************************************/
+
+D3D12_DEPTH_STENCIL_DESC GetDepthStencilDescriptor( const bool is_depth_test, const bool is_depth_write )
+{
+D3D12_DEPTH_STENCIL_DESC ret = {};
+ret.DepthEnable                  = is_depth_test ? TRUE : FALSE;
+ret.DepthWriteMask               = is_depth_write? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+ret.DepthFunc                    = D3D12_COMPARISON_FUNC_GREATER;
+ret.StencilEnable                = FALSE;
+ret.StencilReadMask              = D3D12_DEFAULT_STENCIL_READ_MASK;
+ret.StencilWriteMask             = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+ret.FrontFace.StencilFailOp      = D3D12_STENCIL_OP_KEEP;
+ret.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+ret.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
+ret.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_ALWAYS;
+ret.BackFace.StencilFailOp       = D3D12_STENCIL_OP_KEEP;
+ret.BackFace.StencilDepthFailOp  = D3D12_STENCIL_OP_KEEP;
+ret.BackFace.StencilPassOp       = D3D12_STENCIL_OP_KEEP;
+ret.BackFace.StencilFunc         = D3D12_COMPARISON_FUNC_ALWAYS;
+
+return( ret );
+
+} /* GetDepthStencilDescriptor() */
+
+
+/*******************************************************************
+*
 *   GetDepthStencilResourceDescriptor()
 *
 *******************************************************************/
