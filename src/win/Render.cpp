@@ -24,8 +24,6 @@
 #include "Utilities.hpp"
 
 
-#define RENDER_TARGET_VIEW_COUNT    ( RenderPass::DEFAULT_PASS_RTV_COUNT )
-
 using namespace ECS;
 using namespace RenderEngine;
 
@@ -41,8 +39,6 @@ using namespace RenderEngine;
 
 static inline void AdvanceFrame( Engine *engine )
 {
-debug_assert( Engine_CurrentFrame( engine )->pass_default.per_object.mapped == NULL );
-debug_assert( Engine_CurrentFrame( engine )->pass_default.per_pass.mapped == NULL );
 ++engine->current_frame %= cnt_of_array( engine->frames );
 
 } /* AdvanceFrame() */
@@ -113,6 +109,7 @@ static bool     CreateDevice( Engine *engine );
 static bool     CreateRenderTargetViews( Engine *engine );
 static bool     CreateSwapChain( Engine *engine );
 static bool     CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static void     DestroyScenes( Engine *engine, Universe *universe );
 static void     DrawScenes( Engine *engine, Universe *universe );
 static bool     EndFrame( Engine *engine );
 static void     ExecuteCommandLists( Engine *engine );
@@ -120,13 +117,12 @@ static bool     FlushCommandQueue( Engine *engine );
 static bool     GetWindowExtent( HWND window, UINT *width, UINT *height );
 static bool     InitDirectX( Engine *engine );
 static bool     InitFrames( Engine *engine );
-//static bool     InitPasses( Engine *engine );
 static bool     InitPipelines( Engine *engine );
 static UniverseComponentOnAttachProc
                 OnSceneAttach;
 static UniverseComponentOnAttachProc
                 OnSceneRemove;
-static void     Reset( Engine *engine );
+static void     Reset( Engine *engine, Universe *universe );
 static bool     ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
 static void     SetViewport( const Float2 top_left, const Float2 extent, Engine *engine );
 static bool     WaitForFrameToFinish( uint64_t frame_num, Engine *engine );
@@ -247,11 +243,15 @@ return( true );
 *
 *******************************************************************/
 
-void RenderEngine::DescriptorHeap_Destroy( DescriptorHeap *heap )
+void RenderEngine::DescriptorHeap_Destroy( Engine *engine, DescriptorHeap *heap )
 {
-if( heap->heap )
+if( engine )
     {
-    heap->heap->Release();
+    Engine_TossTrash( &heap->heap, engine );
+    }
+else
+    {
+    ComSafeRelease( &heap->heap );
     }
 
 *heap = {};
@@ -273,6 +273,25 @@ void RenderEngine::DescriptorHeap_Reset( DescriptorHeap *heap )
 heap->head = 0;
 
 } /* DescriptorHeap_Reset() */
+
+
+/*******************************************************************
+*
+*   Engine_AddTrashToCurrentFrame()
+*
+*   DESCRIPTION:
+*       Add a piece of trash to the current frame's trash can.
+*
+*******************************************************************/
+
+void RenderEngine::Engine_AddTrashToCurrentFrame( IUnknown **trash, Engine *engine )
+{
+Frame *frame = Engine_CurrentFrame( engine );
+hard_assert( frame->trash_can_count < cnt_of_array( frame->trash_can ) );
+frame->trash_can[ frame->trash_can_count++ ] = *trash;
+*trash = NULL;
+
+} /* Engine_AddTrashToCurrentFrame() */
 
 
 /*******************************************************************
@@ -341,7 +360,7 @@ engine->window.height = height;
 //RenderPass::Default_OnResize( &engine->passes.default_pass );
 
 DescriptorHeap_Reset( &engine->surfaces.rtv_heap );
-if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
+if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, RenderInitializers::RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
  || !CreateRenderTargetViews( engine ) )
     {
     debug_assert_always();
@@ -375,11 +394,11 @@ engine->surfaces.backbuffer_current = 0;
 *
 *******************************************************************/
 
-void Render_Destroy( Universe* universe )
+void Render_Destroy( Universe *universe )
 {
 Engine *engine = AsRenderEngine( universe );
 
-Reset( engine );
+Reset( engine, universe );
 
 free( engine );
 SingletonRenderComponent *component = (SingletonRenderComponent *)Universe_GetSingletonComponent( COMPONENT_SINGLETON_RENDER, universe );
@@ -563,6 +582,8 @@ if( FAILED( engine->commands.gfx->Reset( frame->command_allocator, NULL ) ) )
     return( false );
     }
 
+SweepFrameTrash( frame );
+
 D3D12_CPU_DESCRIPTOR_HANDLE backbuffer = GetCurrentBackbuffer( engine )->handle;
 engine->commands.gfx->OMSetRenderTargets( 1, &backbuffer, TRUE, &engine->surfaces.depth_stencil.handle );
 
@@ -618,7 +639,7 @@ if( FAILED( engine->device.ptr->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_
     }
 
 /* command recording list */
-if( FAILED( engine->device.ptr->CreateCommandList( NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->commands.spare_allocator, NULL, IID_PPV_ARGS( &engine->commands.gfx ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommandList( RenderInitializers::NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->commands.spare_allocator, NULL, IID_PPV_ARGS( &engine->commands.gfx ) ) ) )
     {
     return( false );
     }
@@ -664,7 +685,7 @@ D3D12_RESOURCE_DESC desc = RenderInitializers::GetDepthStencilResourceDescriptor
 
 D3D12_CLEAR_VALUE clear_value = {};
 clear_value.Format               = desc.Format;
-clear_value.DepthStencil.Depth   = FAR_DEPTH_VALUE;
+clear_value.DepthStencil.Depth   = RenderInitializers::FAR_DEPTH_VALUE;
 clear_value.DepthStencil.Stencil = 0;
 
 engine->surfaces.depth_stencil.width  = (uint16_t)engine->window.width;
@@ -698,8 +719,7 @@ return( true );
 
 static bool CreateDescriptorHeaps( Engine *engine )
 {
-uint16_t rtv_count = SWAP_CHAIN_DOUBLE_BUFFER
-                   + RENDER_TARGET_VIEW_COUNT;
+uint16_t rtv_count = SWAP_CHAIN_DOUBLE_BUFFER;
 uint16_t dsv_count = 1;
 
 return( DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, DESCRIPTOR_HEAP_IS_LINEAR, rtv_count, engine->device.ptr, &engine->surfaces.rtv_heap )
@@ -830,6 +850,32 @@ return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE
 
 /*******************************************************************
 *
+*   DestroyScenes()
+*
+*   DESCRIPTION:
+*       Destroy the render state for each scene.
+*
+*******************************************************************/
+
+static void DestroyScenes( Engine *engine, Universe *universe )
+{
+if( !universe )
+    {
+    return;
+    }
+
+NonOwningGroup_CreateIterator( universe, &engine->group, group_ids( COMPONENT_SCENE ) );
+SceneComponent *scene;
+while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&scene ) )
+    {
+    RenderScene::Scene_Destroy( (RenderScene::Scene*)scene->render_state );
+    }
+
+} /* DestroyScenes() */
+
+
+/*******************************************************************
+*
 *   DrawScenes()
 *
 *   DESCRIPTION:
@@ -852,9 +898,9 @@ while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&seen_scene ) )
     debug_assert( HashMap_At( seen_scene->scene_name_hash, map ) == NULL );
     
     RenderScene::Scene *render_scene = (RenderScene::Scene*)seen_scene->render_state;
-    RenderScene::Scene_BeginFrame( render_scene );
+    RenderScene::Scene_BeginFrame( seen_scene->viewport_extent, render_scene );
 
-    hard_assert( HashMap_Insert( seen_scene->scene_name_hash, &render_scene, map ) != NULL );
+    hard_assert( HashMap_Insert( seen_scene->scene_name_hash, &seen_scene, map ) != NULL );
     draw_order[ map->size - 1 ] = seen_scene;
     }
 
@@ -873,8 +919,8 @@ while( NonOwningGroup_GetNext( &engine->group, &model_entity, NULL ) )
     Float4x4 mtx_world;
     Math_Float4x4TransformSpin( transform->position, transform->rotation, transform->scale, &mtx_world );
 
-    RenderScene::Scene *home_scene = *(RenderScene::Scene**)HashMap_At( model->scene_name_hash, map ); // TODO <MPA> - Do we want an entity to be able to belong to more than one scene?
-    Scene_RegisterObject( model->asset_name.str, model, &mtx_world, home_scene );
+    SceneComponent *home_scene = *(SceneComponent**)HashMap_At( model->scene_name_hash, map ); // TODO <MPA> - Do we want an entity to be able to belong to more than one scene?
+    Scene_RegisterObject( model->asset_name.str, model, &mtx_world, (RenderScene::Scene*)home_scene->render_state );
     }
 
 /* do a quick and dirty bubble sort on the scenes to prioritize them by draw order */
@@ -1088,11 +1134,6 @@ if( !InitPipelines( engine ) )
     goto failure;
     }
 
-//if( !InitPasses( engine ) )
-//    {
-//    goto failure;
-//    }
-
 /* set the viewport */
 SetViewport( Math_Float2Make( 0.0f, 0.0f ), Math_Float2Make( (float)engine->window.width, (float)engine->window.height ), engine );
 
@@ -1112,7 +1153,7 @@ return( true );
 failure:
     {
     assert( false );
-    Reset( engine );
+    Reset( engine, NULL );
     return( false );
     }
 
@@ -1138,20 +1179,6 @@ for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     Frame *frame = &engine->frames[ i ];
     frame->frame_index = i;
 
-    /* Default pass */
-    frame->pass_default.per_object.max_elements = DEFAULT_PASS_INITIAL_PER_OBJECT_CNT;
-    uint32_t default_per_object_byte_size = CalculateConstantBufferSize( sizeof(*frame->pass_default.per_object.mapped) * frame->pass_default.per_object.max_elements );
-    if( !CreateUploadBuffer( default_per_object_byte_size, engine->device.ptr, &frame->pass_default.per_object.cbuffer ) )
-        {
-        return( false );
-        }
-
-    uint32_t default_per_pass_byte_size = CalculateConstantBufferSize( sizeof(*frame->pass_default.per_pass.mapped) );
-    if( !CreateUploadBuffer( default_per_pass_byte_size, engine->device.ptr, &frame->pass_default.per_pass.cbuffer ) )
-        {
-        return( false );
-        }
-
     /* command allocator */
     if( FAILED( engine->device.ptr->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &frame->command_allocator ) ) ) )
         {
@@ -1163,35 +1190,6 @@ return( true );
 
 #undef DEFAULT_PASS_INITIAL_PER_OBJECT_CNT
 } /* InitFrames() */
-
-
-///*******************************************************************
-//*
-//*   InitPasses()
-//*
-//*   DESCRIPTION:
-//*       Initialize the passes.
-//*
-//*******************************************************************/
-//
-//static bool InitPasses( Engine *engine )
-//{
-//uint16_t rtv_count = 0;
-//uint16_t srv_count = 0;
-//
-///* Default pass */
-//DXGI_FORMAT default_format = DXGI_FORMAT_R32G32B32A32_UINT;
-//if( !RenderPass::Default_Init( GetRenderTargetView( rtv_count, engine ), RenderPipelines::Pipelines_GetShaderResourceView( srv_count, &engine->pipelines ), default_format, engine, &engine->passes.default_pass ) )
-//    {
-//    return( false );
-//    }
-//
-//rtv_count += RenderPass::DEFAULT_PASS_RTV_COUNT;
-//srv_count += RenderPass::DEFAULT_PASS_SRV_COUNT;
-//
-//return( true );
-//
-//} /* InitPasses() */
 
 
 /*******************************************************************
@@ -1226,7 +1224,6 @@ debug_assert( cls == COMPONENT_SCENE );
 SceneComponent *new_scene = (SceneComponent*)component;
 
 RenderScene::Scene *render_scene = (RenderScene::Scene*)malloc( sizeof( RenderScene::Scene ) );
-memset( render_scene, 0, sizeof(*render_scene) );
 new_scene->render_state = render_scene;
 
 RenderScene::Scene_Init( AsRenderEngine( universe ), render_scene );
@@ -1248,6 +1245,7 @@ static void OnSceneRemove( const EntityId entity, const ComponentClass cls, void
 {
 debug_assert( cls == COMPONENT_SCENE );
 SceneComponent *dying_scene = (SceneComponent*)component;
+RenderScene::Scene_Destroy( (RenderScene::Scene*)dying_scene->render_state );
 
 free( dying_scene->render_state );
 
@@ -1263,20 +1261,17 @@ free( dying_scene->render_state );
 *
 *******************************************************************/
 
-static void Reset( Engine *engine )
+static void Reset( Engine *engine, Universe *universe )
 {
+DestroyScenes( engine, universe );
 FlushCommandQueue( engine );
 RenderPipelines::Pipelines_Destroy( &engine->pipelines );
 for( uint32_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     {
     Frame *frame = &engine->frames[ i ];
     SweepFrameTrash( frame );
-    ComSafeRelease( &frame->pass_default.per_object.cbuffer );
-    ComSafeRelease( &frame->pass_default.per_pass.cbuffer );
     ComSafeRelease( &frame->command_allocator );
     }
-
-RenderPass::Default_Destroy( &engine->passes.default_pass );
 
 ComSafeRelease( &engine->surfaces.depth_stencil );
 for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
@@ -1284,8 +1279,8 @@ for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     ComSafeRelease( &engine->surfaces.backbuffers[ i ] );
     }
 
-DescriptorHeap_Destroy( &engine->surfaces.dsv_heap );
-DescriptorHeap_Destroy( &engine->surfaces.rtv_heap );
+DescriptorHeap_Destroy( NULL, &engine->surfaces.dsv_heap );
+DescriptorHeap_Destroy( NULL, &engine->surfaces.rtv_heap );
 
 ComSafeRelease( &engine->surfaces.rtv_heap );
 ComSafeRelease( &engine->surfaces.swap_chain );

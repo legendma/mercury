@@ -54,7 +54,7 @@ if( FAILED( D3D12SerializeRootSignature( &desc, D3D_ROOT_SIGNATURE_VERSION_1_0, 
 
 ComSafeRelease( &errors );
 
-if( FAILED( device->CreateRootSignature( NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
+if( FAILED( device->CreateRootSignature( RenderInitializers::NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
     {
     ComSafeRelease( &serialized );
     return( false );

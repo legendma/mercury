@@ -32,6 +32,40 @@ return( ret );
 
 /*******************************************************************
 *
+*   ResourceLoader_GetModelMaterials()
+*
+*   DESCRIPTION:
+*       Get the requested model's materials.
+*
+*******************************************************************/
+
+uint32_t ResourceLoader_GetModelMaterials( const AssetFileAssetId asset_id, const uint32_t material_capacity, AssetFileModelMaterial *materials, ResourceLoader *loader )
+{
+if( !loader->reader.fhnd
+ || materials == NULL
+ || !AssetFile_BeginReadingAsset( asset_id, ASSET_FILE_ASSET_KIND_MODEL, &loader->reader ) )
+    {
+    assert( false );
+    return( 0 );
+    }
+
+uint32_t material_count;
+if( !AssetFile_ReadModelMaterials( material_capacity, &material_count, materials, &loader->reader ) )
+    {
+    assert( false );
+    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+    return( 0 );
+    }
+
+do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+
+return( material_count );
+
+} /* ResourceLoader_GetModelMaterials() */
+
+
+/*******************************************************************
+*
 *   ResourceLoader_GetModelMeshIndices()
 *
 *   DESCRIPTION:
@@ -66,14 +100,48 @@ return( index_count );
 
 /*******************************************************************
 *
-*   ResourceLoader_GetModelMeshNodes()
+*   ResourceLoader_GetModelMeshVertices()
+*
+*   DESCRIPTION:
+*       Get the requested model's mesh vertices by mesh index.
+*
+*******************************************************************/
+
+uint32_t ResourceLoader_GetModelMeshVertices( const AssetFileAssetId asset_id, const uint32_t mesh_index, const uint32_t vertex_capacity, AssetFileModelIndex *material, AssetFileModelVertex *vertices, ResourceLoader *loader )
+{
+if( !loader->reader.fhnd
+ || vertices == NULL
+ || !AssetFile_BeginReadingAsset( asset_id, ASSET_FILE_ASSET_KIND_MODEL, &loader->reader ) )
+    {
+    assert( false );
+    return( 0 );
+    }
+
+uint32_t vertex_count;
+if( !AssetFile_ReadModelMeshVertices( mesh_index, vertex_capacity, material, &vertex_count, vertices, &loader->reader ) )
+    {
+    assert( false );
+    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+    return( 0 );
+    }
+
+do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+
+return( vertex_count );
+
+} /* ResourceLoader_GetModelMeshVertices() */
+
+
+/*******************************************************************
+*
+*   ResourceLoader_GetModelNodes()
 *
 *   DESCRIPTION:
 *       Get the requested model's nodes.
 *
 *******************************************************************/
 
-uint32_t ResourceLoader_GetModelMeshNodes( const AssetFileAssetId asset_id, const uint32_t node_capacity, AssetFileModelNode *nodes, ResourceLoader *loader )
+uint32_t ResourceLoader_GetModelNodes( const AssetFileAssetId asset_id, const uint32_t node_capacity, AssetFileModelNode *nodes, ResourceLoader *loader )
 {
 if( !loader->reader.fhnd
  || nodes == NULL
@@ -95,41 +163,7 @@ do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
 
 return( node_count );
 
-} /* ResourceLoader_GetModelMeshNodes() */
-
-
-/*******************************************************************
-*
-*   ResourceLoader_GetModelMeshVertices()
-*
-*   DESCRIPTION:
-*       Get the requested model's mesh vertices by mesh index.
-*
-*******************************************************************/
-
-uint32_t ResourceLoader_GetModelMeshVertices( const AssetFileAssetId asset_id, const uint32_t mesh_index, const uint32_t vertex_capacity, AssetFileModelVertex *vertices, ResourceLoader *loader )
-{
-if( !loader->reader.fhnd
- || vertices == NULL
- || !AssetFile_BeginReadingAsset( asset_id, ASSET_FILE_ASSET_KIND_MODEL, &loader->reader ) )
-    {
-    assert( false );
-    return( 0 );
-    }
-
-uint32_t vertex_count;
-if( !AssetFile_ReadModelMeshVertices( mesh_index, vertex_capacity, &vertex_count, vertices, &loader->reader ) )
-    {
-    assert( false );
-    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
-    return( 0 );
-    }
-
-do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
-
-return( vertex_count );
-
-} /* ResourceLoader_GetModelMeshVertices() */
+} /* ResourceLoader_GetModelNodes() */
 
 
 /*******************************************************************
@@ -155,14 +189,15 @@ if( !AssetFile_BeginReadingAsset( asset_id, ASSET_FILE_ASSET_KIND_MODEL, &loader
     return( false );
     }
 
-if( !AssetFile_ReadModelStorageRequirements( &out_stats->vertex_count, &out_stats->index_count, &out_stats->mesh_count, &out_stats->node_count, &loader->reader ) )
+if( !AssetFile_ReadModelStorageRequirements( &out_stats->vertex_count, &out_stats->index_count, &out_stats->mesh_count, &out_stats->node_count, &out_stats->material_count, &loader->reader ) )
     {
     do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
     return( false );
     }
 
-out_stats->index_stride  = sizeof(AssetFileModelIndex);
-out_stats->vertex_stride = sizeof(AssetFileModelVertex);
+out_stats->vertex_stride   = sizeof(AssetFileModelVertex);
+out_stats->index_stride    = sizeof(AssetFileModelIndex);
+out_stats->material_stride = sizeof(AssetFileModelMaterial);
 
 do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
 

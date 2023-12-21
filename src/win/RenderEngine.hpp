@@ -8,9 +8,7 @@
 #include "NonOwningGroup.hpp"
 #include "RenderInitializers.hpp"
 #include "RenderModels.hpp"
-#include "RenderPassDefault.hpp"
 #include "RenderPipelines.hpp"
-#include "RenderScene.hpp"
 
 #define RENDER_ENGINE_FRAME_COUNT   ( 2 )
 #define RENDER_ENGINE_TRASH_CAN_MAX_COUNT \
@@ -19,7 +17,7 @@
 
 namespace RenderEngine
 {
-HASH_MAP_IMPLEMENT( DrawScenesMap, RENDER_ENGINE_SCENE_MAX_CNT, RenderScene::Scene* );
+HASH_MAP_IMPLEMENT( DrawScenesMap, RENDER_ENGINE_SCENE_MAX_CNT, ECS::SceneComponent* );
 
 typedef struct _SceneDraw
     {
@@ -56,30 +54,6 @@ typedef struct _DescriptorHeap
                        *heap;
     } DescriptorHeap;
 
-typedef struct _DefaultPerPassBuffer
-    {
-    /* single element */
-    ID3D12Resource     *cbuffer;
-    RenderPass::DefaultPerPass
-                       *mapped;
-    } DefaultPerPassBuffer;
-
-typedef struct _DefaultPerObjectBuffer
-    {
-    uint32_t            max_elements;
-    ID3D12Resource     *cbuffer;
-    RenderPass::DefaultPerObject
-                       *mapped;
-    } DefaultPerObjectBuffer;
-
-typedef struct _FrameDefaultPass
-    {
-    DefaultPerObjectBuffer
-                        per_object;
-    DefaultPerPassBuffer
-                        per_pass;
-    } FrameDefaultPass;
-
 typedef struct _Frame
     {
     uint64_t            frame_count;
@@ -87,7 +61,6 @@ typedef struct _Frame
     IUnknown           *trash_can[ RENDER_ENGINE_TRASH_CAN_MAX_COUNT ];
     ID3D12CommandAllocator
                        *command_allocator;
-    FrameDefaultPass    pass_default;
     uint8_t             frame_index;
     } Frame;
 
@@ -136,11 +109,6 @@ typedef struct _Surfaces
     DescriptorHeap      dsv_heap;
     } Surfaces;
 
-typedef struct _Passes
-    {
-    RenderPass::Default default_pass;
-    } Passes;
-
 typedef struct _Engine
     {
     Window              window;
@@ -150,7 +118,6 @@ typedef struct _Engine
     Frame               frames[ RENDER_ENGINE_FRAME_COUNT ];
     uint8_t             current_frame;
     SceneDraw           scene_draw;
-    Passes              passes;
     ECS::NonOwningGroupIterator
                         group;
     RenderPipelines::Pipelines
@@ -160,12 +127,28 @@ typedef struct _Engine
 DescriptorHandle DescriptorHeap_Allocate( DescriptorHeap *heap );
 bool             DescriptorHeap_AllocateBatch( const uint32_t allocate_cnt, uint32_t out_capacity, DescriptorHandle *out, DescriptorHeap *heap );
 bool             DescriptorHeap_Create( const D3D12_DESCRIPTOR_HEAP_TYPE type, const bool is_ring, const uint32_t capacity, ID3D12Device *device, DescriptorHeap *heap );
-void             DescriptorHeap_Destroy( DescriptorHeap *heap );
+void             DescriptorHeap_Destroy( Engine *engine, DescriptorHeap *heap );
 void             DescriptorHeap_NextFrame( DescriptorHeap *heap );
 void             DescriptorHeap_Reset( DescriptorHeap *heap );
 
 void    Engine_ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine );
 Frame * Engine_CurrentFrame( Engine *engine );
+void    Engine_AddTrashToCurrentFrame( IUnknown **trash, Engine *engine );
+
+
+
+/*******************************************************************
+*
+*   Engine_TossTrash()
+*
+*   DESCRIPTION:
+*       Defer destruction of the given COM object until the frame
+*       is recycled.
+*
+*******************************************************************/
+
+#define Engine_TossTrash( _trash, _engine ) \
+    Engine_AddTrashToCurrentFrame( (IUnknown**)_trash, _engine )
 
 
 /*******************************************************************

@@ -91,9 +91,6 @@
     <ClCompile Include="..\src\utils\MathQuaternion.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\RenderPassDefault.cpp">
-      <Filter>win\shaders</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utils\ResourceLoader.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -178,9 +175,6 @@
     <ClInclude Include="..\src\win\RenderScene.hpp">
       <Filter>win</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\RenderPassDefault.hpp">
-      <Filter>win\shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\ResourceLoader.hpp">
       <Filter>utils</Filter>
     </ClInclude>
@@ -190,6 +184,9 @@
       <Filter>win\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\shader_ps_flat.hlsl">
+      <Filter>win\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\common.hlsli">
       <Filter>win\shaders</Filter>
     </None>
   </ItemGroup>

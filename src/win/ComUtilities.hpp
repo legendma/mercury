@@ -1,6 +1,9 @@
 #pragma once
 
 #include <unknwn.h>
+#include <winerror.h>
+
+#include "Utilities.hpp"
 
 
 /*******************************************************************
@@ -27,5 +30,18 @@ if( !(*p) )
 *p = NULL;
 
 } /* _ComSafeRelease() */
+
+
+/*******************************************************************
+*
+*   _hr()
+*
+*   DESCRIPTION:
+*       Hard assert that a COM operation succeeded.
+*
+*******************************************************************/
+
+#define _hr( _call ) \
+    hard_assert( SUCCEEDED( _call ) )
 
 

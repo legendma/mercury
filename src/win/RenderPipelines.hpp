@@ -10,26 +10,14 @@
 
 namespace RenderPipelines
 {
-static const char *PIPELINE_NAME_DEFAULT_OPAQUE      = "default_opaque";
-static const char *PIPELINE_NAME_DEFAULT_TRANSPARENT = "default_transparent";
+static const char *BUILDER_NAME_DEFAULT = "default_builder";
 
-static const char *ALL_PIPELINES[] =
+static const char *ALL_BUILDERS[] =
     {
-    PIPELINE_NAME_DEFAULT_OPAQUE,
-    PIPELINE_NAME_DEFAULT_TRANSPARENT
+    BUILDER_NAME_DEFAULT
     };
 
-typedef enum _BoundTextures
-    {
-    BOUND_TEXTURES_ALBEDO_MAP,            /* t0 */
-    BOUND_TEXTURES_NORMAL_MAP,            /* t1 */
-    BOUND_TEXTURES_METALLIC_MAP,          /* t2 */
-    BOUND_TEXTURES_ROUGHNESS_MAP,         /* t3 */
-    BOUND_TEXTURES_DISPLACEMENT_MAP,      /* t4 */
-    BOUND_TEXTURES_AMBIENT_OCCLUSION_MAP, /* t5 */
-    /* count */
-    BOUND_TEXTURES_COUNT
-    } BoundTextures;
+static const char *EFFECT_NAME_DEFAULT  = "default_effect";
 
 typedef enum _SlotName
     {
@@ -56,6 +44,8 @@ typedef struct _PipelineBuilder
                         vertex_descriptor;
     RenderShaders::_ShaderEffect
                        *effect;
+    DXGI_FORMAT         rt_formats[ cnt_of_array( ( (D3D12_GRAPHICS_PIPELINE_STATE_DESC*)NULL )->RTVFormats ) ];
+    uint32_t            num_render_targets;
     } PipelineBuilder;
 
 HASH_MAP_IMPLEMENT( BuilderMap, RENDER_PIPELINES_MAX_COUNT, PipelineBuilder );
@@ -70,10 +60,11 @@ typedef struct _Pipelines
     } Pipelines;
 
 
-ID3D12PipelineState *       PipelineBuilder_BuildPipeline( const PipelineBuilder *builder, ID3D12Device *device );
+ID3D12PipelineState * PipelineBuilder_BuildPipeline( const PipelineBuilder *builder, ID3D12Device *device );
 
-void                        Pipelines_Destroy( Pipelines *pipelines );
-bool                        Pipelines_Init( ID3D12Device *device, Pipelines *pipelines );
+void                  Pipelines_Destroy( Pipelines *pipelines );
+PipelineBuilder *     Pipelines_GetBuilder( const char *name, Pipelines *pipelines );
+bool                  Pipelines_Init( ID3D12Device *device, Pipelines *pipelines );
 
 
 } /* namespace RenderPipelines */

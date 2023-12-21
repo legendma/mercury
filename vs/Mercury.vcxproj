@@ -41,7 +41,6 @@
     <ClCompile Include="..\src\win\Render.cpp" />
     <ClCompile Include="..\src\win\RenderInitializers.cpp" />
     <ClCompile Include="..\src\win\RenderModels.cpp" />
-    <ClCompile Include="..\src\win\RenderPassDefault.cpp" />
     <ClCompile Include="..\src\win\RenderPipelines.cpp" />
     <ClCompile Include="..\src\win\RenderScene.cpp" />
     <ClCompile Include="..\src\win\RenderShaders.cpp" />
@@ -72,13 +71,13 @@
     <ClInclude Include="..\src\win\RenderEngine.hpp" />
     <ClInclude Include="..\src\win\RenderInitializers.hpp" />
     <ClInclude Include="..\src\win\RenderModels.hpp" />
-    <ClInclude Include="..\src\win\RenderPassDefault.hpp" />
     <ClInclude Include="..\src\win\RenderPipelines.hpp" />
     <ClInclude Include="..\src\win\RenderScene.hpp" />
     <ClInclude Include="..\src\win\RenderShaders.hpp" />
     <ClInclude Include="ControllerInputUtilities.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\shaders\common.hlsli" />
     <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
       <FileType>Document</FileType>
     </None>

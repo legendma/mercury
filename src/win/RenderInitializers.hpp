@@ -5,18 +5,25 @@
 #include <dxgi1_4.h>
 
 
-#define NODE_MASK_SINGLE_GPU        ( 0 )
 #define SWAP_CHAIN_DOUBLE_BUFFER    ( 2 )
-
-#define NEAR_DEPTH_VALUE            ( 1.0f )
-#define FAR_DEPTH_VALUE             ( 0.0f )
-
-#define RENDER_TARGET_FORMAT        DXGI_FORMAT_R8G8B8A8_UNORM
-#define DEPTH_STENCIL_FORMAT        DXGI_FORMAT_D24_UNORM_S8_UINT
 
 
 namespace RenderInitializers
 {
+static const unsigned int NODE_MASK_SINGLE_GPU = 0;
+
+static const float NEAR_DEPTH_VALUE = 1.0f;
+static const float FAR_DEPTH_VALUE  = 0.0f;
+
+static const DXGI_FORMAT RENDER_TARGET_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
+static const DXGI_FORMAT DEPTH_STENCIL_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+static const bool ENABLE_DEPTH_TEST  = true;
+static const bool DISABLE_DEPTH_TEST = false;
+
+static const bool ENABLE_DEPTH_WRITE  = true;
+static const bool DISABLE_DEPTH_WRITE = false;
+
 #define RENDER_INITIALIZER_DECLARE_STATIC_SAMPLER( _register, _filter, _addrU, _addrV, _addrW ) \
 	{																							\
 	_filter,                                /* Filter           */								\
@@ -43,6 +50,7 @@ typedef enum _TextureUsage
 
 D3D12_RESOURCE_DESC              GetBufferResourceDescriptor( const uint32_t size );
 D3D12_HEAP_PROPERTIES            GetDefaultHeapProperties();
+D3D12_DEPTH_STENCIL_DESC         GetDepthStencilDescriptor( const bool is_depth_test, const bool is_depth_write );
 D3D12_RESOURCE_DESC              GetDepthStencilResourceDescriptor( const uint16_t width, const uint16_t height );
 D3D12_DESCRIPTOR_RANGE           GetDescriptorRange( const D3D12_DESCRIPTOR_RANGE_TYPE type, const uint8_t count, const uint8_t base_register, const uint8_t space );
 D3D12_DESCRIPTOR_HEAP_DESC       GetHeapDescriptor( const uint16_t count, const bool is_shader, const D3D12_DESCRIPTOR_HEAP_TYPE type );
