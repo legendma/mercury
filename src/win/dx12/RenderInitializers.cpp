@@ -18,7 +18,7 @@
 #endif
 
 
-namespace RenderInitializers
+namespace Render { namespace Initializers
 {
 
 /*******************************************************************
@@ -49,20 +49,43 @@ return( ret );
 
 /*******************************************************************
 *
+*   GetCommandQueueDescriptorUpload()
+*
+*******************************************************************/
+
+const D3D12_COMMAND_QUEUE_DESC * GetCommandQueueDescriptorUpload()
+{
+static const D3D12_COMMAND_QUEUE_DESC ret = 
+    {
+     D3D12_COMMAND_LIST_TYPE_COPY,        /* Type                   */
+     D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, /* Priority               */
+     D3D12_COMMAND_QUEUE_FLAG_NONE,       /* Flags                  */
+     NODE_MASK_SINGLE_GPU                 /* NodeMask               */
+    };
+
+return( &ret );
+
+} /* GetCommandQueueDescriptorUpload() */
+
+
+/*******************************************************************
+*
 *   GetDefaultHeapProperties()
 *
 *******************************************************************/
 
-D3D12_HEAP_PROPERTIES GetDefaultHeapProperties()
+const D3D12_HEAP_PROPERTIES * GetDefaultHeapProperties()
 {
-D3D12_HEAP_PROPERTIES ret = {};
-ret.Type                 = D3D12_HEAP_TYPE_DEFAULT;
-ret.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-ret.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-ret.CreationNodeMask     = NODE_MASK_SINGLE_GPU;
-ret.VisibleNodeMask      = NODE_MASK_SINGLE_GPU;
+static const D3D12_HEAP_PROPERTIES ret =
+    {
+    D3D12_HEAP_TYPE_DEFAULT,        /* Type                         */
+    D3D12_CPU_PAGE_PROPERTY_UNKNOWN,/* CPUPageProperty              */
+    D3D12_MEMORY_POOL_UNKNOWN,      /* MemoryPoolPreference         */
+    NODE_MASK_SINGLE_GPU,           /* CreationNodeMask             */
+    NODE_MASK_SINGLE_GPU            /* VisibleNodeMask              */
+    };
 
-return( ret );
+return( &ret );
 
 } /* GetDefaultHeapProperties() */
 
@@ -481,18 +504,20 @@ return( ret );
 *
 *******************************************************************/
 
-D3D12_HEAP_PROPERTIES GetUploadHeapProperties()
+const D3D12_HEAP_PROPERTIES * GetUploadHeapProperties()
 {
-D3D12_HEAP_PROPERTIES ret = {};
-ret.Type                 = D3D12_HEAP_TYPE_UPLOAD;
-ret.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-ret.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-ret.CreationNodeMask     = NODE_MASK_SINGLE_GPU;
-ret.VisibleNodeMask      = NODE_MASK_SINGLE_GPU;
+static const D3D12_HEAP_PROPERTIES ret =
+    {
+    D3D12_HEAP_TYPE_UPLOAD,         /* Type                         */
+    D3D12_CPU_PAGE_PROPERTY_UNKNOWN,/* CPUPageProperty              */
+    D3D12_MEMORY_POOL_UNKNOWN,      /* MemoryPoolPreference         */
+    NODE_MASK_SINGLE_GPU,           /* CreationNodeMask             */
+    NODE_MASK_SINGLE_GPU            /* VisibleNodeMask              */
+    };
 
-return( ret );
+return( &ret );
 
 } /* GetUploadHeapProperties() */
 
 
-} /* namespace RenderInitializers */
+} }/* namespace Render::Initializers */

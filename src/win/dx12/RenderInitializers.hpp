@@ -8,7 +8,7 @@
 #define SWAP_CHAIN_DOUBLE_BUFFER    ( 2 )
 
 
-namespace RenderInitializers
+namespace Render { namespace Initializers
 {
 static const unsigned int NODE_MASK_SINGLE_GPU = 0;
 
@@ -49,7 +49,8 @@ typedef enum _TextureUsage
     } TextureUsage;
 
 D3D12_RESOURCE_DESC              GetBufferResourceDescriptor( const uint32_t size );
-D3D12_HEAP_PROPERTIES            GetDefaultHeapProperties();
+const D3D12_COMMAND_QUEUE_DESC * GetCommandQueueDescriptorUpload();
+const D3D12_HEAP_PROPERTIES *    GetDefaultHeapProperties();
 D3D12_DEPTH_STENCIL_DESC         GetDepthStencilDescriptor( const bool is_depth_test, const bool is_depth_write );
 D3D12_RESOURCE_DESC              GetDepthStencilResourceDescriptor( const uint16_t width, const uint16_t height );
 D3D12_DESCRIPTOR_RANGE           GetDescriptorRange( const D3D12_DESCRIPTOR_RANGE_TYPE type, const uint8_t count, const uint8_t base_register, const uint8_t space );
@@ -67,6 +68,6 @@ D3D12_ROOT_SIGNATURE_DESC        GetRootSignatureDescriptor( const D3D12_ROOT_SI
 D3D12_SHADER_RESOURCE_VIEW_DESC  GetShaderResourceViewDescriptorTexture2D( const DXGI_FORMAT format, const uint16_t mip_levels );
 DXGI_SWAP_CHAIN_DESC             GetSwapChainDescriptor( const uint16_t width, const uint16_t height, HWND hwnd );
 D3D12_RESOURCE_DESC              GetTexture2DResourceDescriptor( const uint16_t width, const uint16_t height, const TextureUsage usage, const DXGI_FORMAT format );
-D3D12_HEAP_PROPERTIES            GetUploadHeapProperties();
+const D3D12_HEAP_PROPERTIES *    GetUploadHeapProperties();
 
-} /* namespace RenderInitializers */
+} }/* namespace Render::Initializers */

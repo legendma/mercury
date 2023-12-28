@@ -18,9 +18,10 @@
 #define RENDER_SHADERS_DESCRIPTOR_RANGE_MAX_COUNT \
                                     ( RENDER_SHADERS_EFFECT_MAX_ROOT_PARAMETERS )
 
-namespace RenderPipelines{ struct _PipelineBuilder; }
-namespace RenderShaders
+namespace Render { namespace Pipelines{ struct _PipelineBuilder; } }
+namespace Render { namespace Shaders
 {
+
 static const char      *DEFAULT_VERTEX_SHADER = "shader_vs_mvp";
 static const char      *DEFAULT_PIXEL_SHADER  = "shader_ps_flat";
 
@@ -72,7 +73,7 @@ typedef struct _ShaderCache
     } ShaderCache;
 
 
-bool           ShaderEffect_GetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, RenderPipelines::_PipelineBuilder *builder );
+bool           ShaderEffect_GetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, Pipelines::_PipelineBuilder *builder );
 void           ShaderCache_Destroy( ShaderCache *cache );
 ShaderModule * ShaderCache_GetShader( const char *asset_name, ShaderCache *cache );
 bool           ShaderCache_Init( const uint32_t cache_sz, ShaderCache *cache );
@@ -122,4 +123,4 @@ for( uint8_t i = 0; i < Utilities_ClampToMaxU32( param_count, cnt_of_array( shad
 } /* ShaderEffect_SetRootParameters() */
 
 
-} /* namespace RenderShaders */
+} }/* namespace RenderShaders */
