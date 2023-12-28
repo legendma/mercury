@@ -1,12 +1,32 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <pthread.h>
+#define WIN32_LEAN_AND_MEAN 
 #include <windows.h>
-#include <unknwn.h>
-#include <wchar.h>
-#include <winerror.h>
 
+#include "RenderInitializers.hpp"
 #include "Utilities.hpp"
+
+namespace Render { namespace Core
+{
+
+static const int FRAME_COUNT = 2;
+
+typedef ID3D12Device10  IMDevice;
+typedef IDXGIFactory6   IMDXGI;
+typedef ID3D12GraphicsCommandList7
+                        IMGraphicsCommandList;
+typedef ID3D12CommandQueue
+                        IMCommandQueue;
+typedef ID3D12CommandAllocator
+                        IMCommandAllocator;
+
+
+void       AddTrashToCurrentFrame( IUnknown** trash );
+IMDevice * GetDevice();
+IMDXGI *   GetDXGI();
 
 
 /*******************************************************************
@@ -20,7 +40,7 @@
 *******************************************************************/
 
 #define ComSafeRelease( _p ) \
-    _ComSafeRelease( (IUnknown**)_p )
+    Render::Core::_ComSafeRelease( (IUnknown**)_p )
 
 static inline void _ComSafeRelease( IUnknown **p )
 {
@@ -82,3 +102,18 @@ if( !(*p) )
     free( name_str );                                                 \
     }
 
+
+/*******************************************************************
+*
+*   TossTrash()
+*
+*   DESCRIPTION:
+*       Defer destruction of the given COM object until the frame
+*       is recycled.
+*
+*******************************************************************/
+
+#define TossTrash( _trash ) \
+    Render::Core::AddTrashToCurrentFrame( (IUnknown**)_trash )
+
+}}

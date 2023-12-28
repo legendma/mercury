@@ -17,10 +17,10 @@
 #define RTV_HEAP_CAPACITY           RENDER_SCENE_FULLSCREEN_RENDER_TARGET_COUNT
 #define DEFAULT_PASS_RT_FORMAT      DXGI_FORMAT_R8G8B8A8_UNORM
 
-using namespace RenderEngine;
+using namespace Render;
 using namespace RenderModels;
 
-namespace RenderScene
+namespace Render { namespace Scene
 {
 
 static void CleanupFrame( Scene *scene );
@@ -103,7 +103,7 @@ DescriptorHeap_Destroy( scene->engine, &scene->rtv_heap );
 
 void Scene_Draw( Scene *scene )
 {
-Engine_ClearDepthStencil( RenderInitializers::FAR_DEPTH_VALUE, 0, scene->engine );
+Engine_ClearDepthStencil( Initializers::FAR_DEPTH_VALUE, 0, scene->engine );
 
 
 
@@ -121,39 +121,41 @@ CleanupFrame( scene );
 *
 *******************************************************************/
 
-void Scene_Init( RenderEngine::Engine *engine, Scene *scene )
+void Scene_Init( Engine::Engine *engine, Scene *scene )
 {
 memset( scene, 0, sizeof( *scene ) );
 
 scene->engine = engine;
 
 HashMap_InitImplementation( &scene->objects );
-DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, DESCRIPTOR_HEAP_IS_LINEAR, RTV_HEAP_CAPACITY, engine->device.ptr, &scene->rtv_heap );
+DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, Engine::DESCRIPTOR_HEAP_IS_LINEAR, RTV_HEAP_CAPACITY, engine->device.ptr, &scene->rtv_heap );
 RenderModels::ModelCache_Init( MODEL_CACHE_SZ, &scene->models );
 
 /* Forward opaque pass */
     {
     ScenePass *pass = &scene->passes[ SCENE_PASS_NAME_FORWARD_OPAQUE ];
     pass->name = SCENE_PASS_NAME_FORWARD_OPAQUE;
-    pass->builder = *RenderPipelines::Pipelines_GetBuilder( RenderPipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
+    pass->builder = *Pipelines::Pipelines_GetBuilder( Pipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
     pass->builder.root_signature->AddRef();
     pass->builder.num_render_targets = 1;
     pass->builder.rt_formats[ 0 ]    = DEFAULT_PASS_RT_FORMAT;
 
-    pass->pso = RenderPipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    pass->pso = Pipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    NameD3D( pass->pso, L"Scene::FowardOpaquePass::PipelineStateObject" );
     }
 
 /* Forward transparent pass */
     {
     ScenePass *pass = &scene->passes[ SCENE_PASS_NAME_FORWARD_TRANSPARENT ];
     pass->name = SCENE_PASS_NAME_FORWARD_TRANSPARENT;
-    pass->builder = *RenderPipelines::Pipelines_GetBuilder( RenderPipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
+    pass->builder = *Pipelines::Pipelines_GetBuilder( Pipelines::BUILDER_NAME_DEFAULT, &engine->pipelines );
     pass->builder.root_signature->AddRef();
     pass->builder.num_render_targets = 1;
     pass->builder.rt_formats[ 0 ]    = DEFAULT_PASS_RT_FORMAT; pass->builder.blending.RenderTarget->BlendEnable = TRUE;
-    pass->builder.depth_stencil = RenderInitializers::GetDepthStencilDescriptor( RenderInitializers::ENABLE_DEPTH_TEST, RenderInitializers::DISABLE_DEPTH_WRITE );
+    pass->builder.depth_stencil = Initializers::GetDepthStencilDescriptor( Initializers::ENABLE_DEPTH_TEST, Initializers::DISABLE_DEPTH_WRITE );
 
-    pass->pso = RenderPipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    pass->pso = Pipelines::PipelineBuilder_BuildPipeline( &pass->builder, scene->engine->device.ptr );
+    NameD3D( pass->pso, L"Scene::FowardTransparentPass::PipelineStateObject" );
     }
 
 } /* Scene_Init() */
@@ -280,22 +282,21 @@ DescriptorHeap_Reset( &scene->rtv_heap );
 uint16_t viewport_width  = (uint16_t)( scene->viewport_window.v.x + 0.5f );
 uint16_t viewport_height = (uint16_t)( scene->viewport_window.v.y + 0.5f );
 
-D3D12_HEAP_PROPERTIES props = RenderInitializers::GetDefaultHeapProperties();
-D3D12_RESOURCE_DESC fullscreen_desc = RenderInitializers::GetTexture2DResourceDescriptor( viewport_width, viewport_height, RenderInitializers::TEXTURE_USAGE_RENDER_TARGET, DEFAULT_PASS_RT_FORMAT );
+D3D12_RESOURCE_DESC fullscreen_desc = Initializers::GetTexture2DResourceDescriptor( viewport_width, viewport_height, Initializers::TEXTURE_USAGE_RENDER_TARGET, DEFAULT_PASS_RT_FORMAT );
 
 for( uint32_t i = 0; i < cnt_of_array( scene->rt_fullscreen ); i++ )
     {
-    Texture *texture = &scene->rt_fullscreen[ i ];
+    Engine::Texture *texture = &scene->rt_fullscreen[ i ];
 
     Engine_TossTrash( &texture->resource, scene->engine );
-    _hr( scene->engine->device.ptr->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE, &fullscreen_desc, D3D12_RESOURCE_STATE_RENDER_TARGET, NULL, IID_PPV_ARGS( &texture->resource ) ) );
+    _hr( scene->engine->device.ptr->CreateCommittedResource( Initializers::GetDefaultHeapProperties(), D3D12_HEAP_FLAG_NONE, &fullscreen_desc, D3D12_RESOURCE_STATE_RENDER_TARGET, NULL, IID_PPV_ARGS( &texture->resource ) ) );
     
     texture->handle = DescriptorHeap_Allocate( &scene->rtv_heap ).cpu_hndl;
-    D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = RenderInitializers::GetRenderTargetViewDescriptor( DEFAULT_PASS_RT_FORMAT );
+    D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = Initializers::GetRenderTargetViewDescriptor( DEFAULT_PASS_RT_FORMAT );
     scene->engine->device.ptr->CreateRenderTargetView( texture->resource, &rtv_desc, texture->handle );
     }
 
 } /* ResizeSceneSurfaces() */
 
 
-} /* namespace RenderScene */
+} }/* namespace Render::Scene */

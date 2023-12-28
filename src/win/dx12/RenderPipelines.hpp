@@ -8,7 +8,7 @@
 
 #define RENDER_PIPELINES_MAX_COUNT     ( 10 )
 
-namespace RenderPipelines
+namespace Render { namespace Pipelines
 {
 static const char *BUILDER_NAME_DEFAULT = "default_builder";
 
@@ -42,20 +42,20 @@ typedef struct _PipelineBuilder
                         primitive_topology;
     RenderModels::VertexDescriptor
                         vertex_descriptor;
-    RenderShaders::_ShaderEffect
+    Shaders::_ShaderEffect
                        *effect;
     DXGI_FORMAT         rt_formats[ cnt_of_array( ( (D3D12_GRAPHICS_PIPELINE_STATE_DESC*)NULL )->RTVFormats ) ];
     uint32_t            num_render_targets;
     } PipelineBuilder;
 
 HASH_MAP_IMPLEMENT( BuilderMap, RENDER_PIPELINES_MAX_COUNT, PipelineBuilder );
-HASH_MAP_IMPLEMENT( EffectMap, RENDER_PIPELINES_MAX_COUNT, RenderShaders::ShaderEffect );
+HASH_MAP_IMPLEMENT( EffectMap, RENDER_PIPELINES_MAX_COUNT, Shaders::ShaderEffect );
 
 typedef struct _Pipelines
     {
     BuilderMap          builders;
     EffectMap           effects;
-    RenderShaders::ShaderCache
+    Shaders::ShaderCache
                         shader_cache;
     } Pipelines;
 
@@ -67,4 +67,4 @@ PipelineBuilder *     Pipelines_GetBuilder( const char *name, Pipelines *pipelin
 bool                  Pipelines_Init( ID3D12Device *device, Pipelines *pipelines );
 
 
-} /* namespace RenderPipelines */
+} }/* namespace RenderPipelines */

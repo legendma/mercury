@@ -12,7 +12,7 @@
 #define SHADER_RESOURCE_VIEW_COUNT  ( RenderPass::DEFAULT_PASS_SRV_COUNT )
 
 
-namespace RenderPipelines
+namespace Render { namespace Pipelines
 {
 
 /*******************************************************************
@@ -24,20 +24,20 @@ namespace RenderPipelines
 *
 *******************************************************************/
 
-static inline void AddEffectStage( const char *shader_asset_name, const RenderShaders::ShaderStageName stage_name, RenderShaders::ShaderCache *shader_cache, RenderShaders::ShaderEffect *effect )
+static inline void AddEffectStage( const char *shader_asset_name, const Shaders::ShaderStageName stage_name, Shaders::ShaderCache *shader_cache, Shaders::ShaderEffect *effect )
 {
-RenderShaders::ShaderStage   stage;
-RenderShaders::ShaderModule *shader = NULL;
+Shaders::ShaderStage   stage;
+Shaders::ShaderModule *shader = NULL;
 
 stage = {};
-shader = RenderShaders::ShaderCache_GetShader( shader_asset_name, shader_cache );
+shader = Shaders::ShaderCache_GetShader( shader_asset_name, shader_cache );
 hard_assert( shader );
 
 stage.stage_name                = stage_name;
 stage.byte_code.pShaderBytecode = shader->byte_code;
 stage.byte_code.BytecodeLength  = shader->byte_code_sz;
 
-hard_assert( RenderShaders::ShaderEffect_PushStage( stage, effect ) );
+hard_assert( Shaders::ShaderEffect_PushStage( stage, effect ) );
 
 } /* AddEffectStage() */
 
@@ -65,7 +65,7 @@ hard_assert( RenderShaders::ShaderEffect_PushStage( stage, effect ) );
 *******************************************************************/
 
 #define GetEffect( _name, _map ) \
-    (RenderShaders::ShaderEffect*)HashMap_At( Utilities_HashString2( _name ), &(_map)->map )
+    (Shaders::ShaderEffect*)HashMap_At( Utilities_HashString2( _name ), &(_map)->map )
 
 
 /*******************************************************************
@@ -91,7 +91,7 @@ hard_assert( RenderShaders::ShaderEffect_PushStage( stage, effect ) );
 *******************************************************************/
 
 #define InsertEffect( _name, _map ) \
-    (RenderShaders::ShaderEffect*)HashMap_Insert( Utilities_HashString2( _name ), NULL, &(_map)->map )
+    (Shaders::ShaderEffect*)HashMap_Insert( Utilities_HashString2( _name ), NULL, &(_map)->map )
 
 
 static bool CreateBuilders( ID3D12Device *device, Pipelines *pipelines );
@@ -116,11 +116,11 @@ for( uint32_t i = 0; i < builder->effect->stage_count; i++ )
     {
     switch( builder->effect->stages[ i ].stage_name )
         {
-        case RenderShaders::SHADER_STAGE_NAME_VERTEX:
+        case Shaders::SHADER_STAGE_NAME_VERTEX:
             desc.VS = builder->effect->stages[ i ].byte_code;
             break;
 
-        case RenderShaders::SHADER_STAGE_NAME_PIXEL:
+        case Shaders::SHADER_STAGE_NAME_PIXEL:
             desc.PS = builder->effect->stages[ i ].byte_code;
             break;
 
@@ -146,9 +146,9 @@ for( uint32_t i = 0; i < cnt_of_array( desc.RTVFormats ); i++ )
     desc.RTVFormats[ i ] = builder->rt_formats[ i ];
     }
 
-desc.DSVFormat                        = RenderInitializers::DEPTH_STENCIL_FORMAT;
-desc.SampleDesc                       = RenderInitializers::GetDepthStencilResourceDescriptor( 0, 0 ).SampleDesc;
-desc.NodeMask                         = RenderInitializers::NODE_MASK_SINGLE_GPU;
+desc.DSVFormat                        = Initializers::DEPTH_STENCIL_FORMAT;
+desc.SampleDesc                       = Initializers::GetDepthStencilResourceDescriptor( 0, 0 ).SampleDesc;
+desc.NodeMask                         = Initializers::NODE_MASK_SINGLE_GPU;
 desc.CachedPSO.CachedBlobSizeInBytes  = 0;
 desc.CachedPSO.pCachedBlob            = NULL;
 desc.Flags                            = D3D12_PIPELINE_STATE_FLAG_NONE;
@@ -177,7 +177,7 @@ return( ret );
 
 void Pipelines_Destroy( Pipelines *pipelines )
 {
-RenderShaders::ShaderCache_Destroy( &pipelines->shader_cache );
+Shaders::ShaderCache_Destroy( &pipelines->shader_cache );
 for( uint32_t i = 0; i < cnt_of_array( ALL_BUILDERS ); i++ )
     {
     PipelineBuilder *builder = GetBuilder( ALL_BUILDERS[ i ], &pipelines->builders );
@@ -224,7 +224,7 @@ bool Pipelines_Init( ID3D12Device *device, Pipelines *pipelines )
 HashMap_InitImplementation( &pipelines->builders );
 HashMap_InitImplementation( &pipelines->effects );
 
-RenderShaders::ShaderCache_Init( SHADER_CACHE_SZ, &pipelines->shader_cache );
+Shaders::ShaderCache_Init( SHADER_CACHE_SZ, &pipelines->shader_cache );
 
 CreateShaders( pipelines );
 CreateBuilders( device, pipelines );
@@ -252,14 +252,16 @@ static bool CreateBuilders( ID3D12Device *device, Pipelines *pipelines )
     builder->effect = GetEffect( EFFECT_NAME_DEFAULT, &pipelines->effects );
     hard_assert( builder->effect );
 
-    RenderShaders::ShaderEffect_GetRootSignature( builder->effect, device, builder );
+    Shaders::ShaderEffect_GetRootSignature( builder->effect, device, builder );
+
+    NameD3D( builder->root_signature, L"Pipelines::DefaultPipeline::RootSignature" );
 
     for( uint32_t i = 0; i < cnt_of_array( builder->rt_formats ); i++ )
         {
         builder->rt_formats[ i ] = DXGI_FORMAT_UNKNOWN;
         }
 
-    builder->rt_formats[ 0 ]    = RenderInitializers::RENDER_TARGET_FORMAT;
+    builder->rt_formats[ 0 ]    = Initializers::RENDER_TARGET_FORMAT;
     builder->num_render_targets = 1;
     
     builder->blending.AlphaToCoverageEnable = FALSE;
@@ -277,8 +279,8 @@ static bool CreateBuilders( ID3D12Device *device, Pipelines *pipelines )
     blend->LogicOp               = D3D12_LOGIC_OP_NOOP;
     blend->RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-    builder->rasterizer         = RenderInitializers::GetRasterizerDescriptorDefault( D3D12_FILL_MODE_SOLID );
-    builder->depth_stencil      = RenderInitializers::GetDepthStencilDescriptor( RenderInitializers::ENABLE_DEPTH_TEST, RenderInitializers::ENABLE_DEPTH_WRITE );
+    builder->rasterizer         = Initializers::GetRasterizerDescriptorDefault( D3D12_FILL_MODE_SOLID );
+    builder->depth_stencil      = Initializers::GetDepthStencilDescriptor( Initializers::ENABLE_DEPTH_TEST, Initializers::ENABLE_DEPTH_WRITE );
     builder->primitive_topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     builder->vertex_descriptor  = RenderModels::Vertex_GetDescriptor();
     }
@@ -299,27 +301,27 @@ return( true );
 
 static void CreateShaders( Pipelines *pipelines )
 {
-D3D12_DESCRIPTOR_RANGE textures_template = RenderInitializers::GetDescriptorRange( D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RenderModels::TextureNames::ASSET_FILE_MODEL_TEXTURES_COUNT, 0, 0 );
+D3D12_DESCRIPTOR_RANGE textures_template = Initializers::GetDescriptorRange( D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RenderModels::TextureNames::ASSET_FILE_MODEL_TEXTURES_COUNT, 0, 0 );
 
 /* default */
     {
-    RenderShaders::ShaderEffect *effect = InsertEffect( EFFECT_NAME_DEFAULT, &pipelines->effects );
+    Shaders::ShaderEffect *effect = InsertEffect( EFFECT_NAME_DEFAULT, &pipelines->effects );
     hard_assert( effect );
     effect->signature_flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-    AddEffectStage( RenderShaders::DEFAULT_VERTEX_SHADER, RenderShaders::SHADER_STAGE_NAME_VERTEX, &pipelines->shader_cache, effect );
-    AddEffectStage( RenderShaders::DEFAULT_PIXEL_SHADER, RenderShaders::SHADER_STAGE_NAME_PIXEL, &pipelines->shader_cache, effect );
-    D3D12_DESCRIPTOR_RANGE *textures = RenderShaders::ShaderEffect_PushDescriptorRange( effect );
+    AddEffectStage( Shaders::DEFAULT_VERTEX_SHADER, Shaders::SHADER_STAGE_NAME_VERTEX, &pipelines->shader_cache, effect );
+    AddEffectStage( Shaders::DEFAULT_PIXEL_SHADER, Shaders::SHADER_STAGE_NAME_PIXEL, &pipelines->shader_cache, effect );
+    D3D12_DESCRIPTOR_RANGE *textures = Shaders::ShaderEffect_PushDescriptorRange( effect );
     *textures = textures_template;
     
     D3D12_ROOT_PARAMETER params[ SLOT_NAME_COUNT ];
-    params[ SLOT_NAME_PER_OBJECT ] = RenderInitializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 0, 0 );
-    params[ SLOT_NAME_MATERIALS  ] = RenderInitializers::GetRootParameterDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL, textures, 1 );
-    params[ SLOT_NAME_PER_PASS   ] = RenderInitializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 1, 0 );
-    params[ SLOT_NAME_PER_FRAME  ] = RenderInitializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 2, 0 );
-    RenderShaders::ShaderEffect_SetRootParameters( params, cnt_of_array( params ), effect );    
+    params[ SLOT_NAME_PER_OBJECT ] = Initializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 0, 0 );
+    params[ SLOT_NAME_MATERIALS  ] = Initializers::GetRootParameterDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL, textures, 1 );
+    params[ SLOT_NAME_PER_PASS   ] = Initializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 1, 0 );
+    params[ SLOT_NAME_PER_FRAME  ] = Initializers::GetRootParameterDescriptorConstantBufferView( D3D12_SHADER_VISIBILITY_VERTEX, 2, 0 );
+    Shaders::ShaderEffect_SetRootParameters( params, cnt_of_array( params ), effect );    
     }
 
 } /* CreateShaders() */
 
 
-} /* namespace RenderPipelines() */
+} }/* namespace RenderPipelines() */

@@ -14,7 +14,7 @@
 #define RENDER_SCENE_MAX_TRASH_COUNT \
                                     ( 50 )
 
-namespace RenderScene
+namespace Render { namespace Scene
 {
 
 typedef struct _SceneObject
@@ -44,7 +44,7 @@ typedef struct _ScenePass
     uint32_t            object_count;
     ID3D12PipelineState
                        *pso;
-    RenderPipelines::PipelineBuilder
+    Pipelines::PipelineBuilder
                         builder;
     } ScenePass;
 
@@ -55,13 +55,12 @@ typedef struct _Scene
     ScenePass           passes[ SCENE_PASS_NAME_COUNT ];
     RenderModels::ModelCache
                         models;
-    RenderEngine::Engine
+    Engine::Engine
                        *engine;
     Float2              viewport_window;
-    RenderEngine::Texture
-                        rt_fullscreen[ RENDER_SCENE_FULLSCREEN_RENDER_TARGET_COUNT ];
+    Engine::Texture     rt_fullscreen[ RENDER_SCENE_FULLSCREEN_RENDER_TARGET_COUNT ];
     uint8_t             rt_fullscreen_next;
-    RenderEngine::DescriptorHeap
+    Engine::DescriptorHeap
                         rtv_heap;
     } Scene;
 
@@ -69,7 +68,7 @@ typedef struct _Scene
 void Scene_BeginFrame( const Float2 viewport, Scene *scene );
 void Scene_Destroy( Scene *scene );
 void Scene_Draw( Scene *scene );
-void Scene_Init( RenderEngine::Engine *engine, Scene *scene );
+void Scene_Init( Engine::Engine *engine, Scene *scene );
 void Scene_RegisterObject( const char *asset_name, const void *object, const Float4x4 *xfm_world, Scene *scene );
 
-} /* namespace RenderScene */
+} }/* namespace Render::Scene */

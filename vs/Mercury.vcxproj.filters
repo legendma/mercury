@@ -67,23 +67,8 @@
     <ClCompile Include="..\src\utils\MathVector.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\RenderShaders.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utils\LinearAllocator.cpp">
       <Filter>utils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderInitializers.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderModels.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderPipelines.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderScene.cpp">
-      <Filter>win</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utils\MathMatrix.cpp">
       <Filter>utils</Filter>
@@ -93,6 +78,30 @@
     </ClCompile>
     <ClCompile Include="..\src\utils\ResourceLoader.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderInitializers.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderModels.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderPipelines.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderScene.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderShaders.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\RenderBuffers.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\RenderCore.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\Descriptor.cpp">
+      <Filter>win</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -153,30 +162,42 @@
     <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\RenderShaders.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\LinearAllocator.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\RenderInitializers.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderModels.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderPipelines.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderEngine.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerInputUtilities.hpp" />
-    <ClInclude Include="..\src\win\RenderScene.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\ResourceLoader.hpp">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderEngine.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderInitializers.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderModels.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderPipelines.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderScene.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderShaders.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderBuffers.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\RenderCore.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\RenderTexture.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\Descriptor.hpp">
+      <Filter>win</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

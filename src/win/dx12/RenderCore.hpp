@@ -1,12 +1,27 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <pthread.h>
+#include <stdint.h>
+#define WIN32_LEAN_AND_MEAN 
 #include <windows.h>
-#include <unknwn.h>
-#include <wchar.h>
-#include <winerror.h>
 
 #include "Utilities.hpp"
+
+namespace Render { namespace Core
+{
+
+typedef ID3D12Device10 *IMDevice;
+typedef IDXGIFactory6  *IMDXGI;
+
+extern IMDevice        *g_device;
+extern IMDXGI          *g_dxgi;
+extern pthread_t        g_render_thread;
+
+
+bool Init();
+void Destroy();
 
 
 /*******************************************************************
@@ -82,3 +97,4 @@ if( !(*p) )
     free( name_str );                                                 \
     }
 
+}}

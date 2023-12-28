@@ -15,7 +15,7 @@
                                     ( 50 )
 #define RENDER_ENGINE_SCENE_MAX_CNT ( 10 )
 
-namespace RenderEngine
+namespace Render { namespace Engine
 {
 HASH_MAP_IMPLEMENT( DrawScenesMap, RENDER_ENGINE_SCENE_MAX_CNT, ECS::SceneComponent* );
 
@@ -120,7 +120,7 @@ typedef struct _Engine
     SceneDraw           scene_draw;
     ECS::NonOwningGroupIterator
                         group;
-    RenderPipelines::Pipelines
+    Pipelines::Pipelines
                         pipelines;
     } Engine;
 
@@ -202,4 +202,4 @@ if( heap->is_ring )
 } /* DescriptorHeap_NextFrame() */
 
 
-} /* namespace RenderEngine */
+} }/* namespace RenderEngine */

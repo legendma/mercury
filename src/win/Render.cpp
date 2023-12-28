@@ -25,7 +25,7 @@
 
 
 using namespace ECS;
-using namespace RenderEngine;
+using namespace Render;
 
 
 /*******************************************************************
@@ -37,7 +37,7 @@ using namespace RenderEngine;
 *
 *******************************************************************/
 
-static inline void AdvanceFrame( Engine *engine )
+static inline void AdvanceFrame( Engine::Engine *engine )
 {
 ++engine->current_frame %= cnt_of_array( engine->frames );
 
@@ -69,7 +69,7 @@ return( ( size + 255 ) & 0xff );
 *
 *******************************************************************/
 
-static inline Texture * GetCurrentBackbuffer( Engine *engine )
+static inline Engine::Texture * GetCurrentBackbuffer( Engine::Engine *engine )
 {
 return( &engine->surfaces.backbuffers[ engine->surfaces.backbuffer_current ] );
 
@@ -86,7 +86,7 @@ return( &engine->surfaces.backbuffers[ engine->surfaces.backbuffer_current ] );
 *
 *******************************************************************/
 
-static inline void SweepFrameTrash( Frame *frame )
+static inline void SweepFrameTrash( Engine::Frame *frame )
 {
 for( uint32_t i = 0; i < frame->trash_can_count; i++ )
     {
@@ -98,34 +98,34 @@ frame->trash_can_count = 0;
 } /* SweepFrameTrash() */
 
 
-static Engine * AsRenderEngine( Universe* universe );
-static bool     BeginFrame( Engine *engine );
-static void     ClearBackbuffer( const Color4f clear_color, Engine *engine );
-static bool     CreateCommandObjects( Engine *engine );
-static bool     CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
-static bool     CreateDepthStencil( Engine *engine );
-static bool     CreateDescriptorHeaps( Engine *engine );
-static bool     CreateDevice( Engine *engine );
-static bool     CreateRenderTargetViews( Engine *engine );
-static bool     CreateSwapChain( Engine *engine );
-static bool     CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
-static void     DestroyScenes( Engine *engine, Universe *universe );
-static void     DrawScenes( Engine *engine, Universe *universe );
-static bool     EndFrame( Engine *engine );
-static void     ExecuteCommandLists( Engine *engine );
-static bool     FlushCommandQueue( Engine *engine );
-static bool     GetWindowExtent( HWND window, UINT *width, UINT *height );
-static bool     InitDirectX( Engine *engine );
-static bool     InitFrames( Engine *engine );
-static bool     InitPipelines( Engine *engine );
+static Engine::Engine * AsRenderEngine( Universe* universe );
+static bool             BeginFrame( Engine::Engine *engine );
+static void             ClearBackbuffer( const Color4f clear_color, Engine::Engine *engine );
+static bool             CreateCommandObjects( Engine::Engine *engine );
+static bool             CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static bool             CreateDepthStencil( Engine::Engine *engine );
+static bool             CreateDescriptorHeaps( Engine::Engine *engine );
+static bool             CreateDevice( Engine::Engine *engine );
+static bool             CreateRenderTargetViews( Engine::Engine *engine );
+static bool             CreateSwapChain( Engine::Engine *engine );
+static bool             CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out );
+static void             DestroyScenes( Engine::Engine *engine, Universe *universe );
+static void             DrawScenes( Engine::Engine *engine, Universe *universe );
+static bool             EndFrame( Engine::Engine *engine );
+static void             ExecuteCommandLists( Engine::Engine *engine );
+static bool             FlushCommandQueue( Engine::Engine *engine );
+static bool             GetWindowExtent( HWND window, UINT *width, UINT *height );
+static bool             InitDirectX( Engine::Engine *engine );
+static bool             InitFrames( Engine::Engine *engine );
+static bool             InitPipelines( Engine::Engine *engine );
 static UniverseComponentOnAttachProc
-                OnSceneAttach;
+                        OnSceneAttach;
 static UniverseComponentOnAttachProc
-                OnSceneRemove;
-static void     Reset( Engine *engine, Universe *universe );
-static bool     ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
-static void     SetViewport( const Float2 top_left, const Float2 extent, Engine *engine );
-static bool     WaitForFrameToFinish( uint64_t frame_num, Engine *engine );
+                        OnSceneRemove;
+static void             Reset( Engine::Engine *engine, Universe *universe );
+static bool             ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
+static void             SetViewport( const Float2 top_left, const Float2 extent, Engine::Engine *engine );
+static bool             WaitForFrameToFinish( uint64_t frame_num, Engine::Engine *engine );
 
 
 /*******************************************************************
@@ -137,9 +137,9 @@ static bool     WaitForFrameToFinish( uint64_t frame_num, Engine *engine );
 *
 *******************************************************************/
 
-DescriptorHandle RenderEngine::DescriptorHeap_Allocate( DescriptorHeap *heap )
+Engine::DescriptorHandle Engine::DescriptorHeap_Allocate( Render::Engine::DescriptorHeap *heap )
 {
-DescriptorHandle ret = {};
+Render::Engine::DescriptorHandle ret = {};
 DescriptorHeap_AllocateBatch( 1, 1, &ret, heap );
 
 return( ret );
@@ -156,7 +156,7 @@ return( ret );
 *
 *******************************************************************/
 
-bool RenderEngine::DescriptorHeap_AllocateBatch( const uint32_t allocate_cnt, uint32_t out_capacity, DescriptorHandle *out, DescriptorHeap *heap )
+bool Engine::DescriptorHeap_AllocateBatch( const uint32_t allocate_cnt, uint32_t out_capacity, Render::Engine::DescriptorHandle *out, Render::Engine::DescriptorHeap *heap )
 {
 uint32_t remaining = heap->capacity - heap->head;
 if( remaining < allocate_cnt )
@@ -206,7 +206,7 @@ return( true );
 *
 *******************************************************************/
 
-bool RenderEngine::DescriptorHeap_Create( const D3D12_DESCRIPTOR_HEAP_TYPE type, const bool is_ring, const uint32_t capacity, ID3D12Device *device, DescriptorHeap *heap )
+bool Engine::DescriptorHeap_Create( const D3D12_DESCRIPTOR_HEAP_TYPE type, const bool is_ring, const uint32_t capacity, ID3D12Device *device, Render::Engine::DescriptorHeap *heap )
 {
 *heap = {};
 heap->capacity          = capacity;
@@ -216,7 +216,7 @@ heap->is_shader_visible = ( type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
                          || type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER );
 heap->descriptor_size   = device->GetDescriptorHandleIncrementSize( heap->type );
 
-D3D12_DESCRIPTOR_HEAP_DESC desc = RenderInitializers::GetHeapDescriptor( capacity, heap->is_shader_visible, type );
+D3D12_DESCRIPTOR_HEAP_DESC desc = Initializers::GetHeapDescriptor( capacity, heap->is_shader_visible, type );
 if( FAILED( device->CreateDescriptorHeap( &desc, IID_PPV_ARGS( &heap->heap ) ) ) )
     {
     assert( false );
@@ -243,7 +243,7 @@ return( true );
 *
 *******************************************************************/
 
-void RenderEngine::DescriptorHeap_Destroy( Engine *engine, DescriptorHeap *heap )
+void Engine::DescriptorHeap_Destroy( Render::Engine::Engine *engine, Render::Engine::DescriptorHeap *heap )
 {
 if( engine )
     {
@@ -268,7 +268,7 @@ else
 *
 *******************************************************************/
 
-void RenderEngine::DescriptorHeap_Reset( DescriptorHeap *heap )
+void Engine::DescriptorHeap_Reset( Render::Engine::DescriptorHeap *heap )
 {
 heap->head = 0;
 
@@ -284,7 +284,7 @@ heap->head = 0;
 *
 *******************************************************************/
 
-void RenderEngine::Engine_AddTrashToCurrentFrame( IUnknown **trash, Engine *engine )
+void Engine::Engine_AddTrashToCurrentFrame( IUnknown **trash, Render::Engine::Engine *engine )
 {
 Frame *frame = Engine_CurrentFrame( engine );
 hard_assert( frame->trash_can_count < cnt_of_array( frame->trash_can ) );
@@ -304,7 +304,7 @@ frame->trash_can[ frame->trash_can_count++ ] = *trash;
 *
 *******************************************************************/
 
-void RenderEngine::Engine_ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Engine *engine )
+void Engine::Engine_ClearDepthStencil( const float clear_depth, uint8_t clear_stencil, Render::Engine::Engine *engine )
 {
 engine->commands.gfx->ClearDepthStencilView( engine->surfaces.depth_stencil.handle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, clear_depth, clear_stencil, 0, NULL );
 
@@ -320,7 +320,7 @@ engine->commands.gfx->ClearDepthStencilView( engine->surfaces.depth_stencil.hand
 *
 *******************************************************************/
 
-Frame * RenderEngine::Engine_CurrentFrame( Engine *engine )
+Engine::Frame * Engine::Engine_CurrentFrame( Engine *engine )
 {
 return( &engine->frames[ engine->current_frame ] );
 
@@ -338,7 +338,7 @@ return( &engine->frames[ engine->current_frame ] );
 
 void Render_ChangeResolutions( const uint16_t width, const uint16_t height, Universe *universe )
 {
-Engine *engine = AsRenderEngine( universe );
+Engine::Engine *engine = AsRenderEngine( universe );
 
 FlushCommandQueue( engine );
 if( FAILED( engine->commands.gfx->Reset( engine->commands.spare_allocator, NULL ) ) )
@@ -360,7 +360,7 @@ engine->window.height = height;
 //RenderPass::Default_OnResize( &engine->passes.default_pass );
 
 DescriptorHeap_Reset( &engine->surfaces.rtv_heap );
-if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, RenderInitializers::RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
+if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, Initializers::RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
  || !CreateRenderTargetViews( engine ) )
     {
     debug_assert_always();
@@ -396,7 +396,7 @@ engine->surfaces.backbuffer_current = 0;
 
 void Render_Destroy( Universe *universe )
 {
-Engine *engine = AsRenderEngine( universe );
+Engine::Engine *engine = AsRenderEngine( universe );
 
 Reset( engine, universe );
 
@@ -418,7 +418,7 @@ component->ptr = NULL;
 
 void Render_DoFrame( float frame_delta, Universe *universe )
 {
-Engine *engine = AsRenderEngine( universe );
+Engine::Engine *engine = AsRenderEngine( universe );
 if( !BeginFrame( engine ) )
     {
     debug_assert_always();
@@ -450,7 +450,7 @@ if( !EndFrame( engine ) )
 
 bool Render_FreeModel( const EntityId entity, Universe *universe )
 {
-Engine *engine = (Engine *)AsRenderEngine( universe );
+Engine::Engine *engine = (Engine::Engine *)AsRenderEngine( universe );
 ModelComponent *existing = (ModelComponent*)Universe_TryGetComponent( entity, COMPONENT_MODEL, universe );
 if( !existing )
     {
@@ -488,13 +488,13 @@ return( true );
 bool Render_Init( Universe *universe )
 {    
 SingletonRenderComponent* component = (SingletonRenderComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_RENDER, universe );
-component->ptr = malloc( sizeof( Engine ) );
+component->ptr = malloc( sizeof( Engine::Engine ) );
 if( !component->ptr )
     {
     return( false );
     }
 
-Engine *engine = (Engine*)component->ptr;
+Engine::Engine *engine = (Engine::Engine*)component->ptr;
 clr_struct( engine );
 
 if( !InitDirectX( engine ) )
@@ -525,8 +525,8 @@ ModelComponent *instance = (ModelComponent*)Universe_AttachComponentToEntity( en
 instance->asset_name = AssetFile_CopyNameString( asset_name );
 
 /* TODO <MPA> TESTING REMOVE */
-Engine *engine = (Engine*)AsRenderEngine( universe );
-RenderShaders::ShaderModule *shader = RenderShaders::ShaderCache_GetShader( "shader_vs_mvp", &engine->pipelines.shader_cache );
+Engine::Engine *engine = (Engine::Engine*)AsRenderEngine( universe );
+Shaders::ShaderModule *shader = Shaders::ShaderCache_GetShader( "shader_vs_mvp", &engine->pipelines.shader_cache );
 /* TODO <MPA> TESTING REMOVE */
 
 return( instance );
@@ -543,10 +543,10 @@ return( instance );
 *
 *******************************************************************/
 
-static Engine * AsRenderEngine( Universe* universe )
+static Engine::Engine * AsRenderEngine( Universe* universe )
 {
 SingletonRenderComponent * component = (SingletonRenderComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_RENDER, universe );
-return( (Engine*)component->ptr );
+return( (Engine::Engine*)component->ptr );
 
 } /* AsRenderEngine() */
 
@@ -560,9 +560,9 @@ return( (Engine*)component->ptr );
 *
 *******************************************************************/
 
-static bool BeginFrame( Engine *engine )
+static bool BeginFrame( Engine::Engine *engine )
 {
-Frame *frame = Engine_CurrentFrame( engine );
+Engine::Frame *frame = Engine_CurrentFrame( engine );
 
 uint64_t last_completed_frame = engine->commands.fence->GetCompletedValue();
 if( frame->frame_count != 0
@@ -587,7 +587,7 @@ SweepFrameTrash( frame );
 D3D12_CPU_DESCRIPTOR_HANDLE backbuffer = GetCurrentBackbuffer( engine )->handle;
 engine->commands.gfx->OMSetRenderTargets( 1, &backbuffer, TRUE, &engine->surfaces.depth_stencil.handle );
 
-D3D12_RESOURCE_BARRIER as_backbuffer = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_RENDER_TARGET, GetCurrentBackbuffer( engine )->resource );
+D3D12_RESOURCE_BARRIER as_backbuffer = Initializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_RENDER_TARGET, GetCurrentBackbuffer( engine )->resource );
 engine->commands.gfx->ResourceBarrier( 1, &as_backbuffer );
 
 return( true );
@@ -604,7 +604,7 @@ return( true );
 *
 *******************************************************************/
 
-static void ClearBackbuffer( const Color4f clear_color, Engine *engine )
+static void ClearBackbuffer( const Color4f clear_color, Engine::Engine *engine )
 {
 engine->commands.gfx->ClearRenderTargetView( GetCurrentBackbuffer( engine )->handle, clear_color.f, 0, NULL );
 
@@ -621,7 +621,7 @@ engine->commands.gfx->ClearRenderTargetView( GetCurrentBackbuffer( engine )->han
 *
 *******************************************************************/
 
-static bool CreateCommandObjects( Engine *engine )
+static bool CreateCommandObjects( Engine::Engine *engine )
 { 
 /* command queue */
 D3D12_COMMAND_QUEUE_DESC desc = {};
@@ -632,17 +632,23 @@ if( FAILED( engine->device.ptr->CreateCommandQueue( &desc, IID_PPV_ARGS( &engine
     return( false );
     }
 
+NameD3D( engine->commands.queue, L"Engine::CommandQueue" );
+
 /* spare allocator - we'll use to the issue 'important' commands which fall outside the realm of per-frame */
 if( FAILED( engine->device.ptr->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &engine->commands.spare_allocator ) ) ) )
     {
     return( false );
     }
 
+NameD3D( engine->commands.spare_allocator, L"Engine::CommandAllocator" );
+
 /* command recording list */
-if( FAILED( engine->device.ptr->CreateCommandList( RenderInitializers::NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->commands.spare_allocator, NULL, IID_PPV_ARGS( &engine->commands.gfx ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommandList( Initializers::NODE_MASK_SINGLE_GPU, D3D12_COMMAND_LIST_TYPE_DIRECT, engine->commands.spare_allocator, NULL, IID_PPV_ARGS( &engine->commands.gfx ) ) ) )
     {
     return( false );
     }
+
+NameD3D( engine->commands.gfx, L"Engine::CommandList" );
 
 return( true );
 
@@ -661,10 +667,9 @@ return( true );
 
 static bool CreateDefaultBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out )
 {
-D3D12_HEAP_PROPERTIES props = RenderInitializers::GetDefaultHeapProperties();
-D3D12_RESOURCE_DESC desc = RenderInitializers::GetBufferResourceDescriptor( buffer_size );
+D3D12_RESOURCE_DESC desc = Initializers::GetBufferResourceDescriptor( buffer_size );
 
-return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, NULL, IID_PPV_ARGS( out ) ) ) );
+return( SUCCEEDED( device->CreateCommittedResource( Initializers::GetDefaultHeapProperties(), D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, NULL, IID_PPV_ARGS( out ) ) ) );
 
 } /* CreateDefaultBuffer() */
 
@@ -678,29 +683,30 @@ return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE
 *
 *******************************************************************/
 
-static bool CreateDepthStencil( Engine *engine )
+static bool CreateDepthStencil( Engine::Engine *engine )
 {
-D3D12_HEAP_PROPERTIES heap_props = RenderInitializers::GetDefaultHeapProperties();
-D3D12_RESOURCE_DESC desc = RenderInitializers::GetDepthStencilResourceDescriptor( engine->window.width, engine->window.height );
+D3D12_RESOURCE_DESC desc = Initializers::GetDepthStencilResourceDescriptor( engine->window.width, engine->window.height );
 
 D3D12_CLEAR_VALUE clear_value = {};
 clear_value.Format               = desc.Format;
-clear_value.DepthStencil.Depth   = RenderInitializers::FAR_DEPTH_VALUE;
+clear_value.DepthStencil.Depth   = Initializers::FAR_DEPTH_VALUE;
 clear_value.DepthStencil.Stencil = 0;
 
 engine->surfaces.depth_stencil.width  = (uint16_t)engine->window.width;
 engine->surfaces.depth_stencil.height = (uint16_t)engine->window.height;
 engine->surfaces.depth_stencil.handle = DescriptorHeap_Allocate( &engine->surfaces.dsv_heap ).cpu_hndl;
-if( FAILED( engine->device.ptr->CreateCommittedResource( &heap_props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, &clear_value, IID_PPV_ARGS( &engine->surfaces.depth_stencil.resource ) ) ) )
+if( FAILED( engine->device.ptr->CreateCommittedResource( Initializers::GetDefaultHeapProperties(), D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, &clear_value, IID_PPV_ARGS( &engine->surfaces.depth_stencil.resource ) ) ) )
     {
     return( false );
     }
+
+NameD3D( engine->surfaces.depth_stencil.resource, L"Engine::DepthStencilBuffer" );
 
 /* depth/stencil view */
 engine->device.ptr->CreateDepthStencilView( engine->surfaces.depth_stencil.resource, NULL, engine->surfaces.depth_stencil.handle );
 
 /* transition the texture for depth/stencil writes */
-D3D12_RESOURCE_BARRIER barrier = RenderInitializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE, engine->surfaces.depth_stencil.resource );
+D3D12_RESOURCE_BARRIER barrier = Initializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE, engine->surfaces.depth_stencil.resource );
 engine->commands.gfx->ResourceBarrier( 1, &barrier );
 
 return( true );
@@ -717,13 +723,13 @@ return( true );
 *
 *******************************************************************/
 
-static bool CreateDescriptorHeaps( Engine *engine )
+static bool CreateDescriptorHeaps( Engine::Engine *engine )
 {
 uint16_t rtv_count = SWAP_CHAIN_DOUBLE_BUFFER;
 uint16_t dsv_count = 1;
 
-return( DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, DESCRIPTOR_HEAP_IS_LINEAR, rtv_count, engine->device.ptr, &engine->surfaces.rtv_heap )
-     && DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_DSV, DESCRIPTOR_HEAP_IS_LINEAR, dsv_count, engine->device.ptr, &engine->surfaces.dsv_heap ) );
+return( DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, Engine::DESCRIPTOR_HEAP_IS_LINEAR, rtv_count, engine->device.ptr, &engine->surfaces.rtv_heap )
+     && DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_DSV, Engine::DESCRIPTOR_HEAP_IS_LINEAR, dsv_count, engine->device.ptr, &engine->surfaces.dsv_heap ) );
 
 } /* CreateDescriptorHeaps() */
 
@@ -737,7 +743,7 @@ return( DescriptorHeap_Create( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, DESCRIPTOR_HEAP_I
 *
 *******************************************************************/
 
-static bool CreateDevice( Engine *engine )
+static bool CreateDevice( Engine::Engine *engine )
 {
 UINT debug_flags = 0;
 #if defined( _DEBUG )
@@ -770,6 +776,8 @@ if( FAILED( D3D12CreateDevice( NULL, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &engi
         return( false );
         }
     }
+
+NameD3D( engine->device.ptr, L"Engine::Device" );
       
 return( true );
 
@@ -785,11 +793,11 @@ return( true );
 *
 *******************************************************************/
 
-static bool CreateRenderTargetViews( Engine *engine )
+static bool CreateRenderTargetViews( Engine::Engine *engine )
 {
 for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
     {
-    Texture *backbuffer = &engine->surfaces.backbuffers[ i ];
+    Engine::Texture *backbuffer = &engine->surfaces.backbuffers[ i ];
     backbuffer->width  = engine->window.width;
     backbuffer->height = engine->window.height;
     backbuffer->handle = DescriptorHeap_Allocate( &engine->surfaces.rtv_heap ).cpu_hndl;
@@ -797,6 +805,8 @@ for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
         {
         return( false );
         }
+
+    NameD3DIndex( backbuffer->resource, i, L"Engine::RenderBuffer" );
 
     engine->device.ptr->CreateRenderTargetView( backbuffer->resource, NULL, backbuffer->handle );
     }
@@ -815,10 +825,10 @@ return( true );
 *
 *******************************************************************/
 
-static bool CreateSwapChain( Engine *engine )
+static bool CreateSwapChain( Engine::Engine *engine )
 {
 /* fill out the descriptions */
-DXGI_SWAP_CHAIN_DESC desc = RenderInitializers::GetSwapChainDescriptor( engine->window.width, engine->window.height, engine->window.handle );
+DXGI_SWAP_CHAIN_DESC desc = Initializers::GetSwapChainDescriptor( engine->window.width, engine->window.height, engine->window.handle );
 if( FAILED( engine->device.dxgi->CreateSwapChain( engine->commands.queue, &desc, &engine->surfaces.swap_chain ) ) )
     {
     return( false );
@@ -840,10 +850,9 @@ return( true );
 
 static bool CreateUploadBuffer( const uint32_t buffer_size, ID3D12Device *device, ID3D12Resource **out )
 {
-D3D12_HEAP_PROPERTIES props = RenderInitializers::GetUploadHeapProperties();
-D3D12_RESOURCE_DESC desc = RenderInitializers::GetBufferResourceDescriptor( buffer_size );
+D3D12_RESOURCE_DESC desc = Initializers::GetBufferResourceDescriptor( buffer_size );
 
-return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS( out ) ) ) );
+return( SUCCEEDED( device->CreateCommittedResource( Initializers::GetUploadHeapProperties(), D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS( out ) ) ) );
 
 } /* CreateUploadBuffer() */
 
@@ -857,7 +866,7 @@ return( SUCCEEDED( device->CreateCommittedResource( &props, D3D12_HEAP_FLAG_NONE
 *
 *******************************************************************/
 
-static void DestroyScenes( Engine *engine, Universe *universe )
+static void DestroyScenes( Engine::Engine *engine, Universe *universe )
 {
 if( !universe )
     {
@@ -868,7 +877,7 @@ NonOwningGroup_CreateIterator( universe, &engine->group, group_ids( COMPONENT_SC
 SceneComponent *scene;
 while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&scene ) )
     {
-    RenderScene::Scene_Destroy( (RenderScene::Scene*)scene->render_state );
+    Scene::Scene_Destroy( (Scene::Scene*)scene->render_state );
     }
 
 } /* DestroyScenes() */
@@ -883,7 +892,7 @@ while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&scene ) )
 *
 *******************************************************************/
 
-static void DrawScenes( Engine *engine, Universe *universe )
+static void DrawScenes( Engine::Engine *engine, Universe *universe )
 {
 HashMap *map = &engine->scene_draw.map.map;
 SceneComponent **draw_order = engine->scene_draw.draw_order;
@@ -897,8 +906,8 @@ while( NonOwningGroup_GetNext( &engine->group, NULL, (void**)&seen_scene ) )
     {
     debug_assert( HashMap_At( seen_scene->scene_name_hash, map ) == NULL );
     
-    RenderScene::Scene *render_scene = (RenderScene::Scene*)seen_scene->render_state;
-    RenderScene::Scene_BeginFrame( seen_scene->viewport_extent, render_scene );
+    Scene::Scene *render_scene = (Scene::Scene*)seen_scene->render_state;
+    Scene::Scene_BeginFrame( seen_scene->viewport_extent, render_scene );
 
     hard_assert( HashMap_Insert( seen_scene->scene_name_hash, &seen_scene, map ) != NULL );
     draw_order[ map->size - 1 ] = seen_scene;
@@ -920,7 +929,7 @@ while( NonOwningGroup_GetNext( &engine->group, &model_entity, NULL ) )
     Math_Float4x4TransformSpin( transform->position, transform->rotation, transform->scale, &mtx_world );
 
     SceneComponent *home_scene = *(SceneComponent**)HashMap_At( model->scene_name_hash, map ); // TODO <MPA> - Do we want an entity to be able to belong to more than one scene?
-    Scene_RegisterObject( model->asset_name.str, model, &mtx_world, (RenderScene::Scene*)home_scene->render_state );
+    Scene::Scene_RegisterObject( model->asset_name.str, model, &mtx_world, (Scene::Scene*)home_scene->render_state );
     }
 
 /* do a quick and dirty bubble sort on the scenes to prioritize them by draw order */
@@ -942,7 +951,7 @@ for( uint32_t i = 0; i < map->size; i++ )
 for( uint32_t i = 0; i < map->size; i++ )
     {
     SetViewport( draw_order[ i ]->viewport_top_left, draw_order[ i ]->viewport_extent, engine );
-    RenderScene::Scene_Draw( (RenderScene::Scene*)draw_order[ i ]->render_state );
+    Scene::Scene_Draw( (Scene::Scene*)draw_order[ i ]->render_state );
     }
 
 #undef MAX_SCENE_CNT
@@ -958,12 +967,12 @@ for( uint32_t i = 0; i < map->size; i++ )
 *
 *******************************************************************/
 
-static bool EndFrame( Engine *engine )
+static bool EndFrame( Engine::Engine *engine )
 {
-Frame *frame = Engine_CurrentFrame( engine );
-Texture *backbuffer = GetCurrentBackbuffer( engine );
+Engine::Frame *frame = Engine_CurrentFrame( engine );
+Engine::Texture *backbuffer = GetCurrentBackbuffer( engine );
 
-D3D12_RESOURCE_BARRIER as_presentation = RenderInitializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_PRESENT, backbuffer->resource );
+D3D12_RESOURCE_BARRIER as_presentation = Initializers::GetRenderTargetTransition( D3D12_RESOURCE_STATE_PRESENT, backbuffer->resource );
 engine->commands.gfx->ResourceBarrier( 1, &as_presentation );
 
 if( FAILED( engine->commands.gfx->Close() ) )
@@ -1001,7 +1010,7 @@ return( true );
 *
 *******************************************************************/
 
-static void ExecuteCommandLists( Engine *engine )
+static void ExecuteCommandLists( Engine::Engine *engine )
 {
 ID3D12CommandList *command_list = engine->commands.gfx;
 engine->commands.queue->ExecuteCommandLists( 1, &command_list );
@@ -1018,7 +1027,7 @@ engine->commands.queue->ExecuteCommandLists( 1, &command_list );
 *
 *******************************************************************/
 
-static bool FlushCommandQueue( Engine *engine )
+static bool FlushCommandQueue( Engine::Engine *engine )
 {
 return( WaitForFrameToFinish( engine->commands.last_submitted_frame, engine ) );
 
@@ -1059,7 +1068,7 @@ return( true );
 *
 *******************************************************************/
 
-static bool InitDirectX( Engine *engine )
+static bool InitDirectX( Engine::Engine *engine )
 {
 HashMap_InitImplementation( &engine->scene_draw.map );
 
@@ -1093,6 +1102,8 @@ if( FAILED( engine->device.ptr->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_A
     {
     goto failure;
     }
+
+NameD3D( engine->commands.fence, L"Engine::Fence" );
 
 if( !InitFrames( engine ) )
     {
@@ -1169,14 +1180,14 @@ failure:
 *
 *******************************************************************/
 
-static bool InitFrames( Engine *engine )
+static bool InitFrames( Engine::Engine *engine )
 {
 #define DEFAULT_PASS_INITIAL_PER_OBJECT_CNT \
                                     ( 20 )
 
 for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     {
-    Frame *frame = &engine->frames[ i ];
+    Engine::Frame *frame = &engine->frames[ i ];
     frame->frame_index = i;
 
     /* command allocator */
@@ -1184,6 +1195,8 @@ for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
         {
         return( false );
         }
+
+    NameD3DIndex( frame->command_allocator, i, L"Engine::Frame::CommandAllocator" );
     }
 
 return( true );
@@ -1201,9 +1214,9 @@ return( true );
 *
 *******************************************************************/
 
-static bool InitPipelines( Engine *engine )
+static bool InitPipelines( Engine::Engine *engine )
 {
-return( RenderPipelines::Pipelines_Init( engine->device.ptr, &engine->pipelines ) );
+return( Pipelines::Pipelines_Init( engine->device.ptr, &engine->pipelines ) );
 
 } /* InitPipelines() */
 
@@ -1223,10 +1236,10 @@ static void OnSceneAttach( const EntityId entity, const ComponentClass cls, void
 debug_assert( cls == COMPONENT_SCENE );
 SceneComponent *new_scene = (SceneComponent*)component;
 
-RenderScene::Scene *render_scene = (RenderScene::Scene*)malloc( sizeof( RenderScene::Scene ) );
+Scene::Scene *render_scene = (Scene::Scene*)malloc( sizeof( Scene::Scene ) );
 new_scene->render_state = render_scene;
 
-RenderScene::Scene_Init( AsRenderEngine( universe ), render_scene );
+Scene::Scene_Init( AsRenderEngine( universe ), render_scene );
 
 } /* OnSceneAttach() */
 
@@ -1245,7 +1258,7 @@ static void OnSceneRemove( const EntityId entity, const ComponentClass cls, void
 {
 debug_assert( cls == COMPONENT_SCENE );
 SceneComponent *dying_scene = (SceneComponent*)component;
-RenderScene::Scene_Destroy( (RenderScene::Scene*)dying_scene->render_state );
+Scene::Scene_Destroy( (Scene::Scene*)dying_scene->render_state );
 
 free( dying_scene->render_state );
 
@@ -1261,14 +1274,14 @@ free( dying_scene->render_state );
 *
 *******************************************************************/
 
-static void Reset( Engine *engine, Universe *universe )
+static void Reset( Engine::Engine *engine, Universe *universe )
 {
 DestroyScenes( engine, universe );
 FlushCommandQueue( engine );
-RenderPipelines::Pipelines_Destroy( &engine->pipelines );
+Pipelines::Pipelines_Destroy( &engine->pipelines );
 for( uint32_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     {
-    Frame *frame = &engine->frames[ i ];
+    Engine::Frame *frame = &engine->frames[ i ];
     SweepFrameTrash( frame );
     ComSafeRelease( &frame->command_allocator );
     }
@@ -1305,7 +1318,7 @@ clr_struct( engine );
 *
 *******************************************************************/
 
-static void SetViewport( const Float2 top_left, const Float2 extent, Engine *engine )
+static void SetViewport( const Float2 top_left, const Float2 extent, Engine::Engine *engine )
 {
 Float2 window_s   = Math_Float2Make( (float)engine->window.width, (float)engine->window.height );
 Float2 top_left_s = Math_Float2HadamardProduct( top_left, window_s );
@@ -1367,12 +1380,12 @@ if( FAILED( upload->Map( 0, NULL, &uploading ) ) )
 memcpy( uploading, data, data_sz );
 upload->Unmap( 0, NULL );
 
-D3D12_RESOURCE_BARRIER to_write = RenderInitializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, gpu );
+D3D12_RESOURCE_BARRIER to_write = Initializers::GetResourceTransition( D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, gpu );
 gfx->ResourceBarrier( 1, &to_write );
 
 gfx->CopyBufferRegion( gpu, 0, upload, 0, data_sz );
 
-D3D12_RESOURCE_BARRIER to_read = RenderInitializers::GetResourceTransition( D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ, gpu );
+D3D12_RESOURCE_BARRIER to_read = Initializers::GetResourceTransition( D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ, gpu );
 gfx->ResourceBarrier( 1, &to_write );
 
 return( true );
@@ -1390,7 +1403,7 @@ return( true );
 *
 *******************************************************************/
 
-static bool WaitForFrameToFinish( uint64_t frame_num, Engine *engine )
+static bool WaitForFrameToFinish( uint64_t frame_num, Engine::Engine *engine )
 {
 HANDLE blocking = ::CreateEventEx( NULL, NULL, 0, EVENT_ALL_ACCESS );
 if( blocking == NULL

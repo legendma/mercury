@@ -8,7 +8,7 @@
 #include "Utilities.hpp"
 
 
-namespace RenderShaders
+namespace Render { namespace Shaders
 {
 
 static const D3D12_STATIC_SAMPLER_DESC SAMPLERS[] =
@@ -35,11 +35,11 @@ static ShaderModule * LoadShaderFromFile( const char *asset_name, const uint32_t
 *
 *******************************************************************/
 
-bool ShaderEffect_GetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, RenderPipelines::_PipelineBuilder *builder )
+bool ShaderEffect_GetRootSignature( const ShaderEffect *shaders, ID3D12Device *device, Pipelines::_PipelineBuilder *builder )
 {
 ID3DBlob *serialized = NULL;
 ID3DBlob *errors = NULL;
-D3D12_ROOT_SIGNATURE_DESC desc = RenderInitializers::GetRootSignatureDescriptor( shaders->signature_flags, shaders->parameters, shaders->parameter_count, SAMPLERS, cnt_of_array( SAMPLERS ) );
+D3D12_ROOT_SIGNATURE_DESC desc = Initializers::GetRootSignatureDescriptor( shaders->signature_flags, shaders->parameters, shaders->parameter_count, SAMPLERS, cnt_of_array( SAMPLERS ) );
 if( FAILED( D3D12SerializeRootSignature( &desc, D3D_ROOT_SIGNATURE_VERSION_1_0, &serialized, &errors ) ) )
     {
     if( errors )
@@ -54,7 +54,7 @@ if( FAILED( D3D12SerializeRootSignature( &desc, D3D_ROOT_SIGNATURE_VERSION_1_0, 
 
 ComSafeRelease( &errors );
 
-if( FAILED( device->CreateRootSignature( RenderInitializers::NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
+if( FAILED( device->CreateRootSignature( Initializers::NODE_MASK_SINGLE_GPU, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS( &builder->root_signature ) ) ) )
     {
     ComSafeRelease( &serialized );
     return( false );
@@ -76,7 +76,7 @@ return( true );
 *
 *******************************************************************/
 
-void RenderShaders::ShaderCache_Destroy( ShaderCache *cache )
+void ShaderCache_Destroy( ShaderCache *cache )
 {
 ResourceLoader_Destroy( &cache->loader );
 
@@ -93,7 +93,7 @@ ResourceLoader_Destroy( &cache->loader );
 *
 *******************************************************************/
 
-ShaderModule * RenderShaders::ShaderCache_GetShader( const char *asset_name, ShaderCache *cache )
+ShaderModule * ShaderCache_GetShader( const char *asset_name, ShaderCache *cache )
 {
 uint32_t key = AssetFile_MakeAssetIdFromName( asset_name, (uint32_t)strlen( asset_name ) );
 ShaderModule *ret = (ShaderModule*)HashMap_At( key, &cache->cache.map );
@@ -120,7 +120,7 @@ return( ret );
 *
 *******************************************************************/
 
-bool RenderShaders::ShaderCache_Init( const uint32_t cache_sz, ShaderCache *cache )
+bool ShaderCache_Init( const uint32_t cache_sz, ShaderCache *cache )
 {
 *cache = {};
 if( !ResourceLoader_Init( &cache->loader ) )
@@ -212,4 +212,4 @@ return( ret );
 } /* LoadShaderFromFile() */
 
 
-} /* namespace RenderShaders */
+} }/* namespace RenderShaders */
