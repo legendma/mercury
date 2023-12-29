@@ -170,7 +170,7 @@ if( key_ref->is_used
 
 /* fall back to linear search */
 uint32_t double_hash = DoubleHash( key );
-for( uint32_t i = 0; i < h->capacity; h++ )
+for( uint32_t i = 0; i < h->capacity; i++ )
     {
     try_bucket = ( double_hash + i ) % h->capacity;
     key_ref = &h->keys[ try_bucket ];
