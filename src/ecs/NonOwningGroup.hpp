@@ -40,6 +40,6 @@ bool   NonOwningGroup_GetNext( NonOwningGroupIterator *iterator, EntityId *next,
 *******************************************************************/
 
 #define group_ids( ... ) \
-    expand_va_args( cnt_of_va_args( __VA_ARGS__ ) ), __VA_ARGS__
+    expand_macro( cnt_of_va_args( __VA_ARGS__ ) ), __VA_ARGS__
 
 } /* namespace ECS */

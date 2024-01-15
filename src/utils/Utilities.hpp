@@ -13,7 +13,54 @@ static const char *RELATIVE_ROOT_DIRECTORY[] =
     "..\\bin\\deploy\\"             /* non-deployed (visual studio) */
     };
 
+static const uint32_t   MAGIC_INIT = 0xcafebabe;
+
 typedef Float4 Color4f;
+
+
+/*******************************************************************
+*
+*   _concat()
+*
+*   DESCRIPTION:
+*       Concatenate two fields.
+*
+*******************************************************************/
+
+#define _concat( _a, _b ) \
+    _a##_b
+
+
+/*******************************************************************
+*
+*   debug_assert()
+*
+*   DESCRIPTION:
+*       Assert an assumption - but only in debug mode.
+*
+*******************************************************************/
+
+#if defined( _DEBUG )
+#define debug_assert( _expression ) \
+    assert( _expression )
+#else
+#define debug_assert( _expression )
+#endif
+
+
+/*******************************************************************
+*
+*   align_as()
+*
+*   DESCRIPTION:
+*       Set a type's required alignment.
+*
+*******************************************************************/
+
+#if defined( _MSC_VER )
+#define align_as( _type ) \
+    ( _Alignas( _type ) )
+#endif
 
 
 /*******************************************************************
@@ -42,18 +89,66 @@ typedef Float4 Color4f;
 *
 *********************************************************************/
 
-static __inline uint8_t align_adjust
+static __inline uint64_t align_adjust
     (
     const void         *address,    /* base address                 */
-    const uint8_t       alignment   /* bytes alignment of type      */
+    const uint64_t      alignment   /* bytes alignment of type      */
     )
 {
-uint8_t ret = alignment;
-ret -= 1 + (uint8_t)( ( (uintptr_t)address + alignment - 1 ) % alignment );
+uint64_t ret = alignment;
+ret -= 1 + (uint64_t)( ( (uintptr_t)address + alignment - 1 ) % alignment );
 
 return( ret );
 
 }   /* align_adjust() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       align_size_round_down
+*
+*   DESCRIPTION:
+*       Round a size down to the next given power-of-two.
+*
+*********************************************************************/
+
+static __inline uint64_t align_size_round_down
+    (
+    const uint64_t      sz,    /* address to round             */
+    const uint64_t      pow2   /* power of two                 */
+    )
+{
+uint64_t mask = pow2 - 1;
+debug_assert( pow2 > 1 );
+debug_assert( !( mask & pow2 ) );
+return( sz & ~mask );
+
+}   /* align_size_round_down() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       align_size_round_up
+*
+*   DESCRIPTION:
+*       Round a size up to the next given power-of-two.
+*
+*********************************************************************/
+
+static __inline uint64_t align_size_round_up
+    (
+    const uint64_t      sz,    /* address to round             */
+    const uint64_t      pow2   /* power of two                 */
+    )
+{
+uint64_t mask = pow2 - 1;
+debug_assert( pow2 > 1 );
+debug_assert( !( mask & pow2 ) );
+return( ( sz + mask ) & ~mask );
+
+}   /* align_size_round_up() */
 
 
 /*******************************************************************
@@ -114,15 +209,15 @@ return( ret );
 
 /*******************************************************************
 *
-*   expand_va_args()
+*   expand_macro()
 *
 *   DESCRIPTION:
 *       Work around a non-standard preprocessor issue in MSVC.
 *
 *******************************************************************/
 
-#define expand_va_args( _args ) \
-    _args
+#define expand_macro( _args ) \
+    (_args)
 
 
 /*******************************************************************
@@ -139,41 +234,7 @@ return( ret );
     _count
 
 #define cnt_of_va_args( ... ) \
-    expand_va_args( _cnt_of_va_args( __VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1 ) )
-
-
-/*******************************************************************
-*
-*   compiler_assert()
-*
-*   DESCRIPTION:
-*       Test the _eval parameter for truth, and generate a compiler
-*       error if it does not equal true.
-*
-*******************************************************************/
-
-#define compiler_assert( _eval, _filename ) \
-    _compiler_assert( _eval, _filename, __LINE__ )
-
-#define _compiler_assert( _eval, _filename, _line_num ) \
-    typedef char assert_failed_##_filename##_##_line_num [ 2 * !!(_eval) - 1 ]
-
-
-/*******************************************************************
-*
-*   debug_assert()
-*
-*   DESCRIPTION:
-*       Assert an assumption - but only in debug mode.
-*
-*******************************************************************/
-
-#if defined( _DEBUG )
-#define debug_assert( _expression ) \
-    assert( _expression )
-#else
-#define debug_assert( _expression )
-#endif
+    expand_macro( _cnt_of_va_args( __VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1 ) )
 
 
 /*******************************************************************
@@ -301,6 +362,36 @@ return( ret );
 
 /*******************************************************************
 *
+*   compiler_assert()
+*
+*   DESCRIPTION:
+*       Test the _eval parameter for truth, and generate a compiler
+*       error if it does not equal true.
+*
+*******************************************************************/
+
+#define compiler_assert( _eval, _filename ) \
+    _compiler_assert( _eval, _filename, __LINE__ )
+
+#define _compiler_assert( _eval, _filename, _line_num ) \
+    typedef char assert_failed_##_filename##_##_line_num [ 2 * !!(_eval) - 1 ]
+
+
+/*******************************************************************
+*
+*   test_bits()
+*
+*   DESCRIPTION:
+*       Are any of the given bits set on the given bitfield?
+*
+*******************************************************************/
+
+#define test_bits( _field, _test ) \
+    ( ( _field & _test ) != 0 )
+
+
+/*******************************************************************
+*
 *   Utilities_HashString
 *
 *   DESCRIPTION:
@@ -414,3 +505,58 @@ ret.v.w = a;
 return( ret );
 
 } /* Utilities_MakeColor4f() */
+
+
+/*******************************************************************
+*
+*   Utilities_PointerToByteOffset
+*
+*   DESCRIPTION:
+*       Find the byte offset represented from the given pointer from
+*       the given base address.
+*
+*******************************************************************/
+
+static inline uint64_t Utilities_PointerToByteOffset( const void *base, const void *pointer )
+{
+hard_assert( pointer >= base );
+const uint8_t *base_ptr    = (uint8_t*)base;
+const uint8_t *pointer_ptr = (uint8_t*)pointer;
+
+return( (uint64_t)( pointer_ptr - base_ptr ) );
+
+} /* Utilities_PointerToByteOffset() */
+
+
+/*******************************************************************
+*
+*   Utilities_ShellSortU32Ascending
+*
+*   DESCRIPTION:
+*       Shell-sort an array of 32-bit unsigned integers into ascending
+*       order.
+*
+*******************************************************************/
+
+static inline void Utilities_ShellSortU32Ascending( const uint32_t count, uint32_t *arr )
+{
+static const uint32_t CIURA_GAPS[] = { 701, 301, 132, 57, 23, 10, 4, 1 };
+for( uint32_t it_gap = 0; it_gap < cnt_of_array( CIURA_GAPS ); it_gap++ )
+    {
+    uint32_t gap = CIURA_GAPS[ it_gap ];
+    uint32_t temp;
+    for( uint32_t i = gap; i < count; i++ )
+        {
+        temp = arr[ i ];
+        uint32_t j;
+        for( j = i; j >= gap && arr[ j - gap ] > temp; j -= gap )
+            {
+            arr[ j ] = arr[ j - gap ];
+            }
+
+        arr[ j ] = temp;
+        }
+    }
+
+} /* Utilities_ShellSortU32Ascending() */
+

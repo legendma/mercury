@@ -27,4 +27,5 @@ uint32_t ResourceLoader_GetModelMeshVertices( const AssetFileAssetId asset_id, c
 uint32_t ResourceLoader_GetModelNodes( const AssetFileAssetId asset_id, const uint32_t node_capacity, AssetFileModelNode *nodes, ResourceLoader *loader );
 bool     ResourceLoader_GetModelStats( const AssetFileAssetId asset_id, ResourceLoaderModelStats *out_stats, ResourceLoader *loader );
 bool     ResourceLoader_GetShader( const AssetFileAssetId asset_id, uint32_t *sz, uint8_t *bytes, ResourceLoader *loader );
+bool     ResourceLoader_GetTexture( const AssetFileAssetId asset_id, uint32_t *sz, uint8_t *bytes, ResourceLoader *loader );
 bool     ResourceLoader_Init( ResourceLoader *loader );

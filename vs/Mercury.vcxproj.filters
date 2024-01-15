@@ -97,10 +97,34 @@
     <ClCompile Include="..\src\win\dx12\RenderBuffers.cpp">
       <Filter>win</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\dx12\new\RenderCore.cpp">
+    <ClCompile Include="..\src\win\dx12\new\D3D12Core.cpp">
       <Filter>win</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\dx12\new\Descriptor.cpp">
+    <ClCompile Include="..\src\win\dx12\new\D3D12Descriptor.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\D3D12Texture.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\D3D12Initializers.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\D3D12Pipelines.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\ShaderCache.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\D3D12Upload.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\D3D12Level.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\ModelAsset.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\dx12\new\TextureAsset.cpp">
       <Filter>win</Filter>
     </ClCompile>
   </ItemGroup>
@@ -190,13 +214,37 @@
     <ClInclude Include="..\src\win\dx12\RenderBuffers.hpp">
       <Filter>win</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\dx12\RenderCore.hpp">
+    <ClInclude Include="..\src\win\dx12\new\D3D12Core.hpp">
       <Filter>win</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\dx12\new\RenderTexture.hpp">
+    <ClInclude Include="..\src\win\dx12\new\D3D12Descriptor.hpp">
       <Filter>win</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\dx12\new\Descriptor.hpp">
+    <ClInclude Include="..\src\win\dx12\new\D3D12Texture.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\D3D12Initializers.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\D3D12Pipelines.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\ShaderCache.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\D3D12Upload.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\D3D12Level.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\ModelAsset.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\D3D12Types.hpp">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win\dx12\new\TextureAsset.hpp">
       <Filter>win</Filter>
     </ClInclude>
   </ItemGroup>

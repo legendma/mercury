@@ -36,8 +36,16 @@
     <ClCompile Include="..\src\utils\MathVector.cpp" />
     <ClCompile Include="..\src\utils\ResourceLoader.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
-    <ClCompile Include="..\src\win\dx12\new\Descriptor.cpp" />
-    <ClCompile Include="..\src\win\dx12\new\RenderCore.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Core.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Descriptor.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Initializers.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Level.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Pipelines.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Texture.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\D3D12Upload.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\ModelAsset.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\ShaderCache.cpp" />
+    <ClCompile Include="..\src\win\dx12\new\TextureAsset.cpp" />
     <ClCompile Include="..\src\win\dx12\RenderBuffers.cpp" />
     <ClCompile Include="..\src\win\dx12\RenderInitializers.cpp" />
     <ClCompile Include="..\src\win\dx12\RenderModels.cpp" />
@@ -69,10 +77,18 @@
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
     <ClInclude Include="..\src\win\ComUtilities.hpp" />
-    <ClInclude Include="..\src\win\dx12\new\Descriptor.hpp" />
-    <ClInclude Include="..\src\win\dx12\new\RenderTexture.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Core.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Descriptor.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Initializers.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Level.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Pipelines.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Texture.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Types.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\D3D12Upload.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\ModelAsset.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\ShaderCache.hpp" />
+    <ClInclude Include="..\src\win\dx12\new\TextureAsset.hpp" />
     <ClInclude Include="..\src\win\dx12\RenderBuffers.hpp" />
-    <ClInclude Include="..\src\win\dx12\RenderCore.hpp" />
     <ClInclude Include="..\src\win\dx12\RenderEngine.hpp" />
     <ClInclude Include="..\src\win\dx12\RenderInitializers.hpp" />
     <ClInclude Include="..\src\win\dx12\RenderModels.hpp" />
@@ -149,12 +165,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\dx12;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\ots\pthread\lib;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\stb\include;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\dx12;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\win\dx12\new;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\pthread\lib\debug;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\dx12;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\ots\pthread\lib;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\stb\include;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\dx12;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\win\dx12\new;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\pthread\lib\release;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -197,6 +213,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;pthread.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions> /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"
@@ -220,6 +237,7 @@ xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;pthread.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions> /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"

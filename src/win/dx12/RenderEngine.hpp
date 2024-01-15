@@ -75,7 +75,7 @@ typedef struct _Device
     {
     ID3D12Device       *ptr;
     IDXGIFactory4      *dxgi;
-    uint32_t            descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
+    //uint32_t            descriptor_sizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     } Device;
 
 typedef struct _Commands

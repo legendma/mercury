@@ -1092,10 +1092,10 @@ if( !CreateDevice( engine ) )
     }
 
 /* descriptor sizes */
-for( uint32_t i = 0; i < cnt_of_array( engine->device.descriptor_sizes ); i++ )
-    {
-    engine->device.descriptor_sizes[ i ] = engine->device.ptr->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
-    }
+//for( uint32_t i = 0; i < cnt_of_array( engine->device.descriptor_sizes ); i++ )
+//    {
+//    engine->device.descriptor_sizes[ i ] = engine->device.ptr->GetDescriptorHandleIncrementSize( (D3D12_DESCRIPTOR_HEAP_TYPE)i );
+//    }
 
 /* fence */
 if( FAILED( engine->device.ptr->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &engine->commands.fence ) ) ) )
@@ -1182,9 +1182,6 @@ failure:
 
 static bool InitFrames( Engine::Engine *engine )
 {
-#define DEFAULT_PASS_INITIAL_PER_OBJECT_CNT \
-                                    ( 20 )
-
 for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
     {
     Engine::Frame *frame = &engine->frames[ i ];
@@ -1201,7 +1198,6 @@ for( uint8_t i = 0; i < cnt_of_array( engine->frames ); i++ )
 
 return( true );
 
-#undef DEFAULT_PASS_INITIAL_PER_OBJECT_CNT
 } /* InitFrames() */
 
 

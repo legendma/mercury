@@ -211,7 +211,10 @@ return( true );
 *   ResourceLoader_GetShader()
 *
 *   DESCRIPTION:
-*       Initialize the resource manager.
+*       Read the shader code as binary.
+*
+*       Pass NULL for 'bytes' to query the required storage buffer
+*       size.
 *
 *******************************************************************/
 
@@ -277,6 +280,82 @@ do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
 return( true );
 
 } /* ResourceLoader_GetShader() */
+
+
+/*******************************************************************
+*
+*   ResourceLoader_GetTexture()
+*
+*   DESCRIPTION:
+*       Read the texture data as compressed image binary data.
+*
+*       Pass NULL for 'bytes' to query the required storage buffer
+*       size.
+*
+*******************************************************************/
+
+bool ResourceLoader_GetTexture( const AssetFileAssetId asset_id, uint32_t *sz, uint8_t *bytes, ResourceLoader *loader )
+{
+if( !loader->reader.fhnd
+ || ( sz == NULL
+   && bytes == NULL ) )
+    {
+    return( false );
+    }
+
+uint32_t storage_sz = 0;
+if( sz != NULL )
+    {
+    storage_sz = *sz;
+    *sz = 0;
+    }
+
+uint32_t texture_sz = 0;
+if( !AssetFile_BeginReadingAsset( asset_id, ASSET_FILE_ASSET_KIND_TEXTURE, &loader->reader ) )
+    {
+    return( false );
+    }
+
+if( !AssetFile_ReadTextureStorageRequirements( &texture_sz, &loader->reader ) )
+    {
+    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+    return( false );
+    }
+    
+if( sz != NULL )
+    {
+    *sz = texture_sz;
+    }
+
+if( bytes == NULL )
+    {
+    /* just querying the texture size.  not an error */
+    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+    return( true );
+    }
+
+if( storage_sz < texture_sz)
+    {
+    /* not enough storage to load from file */
+    hard_assert_always();
+    AssetFile_EndReadingAsset( &loader->reader );
+    return( false );
+    }
+    
+uint32_t read_sz = 0;
+if( !AssetFile_ReadTextureBinary( storage_sz, &read_sz, bytes, &loader->reader ) )
+    {
+    assert( false );
+    do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+    return( 0 );
+    }
+
+debug_assert( read_sz == texture_sz );
+do_debug_assert( AssetFile_EndReadingAsset( &loader->reader ) );
+
+return( true );
+
+} /* ResourceLoader_GetTexture() */
 
 
 /*******************************************************************

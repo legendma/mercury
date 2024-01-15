@@ -3,9 +3,12 @@
 #include "GameMode.hpp"
 #include "PlayerInput.hpp"
 #include "Render.hpp"
-#include "ResourceLoader.hpp" // TODO <MPA> - REMOVE
 #include "Universe.hpp"
 #include "Sound.hpp"
+
+#include "D3D12Core.hpp"
+#include "D3D12Level.hpp"
+D3D12::Level::Level *test_level;
 
 using namespace ECS;
 using namespace Game;
@@ -43,6 +46,7 @@ Render_ChangeResolutions( width, height, &the_universe );
 
 bool Engine_Init()
 {
+if( !D3D12::Core::Init() ) return( false );
 Universe_Init( &the_universe );
 
 if( !Command_Init( &the_universe ) )		 return( false );
@@ -106,6 +110,9 @@ Event_Destroy( &the_universe );
 Command_Destroy( &the_universe );
 Universe_Destroy( &the_universe );
 
+D3D12::Level::Destroy( test_level );
+D3D12::Core::Shutdown();
+
 return( true );
 
 } /* Engine_Destroy() */
@@ -139,6 +146,14 @@ static void OnFirstFrame()
 
     ModelComponent *model = Render_LoadModel( "model_fmod_splash", model_test_entity, &the_universe );
     model->scene_name_hash = scene->scene_name_hash;
+    }
+
+    {
+    test_level = (D3D12::Level::Level*)malloc( sizeof(D3D12::Level::Level) );
+    do_debug_assert( D3D12::Level::Init( "test_level", test_level ) );
+    D3D12::Level::LoadAsync( "test_level", test_level );
+
+    //free( level );
     }
 // TODO <MPA> - Testing grounds, remove later
 
