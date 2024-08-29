@@ -1,11 +1,15 @@
 #include "Command.hpp"
+#include "Engine.hpp"
 #include "Event.hpp"
 #include "GameMode.hpp"
 #include "PlayerInput.hpp"
 #include "Render.hpp"
-#include "ResourceLoader.hpp" // TODO <MPA> - REMOVE
 #include "Universe.hpp"
 #include "Sound.hpp"
+
+//#include "D3D12Core.hpp"
+//#include "D3D12Level.hpp"
+//D3D12::Level::Level *test_level;
 
 using namespace ECS;
 using namespace Game;
@@ -27,7 +31,7 @@ static void OnFirstFrame();
 
 void Engine_ChangeResolutions( const uint16_t width, const uint16_t height )
 {
-Render_ChangeResolutions( width, height, &the_universe );
+//Render_ChangeResolutions( width, height, &the_universe );
 
 } /* Engine_ChangeResolutions() */
 
@@ -41,16 +45,16 @@ Render_ChangeResolutions( width, height, &the_universe );
 *
 *******************************************************************/
 
-bool Engine_Init()
+bool Engine_Init( VkSurfaceKHR surface, VkInstance vulkan )
 {
 Universe_Init( &the_universe );
 
-if( !Command_Init( &the_universe ) )		 return( false );
-if( !Event_Init( &the_universe ) )			 return( false );
-if( !Render_Init( &the_universe ) )			 return( false );
-if( !Sound_Init( &the_universe ) )           return( false );
-if( !PlayerInput_Init( &the_universe ) )	 return( false );
-if( !GameMode_Init( &the_universe ) )		 return( false );
+if( !Command_Init( &the_universe ) )                 return( false );
+if( !Event_Init( &the_universe ) )                   return( false );
+if( !Render_Init( surface, vulkan, &the_universe ) ) return( false );
+if( !Sound_Init( &the_universe ) )                   return( false );
+if( !PlayerInput_Init( &the_universe ) )             return( false );
+if( !GameMode_Init( &the_universe ) )                return( false );
 
 return( true );
 
@@ -137,9 +141,17 @@ static void OnFirstFrame()
     transform->rotation = QUATERNION_IDENTITY;
     transform->scale    = Math_Float3Make( 1.0f, 1.0f, 1.0f );
 
-    ModelComponent *model = Render_LoadModel( "model_fmod_splash", model_test_entity, &the_universe );
-    model->scene_name_hash = scene->scene_name_hash;
+    //ModelComponent *model = Render_LoadModel( "model_fmod_splash", model_test_entity, &the_universe );
+    //model->scene_name_hash = scene->scene_name_hash;
     }
-// TODO <MPA> - Testing grounds, remove later
+
+//    {
+//    test_level = (D3D12::Level::Level*)malloc( sizeof(D3D12::Level::Level) );
+//    do_debug_assert( D3D12::Level::Init( "test_level", test_level ) );
+//    D3D12::Level::LoadAsync( "test_level", test_level );
+//
+//    //free( level );
+//    }
+//// TODO <MPA> - Testing grounds, remove later
 
 } /* OnFirstFrame() */

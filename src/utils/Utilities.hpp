@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "Global.hpp"
 #include "Math.hpp"
 
 #define MAX_FILEPATH_LENGTH         ( 400 )
@@ -13,7 +14,54 @@ static const char *RELATIVE_ROOT_DIRECTORY[] =
     "..\\bin\\deploy\\"             /* non-deployed (visual studio) */
     };
 
+static const u32   MAGIC_INIT = 0xcafebabe;
+
 typedef Float4 Color4f;
+
+
+/*******************************************************************
+*
+*   _concat()
+*
+*   DESCRIPTION:
+*       Concatenate two fields.
+*
+*******************************************************************/
+
+#define _concat( _a, _b ) \
+    _a##_b
+
+
+/*******************************************************************
+*
+*   debug_assert()
+*
+*   DESCRIPTION:
+*       Assert an assumption - but only in debug mode.
+*
+*******************************************************************/
+
+#if defined( _DEBUG )
+#define debug_assert( _expression ) \
+    assert( _expression )
+#else
+#define debug_assert( _expression )
+#endif
+
+
+/*******************************************************************
+*
+*   align_as()
+*
+*   DESCRIPTION:
+*       Set a type's required alignment.
+*
+*******************************************************************/
+
+#if defined( _MSC_VER )
+#define align_as( _type ) \
+    ( _Alignas( _type ) )
+#endif
 
 
 /*******************************************************************
@@ -42,18 +90,122 @@ typedef Float4 Color4f;
 *
 *********************************************************************/
 
-static __inline uint8_t align_adjust
+static __inline uint64_t align_adjust
     (
     const void         *address,    /* base address                 */
-    const uint8_t       alignment   /* bytes alignment of type      */
+    const u64           alignment   /* bytes alignment of type      */
     )
 {
-uint8_t ret = alignment;
-ret -= 1 + (uint8_t)( ( (uintptr_t)address + alignment - 1 ) % alignment );
+u64 ret = alignment;
+ret -= 1 + (u64)( ( (uptr)address + alignment - 1 ) % alignment );
 
 return( ret );
 
 }   /* align_adjust() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       align_size_round_down
+*
+*   DESCRIPTION:
+*       Round a size down to the next given power-of-two.
+*
+*********************************************************************/
+
+static __inline u64 align_size_round_down
+    (
+    const u64           sz,    /* address to round             */
+    const u64           pow2   /* power of two                 */
+    )
+{
+u64 mask = pow2 - 1;
+debug_assert( pow2 > 1 );
+debug_assert( !( mask & pow2 ) );
+return( sz & ~mask );
+
+}   /* align_size_round_down() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       align_size_round_up
+*
+*   DESCRIPTION:
+*       Round a size up to the next given power-of-two.
+*
+*********************************************************************/
+
+static __inline u64 align_size_round_up
+    (
+    const uint64_t      sz,    /* address to round             */
+    const uint64_t      pow2   /* power of two                 */
+    )
+{
+u64 mask = pow2 - 1;
+debug_assert( pow2 > 1 );
+debug_assert( !( mask & pow2 ) );
+return( ( sz + mask ) & ~mask );
+
+}   /* align_size_round_up() */
+
+
+/*******************************************************************
+*
+*   bit_width64()
+*
+*   DESCRIPTION:
+*       Count the number of bits taken by the given value.
+*
+*******************************************************************/
+
+#define bit_width64( _value )                                       \
+    ( (_value) <     1ull ? 0ull :                                  \
+      ( (_value) <     2ull ? 1ull :                                \
+        ( (_value) <     4ull ? 2ull :                              \
+          ( (_value) <     8ull ? 3ull :                            \
+            ( (_value) <    16ull ? 4ull :                          \
+              ( (_value) <    32ull ? 5ull :                        \
+                ( (_value) <    64ull ? 6ull :                      \
+                  ( (_value) <   128ull ? 7ull :                    \
+                    ( (_value) <   256ull ? 8ull :                  \
+                      ( (_value) <   512ull ? 9ull :                \
+                        ( (_value) <  1024ull ? 10ull :             \
+                          ( (_value) <  2048ull ? 11ull :           \
+                            ( (_value) <  4096ull ? 12ull :         \
+                              ( (_value) <  8192ull ? 13ull :       \
+                                ( (_value) < 16384ull ? 14ull :     \
+                                  ( (_value) < 32768ull ? 15ull :   \
+                                    ( (_value) < 65536ull ? 16ull : \
+                                     0 ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
+
+
+/*******************************************************************
+*
+*   clear_bits()
+*
+*   DESCRIPTION:
+*       Clear the given bits
+*
+*******************************************************************/
+
+#define clear_bits( _field, _bits )                                \
+    ( (_field) &= ~(_bits) )
+
+
+/*******************************************************************
+*
+*   clr_array()
+*
+*   DESCRIPTION:
+*       Set the array's memory to all zeroes.
+*
+*******************************************************************/
+
+#define clr_array( _arr ) \
+    memset( _arr, 0, cnt_of_array( _arr ) * sizeof(*_arr) )
 
 
 /*******************************************************************
@@ -114,15 +266,15 @@ return( ret );
 
 /*******************************************************************
 *
-*   expand_va_args()
+*   expand_macro()
 *
 *   DESCRIPTION:
 *       Work around a non-standard preprocessor issue in MSVC.
 *
 *******************************************************************/
 
-#define expand_va_args( _args ) \
-    _args
+#define expand_macro( _args ) \
+    (_args)
 
 
 /*******************************************************************
@@ -139,7 +291,7 @@ return( ret );
     _count
 
 #define cnt_of_va_args( ... ) \
-    expand_va_args( _cnt_of_va_args( __VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1 ) )
+    expand_macro( _cnt_of_va_args( __VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1 ) )
 
 
 /*******************************************************************
@@ -157,23 +309,6 @@ return( ret );
 
 #define _compiler_assert( _eval, _filename, _line_num ) \
     typedef char assert_failed_##_filename##_##_line_num [ 2 * !!(_eval) - 1 ]
-
-
-/*******************************************************************
-*
-*   debug_assert()
-*
-*   DESCRIPTION:
-*       Assert an assumption - but only in debug mode.
-*
-*******************************************************************/
-
-#if defined( _DEBUG )
-#define debug_assert( _expression ) \
-    assert( _expression )
-#else
-#define debug_assert( _expression )
-#endif
 
 
 /*******************************************************************
@@ -269,7 +404,7 @@ return( ret );
 *******************************************************************/
 
 #define max_sint_value( _t ) \
-    ( ( 1LL << ( sizeof(_t) * CHAR_BIT - 2 ) ) - 1 + ( 1LL << ( sizeof(_t) * CHAR_BIT - 2 ) ) )
+    ( ( 1ll << ( sizeof(_t) * CHAR_BIT - 2 ) ) - 1 + ( 1ll << ( sizeof(_t) * CHAR_BIT - 2 ) ) )
 
 
 /*******************************************************************
@@ -283,7 +418,7 @@ return( ret );
 *******************************************************************/
 
 #define max_uint_value( _t ) \
-    ( ( ( 1ULL << ( sizeof(_t) * CHAR_BIT - 1 ) ) - 1 + ( 1ULL << ( sizeof(_t) * CHAR_BIT - 1 ) ) ) )
+    ( ( ( 1ull << ( sizeof(_t) * CHAR_BIT - 1 ) ) - 1 + ( 1ull << ( sizeof(_t) * CHAR_BIT - 1 ) ) ) )
             
 
 /*******************************************************************
@@ -297,6 +432,84 @@ return( ret );
 
 #define max_of_vals( _a, _b ) \
     ( _a > _b ? _a : _b )
+
+
+/*******************************************************************
+*
+*   set_bits()
+*
+*   DESCRIPTION:
+*       Set the given bits
+*
+*******************************************************************/
+
+#define set_bits( _field, _bits )                                   \
+    ( (_field) |= (_bits) )
+
+
+/*******************************************************************
+*
+*   set_clear_bits()
+*
+*   DESCRIPTION:
+*       Conditionally set or clear the given bits.
+*
+*******************************************************************/
+
+#define set_clear_bits( _field, _bits, _test )                      \
+    ( (_field) ^= ( ( -( (_test) != FALSE ) ^ (_field) ) & (_bits) ) )
+
+
+/*******************************************************************
+*
+*   shift_bits()
+*
+*   DESCRIPTION:
+*       Set the number of bits, at the given shift.
+*
+*******************************************************************/
+
+#define shift_bits( _count, _shift ) \
+    (u32)( ( ( 1 << (_count) ) - 1 ) << (_shift) )
+
+
+/*******************************************************************
+*
+*   shift_bits64()
+*
+*   DESCRIPTION:
+*       Set the number of bits, at the given shift.
+*
+*******************************************************************/
+
+#define shift_bits64( _count, _shift ) \
+    (u64)( ( ( 1ull << (_count) ) - 1ull ) << (_shift) )
+
+
+/*******************************************************************
+*
+*   test_any_bits()
+*
+*   DESCRIPTION:
+*       Are any of the given bits set on the given bitfield?
+*
+*******************************************************************/
+
+#define test_any_bits( _field, _test ) \
+    ( ( _field & _test ) != 0 )
+
+
+/*******************************************************************
+*
+*   test_bits()
+*
+*   DESCRIPTION:
+*       Are all of the given bits set on the given bitfield?
+*
+*******************************************************************/
+
+#define test_bits( _field, _test ) \
+    ( ( _field & _test ) == (_test) )
 
 
 /*******************************************************************
@@ -414,3 +627,58 @@ ret.v.w = a;
 return( ret );
 
 } /* Utilities_MakeColor4f() */
+
+
+/*******************************************************************
+*
+*   Utilities_PointerToByteOffset
+*
+*   DESCRIPTION:
+*       Find the byte offset represented from the given pointer from
+*       the given base address.
+*
+*******************************************************************/
+
+static inline uint64_t Utilities_PointerToByteOffset( const void *base, const void *pointer )
+{
+hard_assert( pointer >= base );
+const uint8_t *base_ptr    = (uint8_t*)base;
+const uint8_t *pointer_ptr = (uint8_t*)pointer;
+
+return( (uint64_t)( pointer_ptr - base_ptr ) );
+
+} /* Utilities_PointerToByteOffset() */
+
+
+/*******************************************************************
+*
+*   Utilities_ShellSortU32Ascending
+*
+*   DESCRIPTION:
+*       Shell-sort an array of 32-bit unsigned integers into ascending
+*       order.
+*
+*******************************************************************/
+
+static inline void Utilities_ShellSortU32Ascending( const uint32_t count, uint32_t *arr )
+{
+static const uint32_t CIURA_GAPS[] = { 701, 301, 132, 57, 23, 10, 4, 1 };
+for( uint32_t it_gap = 0; it_gap < cnt_of_array( CIURA_GAPS ); it_gap++ )
+    {
+    uint32_t gap = CIURA_GAPS[ it_gap ];
+    uint32_t temp;
+    for( uint32_t i = gap; i < count; i++ )
+        {
+        temp = arr[ i ];
+        uint32_t j;
+        for( j = i; j >= gap && arr[ j - gap ] > temp; j -= gap )
+            {
+            arr[ j ] = arr[ j - gap ];
+            }
+
+        arr[ j ] = temp;
+        }
+    }
+
+} /* Utilities_ShellSortU32Ascending() */
+

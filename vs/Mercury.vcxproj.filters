@@ -13,8 +13,14 @@
     <Filter Include="game">
       <UniqueIdentifier>{348f5a52-4498-49dc-af8c-6a8e46d96fc5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="win\shaders">
-      <UniqueIdentifier>{77282b91-67e0-4371-84d5-9dcf387fb6c9}</UniqueIdentifier>
+    <Filter Include="render">
+      <UniqueIdentifier>{1dd013cc-930c-4e38-a0f3-64ebae57597f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="render\vkn">
+      <UniqueIdentifier>{133f2686-2b7d-4744-90f9-0022e97c82d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="render\vkn\include">
+      <UniqueIdentifier>{0cc70870-88f3-40d7-85d2-e9b61f77434b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -32,9 +38,6 @@
       <Filter>win</Filter>
     </ClCompile>
     <ClCompile Include="..\src\win\PlayerInput.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\Render.cpp">
       <Filter>win</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\GameMode.cpp">
@@ -67,23 +70,8 @@
     <ClCompile Include="..\src\utils\MathVector.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\RenderShaders.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utils\LinearAllocator.cpp">
       <Filter>utils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderInitializers.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderModels.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderPipelines.cpp">
-      <Filter>win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\win\RenderScene.cpp">
-      <Filter>win</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utils\MathMatrix.cpp">
       <Filter>utils</Filter>
@@ -91,11 +79,89 @@
     <ClCompile Include="..\src\utils\MathQuaternion.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\RenderPassDefault.cpp">
-      <Filter>win\shaders</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utils\ResourceLoader.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\arena\VknArena.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferIndex.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferUniform.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferVertex.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferVertexDynamic.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\descriptor\VknDescriptorPool.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\descriptor\VknDescriptorWriter.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\effect\VknEffect.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\extension\VknExtension.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\image\VknImage.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\instance\VknInstance.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\logical_device\VknLogicalDevice.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\memory\VknMemory.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\physical_device\VknPhysicalDevice.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\pipeline\VknPipelineGraphics.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\program\VknProgram.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\releaser\VknReleaser.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\shader\VknShader.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\shader\VknShaderReflect.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\staging\VknStaging.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\surface\VknSurface.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\surface\VknSurfaceMsw.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\swap_chain\VknSwapChain.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\thread\VknThread.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\transitioner\VknTransitioner.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\vkn\vertex\VknVertex.cpp">
+      <Filter>render\vkn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\render\Render.cpp">
+      <Filter>render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -121,12 +187,6 @@
       <Filter>win</Filter>
     </ClInclude>
     <ClInclude Include="..\src\win\PlayerInput.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\Render.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\ComUtilities.hpp">
       <Filter>win</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\GameMode.hpp">
@@ -156,41 +216,180 @@
     <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\RenderShaders.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\LinearAllocator.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\win\RenderInitializers.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderModels.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderPipelines.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderEngine.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerInputUtilities.hpp" />
-    <ClInclude Include="..\src\win\RenderScene.hpp">
-      <Filter>win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\win\RenderPassDefault.hpp">
-      <Filter>win\shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utils\ResourceLoader.hpp">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\render\vkn\Vkn.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\arena\VknArena.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\arena\VknArenaTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferIndex.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferIndexTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferUniform.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferUniformTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertex.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexDynamic.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexDynamicTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\VknCommon.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorPool.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorWriter.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorWriterTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\effect\VknEffect.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\effect\VknEffectTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\extension\VknExtension.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\image\VknImage.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\image\VknImageTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\instance\VknInstance.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\instance\VknInstanceTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\logical_device\VknLogicalDevice.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\logical_device\VknLogicalDeviceTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\memory\VknMemory.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\memory\VknMemoryTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\physical_device\VknPhysicalDevice.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\physical_device\VknPhysicalDeviceTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\pipeline\VknPipelineGraphics.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\pipeline\VknPipelineGraphicsTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\program\VknProgram.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\program\VknProgramTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\releaser\VknReleaser.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\releaser\VknReleaserTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\shader\VknShader.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderParamTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderReflect.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderReflectTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\staging\VknStaging.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\staging\VknStagingTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\surface\VknSurface.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\swap_chain\VknSwapChain.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\swap_chain\VknSwapChainTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\thread\VknThread.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\thread\VknThreadTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\transitioner\VknTransitioner.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\transitioner\VknTransitionerTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\vertex\VknVertex.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\vkn\vertex\VknVertexTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Global.hpp" />
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorPoolTypes.hpp">
+      <Filter>render\vkn\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\ShaderParams.hpp">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\assets\shaders\spirv\ShaderGen.hpp">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\render\Render.hpp">
+      <Filter>render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
-      <Filter>win\shaders</Filter>
-    </None>
-    <None Include="..\assets\shaders\shader_ps_flat.hlsl">
-      <Filter>win\shaders</Filter>
+    <None Include="..\src\render\vkn\shader\vkn_compile_shaders.py">
+      <Filter>render\vkn</Filter>
     </None>
   </ItemGroup>
 </Project>

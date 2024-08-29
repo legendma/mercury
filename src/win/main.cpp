@@ -1,8 +1,10 @@
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <GameInput.h>
 
 #include "ApplicationTimer.hpp"
 #include "Engine.hpp"
+#include "Render.hpp"
 
 uint16_t s_window_width;
 uint16_t s_window_height;
@@ -39,9 +41,21 @@ if( main_window == NULL )
 	return( -1 );
 	}
 
-/* Initialize the game engine */
-if( Engine_Init() == false )
+VKN_instance_type vulkan = {};
+Render_CreateVulkanInstance( &vulkan );
+
+VkSurfaceKHR surface = {};
+if( !VKN_surface_create( vulkan.instance, nullptr, hinstance, main_window, &surface ) )
 	{
+	VKN_instance_destroy( NULL, &vulkan );
+	return (-1);
+	}
+
+/* Initialize the game engine */
+if( Engine_Init( surface, vulkan.instance ) == false )
+	{
+	VKN_surface_destroy( vulkan.instance, NULL, &surface );
+	VKN_instance_destroy( NULL, &vulkan );
 	return (-1);
 	}
 
@@ -78,6 +92,8 @@ while( should_quit == false )
 
 /* Destroy the game engine */
 Engine_Destroy();
+VKN_surface_destroy( vulkan.instance, NULL, &surface );
+VKN_instance_destroy( NULL, &vulkan );
 
 } /* main() */
 

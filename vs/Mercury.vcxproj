@@ -28,6 +28,33 @@
     <ClCompile Include="..\src\game\Engine.cpp" />
     <ClCompile Include="..\src\game\GameMode.cpp" />
     <ClCompile Include="..\src\game\Sound.cpp" />
+    <ClCompile Include="..\src\render\Render.cpp" />
+    <ClCompile Include="..\src\render\vkn\arena\VknArena.cpp" />
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferIndex.cpp" />
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferUniform.cpp" />
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferVertex.cpp" />
+    <ClCompile Include="..\src\render\vkn\buffer\VknBufferVertexDynamic.cpp" />
+    <ClCompile Include="..\src\render\vkn\descriptor\VknDescriptorPool.cpp" />
+    <ClCompile Include="..\src\render\vkn\descriptor\VknDescriptorWriter.cpp" />
+    <ClCompile Include="..\src\render\vkn\effect\VknEffect.cpp" />
+    <ClCompile Include="..\src\render\vkn\extension\VknExtension.cpp" />
+    <ClCompile Include="..\src\render\vkn\image\VknImage.cpp" />
+    <ClCompile Include="..\src\render\vkn\instance\VknInstance.cpp" />
+    <ClCompile Include="..\src\render\vkn\logical_device\VknLogicalDevice.cpp" />
+    <ClCompile Include="..\src\render\vkn\memory\VknMemory.cpp" />
+    <ClCompile Include="..\src\render\vkn\physical_device\VknPhysicalDevice.cpp" />
+    <ClCompile Include="..\src\render\vkn\pipeline\VknPipelineGraphics.cpp" />
+    <ClCompile Include="..\src\render\vkn\program\VknProgram.cpp" />
+    <ClCompile Include="..\src\render\vkn\releaser\VknReleaser.cpp" />
+    <ClCompile Include="..\src\render\vkn\shader\VknShader.cpp" />
+    <ClCompile Include="..\src\render\vkn\shader\VknShaderReflect.cpp" />
+    <ClCompile Include="..\src\render\vkn\staging\VknStaging.cpp" />
+    <ClCompile Include="..\src\render\vkn\surface\VknSurface.cpp" />
+    <ClCompile Include="..\src\render\vkn\surface\VknSurfaceMsw.cpp" />
+    <ClCompile Include="..\src\render\vkn\swap_chain\VknSwapChain.cpp" />
+    <ClCompile Include="..\src\render\vkn\thread\VknThread.cpp" />
+    <ClCompile Include="..\src\render\vkn\transitioner\VknTransitioner.cpp" />
+    <ClCompile Include="..\src\render\vkn\vertex\VknVertex.cpp" />
     <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
     <ClCompile Include="..\src\utils\HashMap.cpp" />
     <ClCompile Include="..\src\utils\LinearAllocator.cpp" />
@@ -38,16 +65,10 @@
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />
     <ClCompile Include="..\src\win\main.cpp" />
     <ClCompile Include="..\src\win\PlayerInput.cpp" />
-    <ClCompile Include="..\src\win\Render.cpp" />
-    <ClCompile Include="..\src\win\RenderInitializers.cpp" />
-    <ClCompile Include="..\src\win\RenderModels.cpp" />
-    <ClCompile Include="..\src\win\RenderPassDefault.cpp" />
-    <ClCompile Include="..\src\win\RenderPipelines.cpp" />
-    <ClCompile Include="..\src\win\RenderScene.cpp" />
-    <ClCompile Include="..\src\win\RenderShaders.cpp" />
     <ClCompile Include="..\tools\ResourcePackager\src\AssetFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\assets\shaders\spirv\ShaderGen.hpp" />
     <ClInclude Include="..\src\ecs\Command.hpp" />
     <ClInclude Include="..\src\ecs\Component.hpp" />
     <ClInclude Include="..\src\ecs\ComponentClass.hpp" />
@@ -57,6 +78,60 @@
     <ClInclude Include="..\src\ecs\Universe.hpp" />
     <ClInclude Include="..\src\game\Engine.hpp" />
     <ClInclude Include="..\src\game\Sound.hpp" />
+    <ClInclude Include="..\src\Global.hpp" />
+    <ClInclude Include="..\src\render\Render.hpp" />
+    <ClInclude Include="..\src\render\ShaderParams.hpp" />
+    <ClInclude Include="..\src\render\vkn\arena\VknArena.hpp" />
+    <ClInclude Include="..\src\render\vkn\arena\VknArenaTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferIndex.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferIndexTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferUniform.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferUniformTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertex.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexDynamic.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexDynamicTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\buffer\VknBufferVertexTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorPool.hpp" />
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorPoolTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorWriter.hpp" />
+    <ClInclude Include="..\src\render\vkn\descriptor\VknDescriptorWriterTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\effect\VknEffect.hpp" />
+    <ClInclude Include="..\src\render\vkn\effect\VknEffectTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\extension\VknExtension.hpp" />
+    <ClInclude Include="..\src\render\vkn\image\VknImage.hpp" />
+    <ClInclude Include="..\src\render\vkn\image\VknImageTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\instance\VknInstance.hpp" />
+    <ClInclude Include="..\src\render\vkn\instance\VknInstanceTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\logical_device\VknLogicalDevice.hpp" />
+    <ClInclude Include="..\src\render\vkn\logical_device\VknLogicalDeviceTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\memory\VknMemory.hpp" />
+    <ClInclude Include="..\src\render\vkn\memory\VknMemoryTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\physical_device\VknPhysicalDevice.hpp" />
+    <ClInclude Include="..\src\render\vkn\physical_device\VknPhysicalDeviceTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\pipeline\VknPipelineGraphics.hpp" />
+    <ClInclude Include="..\src\render\vkn\pipeline\VknPipelineGraphicsTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\program\VknProgram.hpp" />
+    <ClInclude Include="..\src\render\vkn\program\VknProgramTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\releaser\VknReleaser.hpp" />
+    <ClInclude Include="..\src\render\vkn\releaser\VknReleaserTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\shader\VknShader.hpp" />
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderParamTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderReflect.hpp" />
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderReflectTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\shader\VknShaderTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\staging\VknStaging.hpp" />
+    <ClInclude Include="..\src\render\vkn\staging\VknStagingTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\surface\VknSurface.hpp" />
+    <ClInclude Include="..\src\render\vkn\swap_chain\VknSwapChain.hpp" />
+    <ClInclude Include="..\src\render\vkn\swap_chain\VknSwapChainTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\thread\VknThread.hpp" />
+    <ClInclude Include="..\src\render\vkn\thread\VknThreadTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\transitioner\VknTransitioner.hpp" />
+    <ClInclude Include="..\src\render\vkn\transitioner\VknTransitionerTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\vertex\VknVertex.hpp" />
+    <ClInclude Include="..\src\render\vkn\vertex\VknVertexTypes.hpp" />
+    <ClInclude Include="..\src\render\vkn\Vkn.hpp" />
+    <ClInclude Include="..\src\render\vkn\VknCommon.hpp" />
     <ClInclude Include="..\src\utils\ControllerInputUtilities.hpp" />
     <ClInclude Include="..\src\utils\HardwareIDs.hpp" />
     <ClInclude Include="..\src\game\GameMode.hpp" />
@@ -66,27 +141,11 @@
     <ClInclude Include="..\src\utils\ResourceLoader.hpp" />
     <ClInclude Include="..\src\utils\Utilities.hpp" />
     <ClInclude Include="..\src\win\ApplicationTimer.hpp" />
-    <ClInclude Include="..\src\win\ComUtilities.hpp" />
     <ClInclude Include="..\src\win\PlayerInput.hpp" />
-    <ClInclude Include="..\src\win\Render.hpp" />
-    <ClInclude Include="..\src\win\RenderEngine.hpp" />
-    <ClInclude Include="..\src\win\RenderInitializers.hpp" />
-    <ClInclude Include="..\src\win\RenderModels.hpp" />
-    <ClInclude Include="..\src\win\RenderPassDefault.hpp" />
-    <ClInclude Include="..\src\win\RenderPipelines.hpp" />
-    <ClInclude Include="..\src\win\RenderScene.hpp" />
-    <ClInclude Include="..\src\win\RenderShaders.hpp" />
     <ClInclude Include="ControllerInputUtilities.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\shaders\shader_vs_mvp.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\assets\shaders\shader_ps_flat.hlsl">
-      <FileType>Document</FileType>
-    </None>
+    <None Include="..\src\render\vkn\shader\vkn_compile_shaders.py" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -143,12 +202,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\assets\shaders\spirv;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\stb\include;$(SolutionDir)..\ots\vulkan\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\ecs\;$(SolutionDir)..\src\game\;$(SolutionDir)..\src\render\;$(SolutionDir)..\src\render\vkn\;$(SolutionDir)..\src\render\vkn\arena;$(SolutionDir)..\src\render\vkn\buffer;$(SolutionDir)..\src\render\vkn\descriptor;$(SolutionDir)..\src\render\vkn\effect;$(SolutionDir)..\src\render\vkn\extension;$(SolutionDir)..\src\render\vkn\image;$(SolutionDir)..\src\render\vkn\instance;$(SolutionDir)..\src\render\vkn\memory;$(SolutionDir)..\src\render\vkn\logical_device;$(SolutionDir)..\src\render\vkn\physical_device;$(SolutionDir)..\src\render\vkn\pipeline;$(SolutionDir)..\src\render\vkn\program;$(SolutionDir)..\src\render\vkn\releaser;$(SolutionDir)..\src\render\vkn\shader;$(SolutionDir)..\src\render\vkn\staging;$(SolutionDir)..\src\render\vkn\surface;$(SolutionDir)..\src\render\vkn\swap_chain;$(SolutionDir)..\src\render\vkn\thread;$(SolutionDir)..\src\render\vkn\transitioner;$(SolutionDir)..\src\render\vkn\vertex;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\win\;$(SolutionDir)..\tools\ResourcePackager\src;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\pthread\lib\debug;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(SolutionDir)..\ots\vulkan\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\tools\ResourcePackager\src;$(SolutionDir)..\ots\pthread\include;$(SolutionDir)..\ots\stb\include;$(SolutionDir)..\ots\fmod\include;$(SolutionDir)..\src\game\;$(SolutionDir)..\ots\ms-gdk\include;$(SolutionDir)..\src\;$(SolutionDir)..\src\win\dx12;$(SolutionDir)..\src\win\;$(SolutionDir)..\src\utils\;$(SolutionDir)..\src\win\dx12\new;$(SolutionDir)..\src\ecs\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\ots\pthread\lib\release;$(SolutionDir)..\ots\fmod\lib\x64;$(SolutionDir)..\ots\ms-gdk\lib\amd64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\..\bin\deploy\</OutDir>
     <IntDir>$(SolutionDir)\..\bin\build\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -190,7 +249,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;pthread.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions> /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"
@@ -198,6 +258,9 @@ xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmod.dll "$(TargetDir)"
 xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
 ..\bin\deploy\tools\ResourcePackager.exe -d ..\assets\assets.json -o ..\bin\deploy\AllAssets.bin -r ..\assets</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>py.exe $(SolutionDir)..\assets\shaders\compile_all_shaders.py</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -213,7 +276,8 @@ xcopy /y "$(SolutionDir)"..\ots\fmod\lib\x64\fmodstudio.dll  "$(TargetDir)"
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;GameInput.lib;fmodstudio_vc.lib;fmod_vc.lib;pthread.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions> /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)"..\..\sound\*.* "$(TargetDir)"
