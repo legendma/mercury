@@ -210,19 +210,6 @@ return( ( sz + mask ) & ~mask );
 
 /*******************************************************************
 *
-*   clr_array()
-*
-*   DESCRIPTION:
-*       Set the array's memory to all zeroes.
-*
-*******************************************************************/
-
-#define clr_array( _arr ) \
-    memset( _arr, 0, cnt_of_array( _arr ) * sizeof(*_arr) )
-
-
-/*******************************************************************
-*
 *   clr_struct()
 *
 *   DESCRIPTION:

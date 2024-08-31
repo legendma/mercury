@@ -58,8 +58,11 @@
     <ClCompile Include="..\src\utils\ControllerInputUtilities.cpp" />
     <ClCompile Include="..\src\utils\HashMap.cpp" />
     <ClCompile Include="..\src\utils\LinearAllocator.cpp" />
+    <ClCompile Include="..\src\utils\MathBoundingBox.cpp" />
+    <ClCompile Include="..\src\utils\MathCollision.cpp" />
     <ClCompile Include="..\src\utils\MathMatrix.cpp" />
     <ClCompile Include="..\src\utils\MathQuaternion.cpp" />
+    <ClCompile Include="..\src\utils\MathStats.cpp" />
     <ClCompile Include="..\src\utils\MathVector.cpp" />
     <ClCompile Include="..\src\utils\ResourceLoader.cpp" />
     <ClCompile Include="..\src\win\ApplicationTimer.cpp" />

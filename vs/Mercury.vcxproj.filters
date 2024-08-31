@@ -163,6 +163,15 @@
     <ClCompile Include="..\src\render\Render.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utils\MathBoundingBox.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\MathCollision.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\MathStats.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ecs\Component.hpp">

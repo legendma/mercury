@@ -186,9 +186,10 @@ Float4 Math_Float4ScalarMultiply( const Float4 A, const float scalar )
 {
 Float4 B = {};
 for( uint32_t i = 0; i < cnt_of_array( B.f ); i++ )
-{
+    {
     B.f[i] = A.f[i] * scalar;
-}
+    }
+	
 return B;
 
 } /*  Math_Float4ScalarMultiply() */
@@ -980,3 +981,283 @@ float Math_Float4SquaredDistanceBetween( const Float4 A, const Float4 B )
     return (Math_Float4SquareMagnitude( C ));
 
 } /*  Math_Float4SquaredDistanceBetween() */
+
+
+
+/*******************************************************************
+*
+*   Math_Float2ProjectionofPointOntoLineSegment()
+*
+*   DESCRIPTION:
+*       Projects a point onto a line segment AB and caculates an
+*       output point on the AB line as well as the distance of the
+*       output point from line segment point A.
+*
+*******************************************************************/
+void Math_Float2ProjectionofPointOntoLineSegment( const Float2 line_segmentA, const Float2 line_segmentB, const Float2 test_point, Float2 *output_point, float *distance_from_A )
+{
+   // Float2 lineAB = Math_Float2Subtraction( line_segmentB, line_segmentA );
+   // float magAB = Math_Float2Magnitude(lineAB);
+   // lineAB = Math_Float2ScalarMultiply(lineAB,magAB);
+   //
+   // *distance_from_A = Math_Float2DotProduct( Math_Float2Subtraction( test_point, line_segmentA ), lineAB ) / magAB;
+   // *output_point = Math_Float2Addition( line_segmentA, Math_Float2ScalarMultiply( Math_Float2Subtraction( line_segmentB, line_segmentA ), *distance_from_A ) );
+
+   Float2 lineAB = Math_Float2Subtraction( line_segmentB, line_segmentA );
+   Float2 test_point_vec = Math_Float2Subtraction( test_point, line_segmentA );
+   *distance_from_A = Math_Float2DotProduct(lineAB, test_point_vec) / Math_Float2DotProduct(lineAB,lineAB);;
+   *output_point = Math_Float2Addition(line_segmentA, Math_Float2ScalarMultiply(lineAB,*distance_from_A));
+
+
+}/*Math_Float2ProjectionofPointOntoLineSegment() */
+
+
+/*******************************************************************
+*
+*   Math_Float3ProjectionofPointOntoLineSegment()
+*
+*   DESCRIPTION:
+*       Projects a point onto a line segment AB and caculates an
+*       output point on the AB line as well as the distance of the
+*       output point from line segment point A.
+*
+*******************************************************************/
+void Math_Float3ProjectionofPointOntoLineSegment( const Float3 line_segmentA, const Float3 line_segmentB, const Float3 test_point, Float3 *output_point, float *distance_from_A )
+{
+    Float3 lineAB = Math_Float3Subtraction( line_segmentB, line_segmentA );
+    *distance_from_A = Math_Float3DotProduct( Math_Float3Subtraction( test_point, line_segmentA ), lineAB ) ;
+    *output_point = Math_Float3Addition( line_segmentA, Math_Float3ScalarMultiply( lineAB, *distance_from_A ) );
+
+}/*Math_Float3ProjectionofPointOntoLineSegment() */
+
+
+/*******************************************************************
+*
+*   Math_Float2LineSegmentCenterpoint()
+*
+*   DESCRIPTION:
+*       Calculates the centerpoint, C,  of a line segment AB.
+*
+*******************************************************************/
+
+Float2 Math_Float2LineSegmentCenterpoint( const Float2 A, const Float2 B )
+{
+    Float2 C = {};
+
+    C.v.x = 0.5f * (A.v.x + B.v.x);
+    C.v.y = 0.5f * (A.v.y + B.v.y);
+
+    return C;
+}/* Math_Float2LineSegmentCenterpoint()*/
+
+
+/*******************************************************************
+*
+*   Math_Float3LineSegmentCenterpoint()
+*
+*   DESCRIPTION:
+*       Calculates the centerpoint, C,  of a line segment AB.
+*
+*******************************************************************/
+
+Float3 Math_Float3LineSegmentCenterpoint( const Float3 A, const Float3 B )
+{
+    Float3 C = {};
+
+    C.v.x = 0.5f * (A.v.x + B.v.x);
+    C.v.y = 0.5f * (A.v.y + B.v.y);
+    C.v.z = 0.5f * (A.v.z + B.v.z);
+
+    return C;
+}/* Math_Float2LineSegmentCenterpoint()*/
+
+
+/*******************************************************************
+*
+*   Math_Float2LineSegmentIntersection()
+*
+*   DESCRIPTION:
+*       Calculates if 2 line segments (AB and CD) intersect and at what point.
+*       
+*
+*******************************************************************/
+
+bool Math_Float2LineSegmentIntersection( const Float2 A, const Float2 B, const Float2 C, const Float2 D, const float tolerance, Float2 *output_intersection_point )
+{
+    Float2 AB_vector = Math_Float2Subtraction(B,A);
+    Float2 CD_vector = Math_Float2Subtraction(D,C);
+    float ABxCD = Math_Float2PseudoCrossProduct(AB_vector,CD_vector);
+
+    //check if the two lines are parrallel
+    if( abs( ABxCD ) <= tolerance )
+    {
+        if( abs( Math_Float2PseudoCrossProduct( Math_Float2Subtraction( A, C ), AB_vector ) ) <= tolerance )
+        {
+            // the two lines are co-linear. Next we test if they overlap
+            float normal_factor = Math_Float2DotProduct(AB_vector,AB_vector);
+            float ref_interval[2] = {};
+            float test_interval[2] = {};
+            ref_interval[0] = tolerance;
+            ref_interval[1] = normal_factor;
+
+            if( Math_Float2DotProduct( CD_vector, AB_vector ) < 0.0f )
+            {
+                test_interval[1] = Math_Float2DotProduct( Math_Float2Subtraction( C, A ), AB_vector );
+                test_interval[0] = test_interval[1] + Math_Float2DotProduct( CD_vector, AB_vector );
+            }
+            test_interval[0] = Math_Float2DotProduct(Math_Float2Subtraction(C,A), AB_vector);
+            test_interval[1] = test_interval[0] + Math_Float2DotProduct(CD_vector,AB_vector);
+
+            //overlap test
+            if( test_interval[0] > ref_interval[1] )
+            {
+                return false;  //the two lines are co-linear but do not overlap
+            }
+            else if( test_interval[1] < ref_interval[0] )
+            {
+                return false; //the two lines are co-linear but do not overlap
+            }
+            
+            if( test_interval[0] <= ref_interval[0] )
+            {
+                *output_intersection_point = A;
+                return true;  // the two lines overlap over point A so return A as the intersection point.
+            }
+            else if( test_interval[0] <= ref_interval[1] )
+            {
+                *output_intersection_point = B;
+                return true;  // the two lines overlap over point B so return B as the intersection point.
+            }
+        }
+        return false;  // the two lines are parrallel and do not intersect
+    }
+
+    ABxCD = 1.0f / ABxCD;
+    float intersection_position =  ABxCD * Math_Float2PseudoCrossProduct( Math_Float2Subtraction( C, A ), CD_vector );
+    if( intersection_position < -0.0f )
+    {
+        return false;  //intersection point lins outside the line segment vector AB. < point A
+    }
+    else if( intersection_position > 1.0f )
+    {
+        return false;  //intersection point lins outside the line segment  vector AB. > point B
+    }
+
+    intersection_position =  ABxCD * Math_Float2PseudoCrossProduct( Math_Float2Subtraction( C, A ), AB_vector );
+    if( intersection_position < -0.0f )
+    {
+        return false;  //intersection point lins outside the line segment vector CD. < point C
+    }
+    else if( intersection_position > 1.0f )
+    {
+        return false;  //intersection point lins outside the line segment vector CD. > point D
+    }
+
+    *output_intersection_point = Math_Float2Addition(C,Math_Float2ScalarMultiply(CD_vector, intersection_position ));
+    return true;
+    
+}/* Math_Float2LineSegmentIntersection()*/
+
+
+/*******************************************************************
+*
+*   Math_Float3LineSegmentIntersection()
+*
+*   DESCRIPTION:
+*       Calculates if 2 line segments (AB and CD) intersect and at what point.
+*       Note: will return false and not produce an intersection point if the two lines are co-linear.
+*
+*******************************************************************/
+
+bool Math_Float3LineSegmentIntersection( const Float3 A, const Float3 B, const Float3 C, const Float3 D, const float tolerance, Float3 *output_intersection_point )
+{
+    Float3 AB_vector = Math_Float3Subtraction( B, A );
+    Float3 CD_vector = Math_Float3Subtraction( D, C );
+    Float3 ABxCD = Math_Float3CrossProduct( AB_vector, CD_vector );
+    float sqmag_ABxCD = Math_Float3SquareMagnitude(ABxCD);
+    Float3x3 intersection_matrix = {};
+    float det = 0.0f;
+
+    // check if the two lines are parallel
+    if( sqmag_ABxCD < tolerance )
+    {
+        if( Math_Float3SquareMagnitude(Math_Float3CrossProduct( Math_Float3Subtraction( A, C ), AB_vector ) ) <= tolerance)
+        {
+            // the two lines are co-linear. Next we test if they overlap
+            float normal_factor = Math_Float3DotProduct( AB_vector, AB_vector );
+            float ref_interval[2] = {};
+            float test_interval[2] = {};
+            ref_interval[0] = tolerance;
+            ref_interval[1] = normal_factor;
+
+            if( Math_Float3DotProduct( CD_vector, AB_vector ) < 0.0f )
+            {
+                test_interval[1] = Math_Float3DotProduct( Math_Float3Subtraction( C, A ), AB_vector );
+                test_interval[0] = test_interval[1] + Math_Float3DotProduct( CD_vector, AB_vector );
+            }
+            test_interval[0] = Math_Float3DotProduct( Math_Float3Subtraction( C, A ), AB_vector );
+            test_interval[1] = test_interval[0] + Math_Float3DotProduct( CD_vector, AB_vector );
+
+            //overlap test
+            if( test_interval[0] > ref_interval[1] )
+            {
+                return false;  //the two lines are co-linear but do not overlap
+            }
+            else if( test_interval[1] < ref_interval[0] )
+            {
+                return false; //the two lines are co-linear but do not overlap
+            }
+
+            if( test_interval[0] <= ref_interval[0] )
+            {
+                *output_intersection_point = A;
+                return true;  // the two lines overlap over point A so return A as the intersection point.
+            }
+            else if( test_interval[0] <= ref_interval[1] )
+            {
+                *output_intersection_point = B;
+                return true;  // the two lines overlap over point B so return B as the intersection point.
+            }
+        }
+        return false;  // the two lines are parrallel and do not intersect
+    }
+
+    Float3 intersection_line[2] = {};
+    //point of closest approach on line AB
+    Math_Float3x3MatrixFromVectors(Math_Float3Subtraction(C,A), CD_vector, ABxCD, &intersection_matrix);
+    det = Math_Float3x3Determinate(&intersection_matrix);
+    float normalization = 1.0f / sqmag_ABxCD;
+    float intersection_position = det * normalization;
+
+    if( intersection_position < -0.0f )
+    {
+        return false;  //intersection point lins outside the line segment vector AB. < point A
+    }
+    else if( intersection_position > 1.0f )
+    {
+        return false;  //intersection point lins outside the line segment  vector AB. > point B
+    }
+
+    intersection_line[0] = Math_Float3Addition(A, Math_Float3ScalarMultiply(AB_vector, intersection_position ));
+    
+    // find closest approach on line CD
+    Math_Float3x3MatrixFromVectors( Math_Float3Subtraction( C, A ), AB_vector, ABxCD, &intersection_matrix );
+    det = Math_Float3x3Determinate( &intersection_matrix );
+    intersection_position = det * normalization;
+
+    if( intersection_position < -0.0f )
+    {
+        return false;  //intersection point lins outside the line segment vector CD. < point C
+    }
+    else if( intersection_position > 1.0f )
+    {
+        return false;  //intersection point lins outside the line segment  vector CD. > point D
+    }
+
+    intersection_line[1] = Math_Float3Addition( C, Math_Float3ScalarMultiply( CD_vector, intersection_position ) );
+
+    // calculate the midpoint of the intersection line to get the intersection point
+    *output_intersection_point = Math_Float3LineSegmentCenterpoint(intersection_line[0], intersection_line[1]);
+
+    return true;
+}/* Math_Float3LineSegmentIntersection()*/
