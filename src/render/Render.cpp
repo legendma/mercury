@@ -552,64 +552,24 @@ static bool ResizeSwapChain( RenderEngine *engine );
 //return( &engine->frames[ engine->current_frame ] );
 //
 //} /* Engine_CurrentFrame() */
-//
-//
-///*******************************************************************
-//*
-//*   Render_ChangeResolutions()
-//*
-//*   DESCRIPTION:
-//*       Change the graphics screen resolution.
-//*
-//*******************************************************************/
-//
-//void Render_ChangeResolutions( const uint16_t width, const uint16_t height, Universe *universe )
-//{
-//Engine::Engine *engine = AsRenderEngine( universe );
-//
-//FlushCommandQueue( engine );
-//if( FAILED( engine->commands.gfx->Reset( engine->commands.spare_allocator, NULL ) ) )
-//    {
-//    debug_assert_always();
-//    return;
-//    }
-//
-//for( uint32_t i = 0; i < cnt_of_array( engine->surfaces.backbuffers ); i++ )
-//    {
-//    ComSafeRelease( &engine->surfaces.backbuffers[ i ] );
-//    }
-//
-//ComSafeRelease( &engine->surfaces.depth_stencil );
-//
-//engine->window.width  = width;
-//engine->window.height = height;
-//
-////RenderPass::Default_OnResize( &engine->passes.default_pass );
-//
-//DescriptorHeap_Reset( &engine->surfaces.rtv_heap );
-//if( FAILED( engine->surfaces.swap_chain->ResizeBuffers( cnt_of_array( engine->surfaces.backbuffers ), width, height, Initializers::RENDER_TARGET_FORMAT, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH ) )
-// || !CreateRenderTargetViews( engine ) )
-//    {
-//    debug_assert_always();
-//    return;
-//    }
-//
-//DescriptorHeap_Reset( &engine->surfaces.dsv_heap );
-//CreateDepthStencil( engine );
-//SetViewport( Math_Float2Make( 0.0f, 0.0f ), Math_Float2Make( 1.0f, 1.0f ), engine );
-//
-//if( FAILED( engine->commands.gfx->Close() ) )
-//    {
-//    assert( false );
-//    return;
-//    }
-//
-//ExecuteCommandLists( engine );
-//FlushCommandQueue( engine );
-//
-//engine->surfaces.backbuffer_current = 0;
-//
-//} /* Render_ChangeResolutions() */
+
+
+/*******************************************************************
+*
+*   Render_ChangeResolutions()
+*
+*   DESCRIPTION:
+*       Change the graphics screen resolution.
+*
+*******************************************************************/
+
+void Render_ChangeResolutions( const uint16_t width, const uint16_t height, Universe *universe )
+{
+RenderEngine *engine = AsRenderEngine( universe );
+engine->swap_chain.desired_extent.width  = width;
+engine->swap_chain.desired_extent.height = height;
+
+} /* Render_ChangeResolutions() */
 
 
 /*******************************************************************

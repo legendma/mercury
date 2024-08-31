@@ -31,7 +31,7 @@ static void OnFirstFrame();
 
 void Engine_ChangeResolutions( const uint16_t width, const uint16_t height )
 {
-//Render_ChangeResolutions( width, height, &the_universe );
+Render_ChangeResolutions( width, height, &the_universe );
 
 } /* Engine_ChangeResolutions() */
 

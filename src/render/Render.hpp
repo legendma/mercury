@@ -4,7 +4,7 @@
 #include "Universe.hpp"
 #include "Vkn.hpp"
 
-//void                  Render_ChangeResolutions( const uint16_t width, const uint16_t height, ECS::Universe *universe );
+void                  Render_ChangeResolutions( const uint16_t width, const uint16_t height, ECS::Universe *universe );
 void                  Render_CreateVulkanInstance( VKN_instance_type *out );
 void                  Render_Destroy( ECS::Universe* universe );
 void                  Render_DoFrame( float frame_delta, ECS::Universe* universe );
