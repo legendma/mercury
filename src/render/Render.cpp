@@ -1184,7 +1184,8 @@ VKN_goto_fail( vkResetCommandBuffer( frame->begin_commands, 0 ), begin_frame_fai
 VKN_goto_fail( vkResetCommandBuffer( frame->end_commands, 0 ), begin_frame_fail );
 VKN_goto_fail( vkResetCommandBuffer( frame->end_prepend_commands, 0 ), begin_frame_fail );
 
-engine->current_frame->releaser.i->flush( &frame->releaser );
+VKN_arena_rewind( &frame->arena );
+frame->releaser.i->flush( &frame->releaser );
 engine->memory.i->begin_frame( &engine->memory );
 engine->transitioner.obj.i->begin_frame( &engine->transitioner.obj );
 //while( canvas->current_frame->image_frees )
