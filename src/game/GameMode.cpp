@@ -21,6 +21,13 @@ typedef struct _GameModeState
     {
     GameModeMainMode    main_mode;
     Universe           *universe;
+
+    ///////////////// TESTING FOR HOT VARS - DON'T CHECK THIS IN <MPA> ///////////////////////
+    bool chamber_opened;
+    float malfoy_damage;
+    s32 septum_sepra;
+
+    ///////////////// TESTING FOR HOT VARS - DON'T CHECK THIS IN <MPA> ///////////////////////
     } GameModeState;
 
 
@@ -29,6 +36,7 @@ static void EnterIntro( GameModeState *system );
 static void EnterState( const GameModeMainMode mode, GameModeState *system );
 static void ExitState( const GameModeMainMode mode, GameModeState *system );
 static CommandProcedure ProcessCommand;
+static EventProcedure   ProcessEvent;
 static void             SwitchToNewMainMode( const GameModeMainMode new_mode, GameModeState *system );
 
 
@@ -48,6 +56,7 @@ SingletonGameModeComponent *component = (SingletonGameModeComponent*)Universe_Ge
 component->ptr = (GameModeState*)malloc( sizeof(GameModeState) );
 
 GameModeState *system = AsGameModeState( universe );
+clr_struct( system );
 system->main_mode = GAME_MODE_NONE;
 system->universe  = universe;
 
@@ -55,7 +64,12 @@ Command_RegisterCommandProcessor( COMMAND_PROCESSOR_GAME_MODE, ProcessCommand, u
 Command_AddCommandClass( COMMAND_PROCESSOR_GAME_MODE, PENDING_COMMAND_CHANGE_GAME_MODE, COMMAND_PROCESSOR_ACTION_ADD, universe );
 
 PendingCommandCommand command;
-Command_PostPending( PENDING_COMMAND_CHANGE_GAME_MODE, Command_MakeChangeGameMode( GAME_MODE_INTRO, &command ), universe);
+Command_PostPending( PENDING_COMMAND_CHANGE_GAME_MODE, Command_MakeChangeGameMode( GAME_MODE_INTRO, &command ), universe );
+Command_PostPending( PENDING_COMMAND_BIND_HOT_VAR, Command_MakeBindHotVarFloat( "/half_blood_prince/bathroom/malfoy_damage", &system->malfoy_damage, &command ), universe );
+
+Event_RegisterEventListener( EVENT_LISTENER_GAME_MODE, ProcessEvent, universe );
+Event_ListenToEvent( EVENT_LISTENER_GAME_MODE, EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F5, EVENT_LISTEN_ACTION_START_LISTENING, universe );
+Event_ListenToEvent( EVENT_LISTENER_GAME_MODE, EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F9, EVENT_LISTEN_ACTION_START_LISTENING, universe );
 
 return( true );
 
@@ -114,6 +128,42 @@ switch( system->main_mode )
         assert( false );
         break;
     }
+
+
+
+
+///////////////// TESTING FOR HOT VARS - DON'T CHECK THIS IN <MPA> ///////////////////////
+static bool one_time_unbind = false;
+if( one_time_unbind )
+    {
+    PendingCommandCommand command;
+    Command_PostPending( PENDING_COMMAND_BIND_HOT_VAR, Command_MakeUnbindHotVarFloat( "/half_blood_prince/bathroom/malfoy_damage", &system->malfoy_damage, &command ), system->universe );
+    one_time_unbind = false;
+    }
+    
+static bool one_time_bind = false;
+if( one_time_bind )
+    {
+    PendingCommandCommand command;
+    Command_PostPending( PENDING_COMMAND_BIND_HOT_VAR, Command_MakeBindHotVarFloat( "/half_blood_prince/bathroom/malfoy_damage", &system->malfoy_damage, &command ), system->universe );
+    one_time_bind = false;
+    }
+    
+static bool one_time_save = false;
+if( one_time_save )
+    {
+    Command_PostPending( PENDING_COMMAND_SAVE_HOT_VARS, nullptr, system->universe );
+    one_time_save = false;
+    }
+    
+static bool one_time_load = false;
+if( one_time_load )
+    {
+    Command_PostPending( PENDING_COMMAND_RELOAD_HOT_VARS, nullptr, system->universe );
+    one_time_load = false;
+    }
+
+///////////////// TESTING FOR HOT VARS - DON'T CHECK THIS IN <MPA> ///////////////////////
 
 } /* GameMode_DoFrame() */
 
@@ -222,6 +272,41 @@ switch( command->cls )
     }
 
 } /* ProcessCommand() */
+
+
+/*******************************************************************
+*
+*   ProcessEvent()
+*
+*   DESCRIPTION:
+*       Process an event.
+*
+*******************************************************************/
+
+static void ProcessEvent( const EventNotificationComponent *evt, Universe *universe )
+{
+GameModeState *system = AsGameModeState( universe );
+switch( evt->cls )
+    {
+    case EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_Q:
+        if( !evt->u.keyboard_key_changed.is_going_up )
+            {
+            Command_PostPending( PENDING_COMMAND_RELOAD_HOT_VARS, nullptr, universe );
+            }
+        break;
+
+    case EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F9:
+        if( !evt->u.keyboard_key_changed.is_going_up )
+            {
+            Command_PostPending( PENDING_COMMAND_SAVE_HOT_VARS, nullptr, universe );
+            }
+        break;
+
+    default:
+        break;
+    }
+
+} /* ProcessEvent() */
 
 
 /*******************************************************************

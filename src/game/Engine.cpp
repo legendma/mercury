@@ -2,14 +2,11 @@
 #include "Engine.hpp"
 #include "Event.hpp"
 #include "GameMode.hpp"
+#include "HotVars.hpp"
 #include "PlayerInput.hpp"
 #include "Render.hpp"
 #include "Universe.hpp"
 #include "Sound.hpp"
-
-//#include "D3D12Core.hpp"
-//#include "D3D12Level.hpp"
-//D3D12::Level::Level *test_level;
 
 using namespace ECS;
 using namespace Game;
@@ -51,10 +48,14 @@ Universe_Init( &the_universe );
 
 if( !Command_Init( &the_universe ) )                 return( false );
 if( !Event_Init( &the_universe ) )                   return( false );
+if( !HotVars_Init( &the_universe ) )                 return( false );
 if( !Render_Init( surface, vulkan, &the_universe ) ) return( false );
 if( !Sound_Init( &the_universe ) )                   return( false );
 if( !PlayerInput_Init( &the_universe ) )             return( false );
 if( !GameMode_Init( &the_universe ) )                return( false );
+
+Event_DoFrame( 0.0f, &the_universe );
+Command_DoFrame( 0.0f, &the_universe );
 
 return( true );
 

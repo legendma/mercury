@@ -163,6 +163,9 @@
     <ClCompile Include="..\src\render\Render.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\HotVars.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\utils\MathBoundingBox.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -170,6 +173,9 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utils\MathStats.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\Utilities.cpp">
       <Filter>utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -395,10 +401,18 @@
     <ClInclude Include="..\src\render\Render.hpp">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\HotVars.hpp">
+      <Filter>game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\render\vkn\shader\vkn_compile_shaders.py">
       <Filter>render\vkn</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\src\game\HotVars.txt">
+      <Filter>game</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -44,7 +44,10 @@ EntityId entity = Universe_CreateNewEntity( universe );
 EventNotificationComponent *component = (EventNotificationComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_EVENT_NOTIFICATION, universe );
 
 component->cls = cls;
-component->u   = *evt;
+if( evt )
+    {
+    component->u   = *evt;
+    }
 
 } /* Event_Enqueue() */
 
@@ -68,8 +71,5 @@ evt->game_mode_changed.to_new   = to_new;
 return( evt );
 
 } /* Event_MakeChangeGameMainMode() */
-
-
-
 
 } /* namespace ECS */

@@ -418,7 +418,20 @@ return( ( sz + mask ) & ~mask );
 *******************************************************************/
 
 #define max_of_vals( _a, _b ) \
-    ( _a > _b ? _a : _b )
+    ( (_a) > (_b) ? (_a) : (_b) )
+
+
+/*******************************************************************
+*
+*   min_of_vals()
+*
+*   DESCRIPTION:
+*       Evaluates to the smallest of the given values.
+*
+*******************************************************************/
+
+#define min_of_vals( _a, _b ) \
+    ( (_a) > (_b) ? (_b) : (_a) )
 
 
 /*******************************************************************
@@ -501,6 +514,88 @@ return( ( sz + mask ) & ~mask );
 
 /*******************************************************************
 *
+*   Utilities_CharIsLetter
+*
+*   DESCRIPTION:
+*       Is the given character a letter?
+*
+*******************************************************************/
+
+#define Utilities_CharIsLetter( _char )                             \
+    ( Utilities_CharIsLetterLowercase( _char )                      \
+   || Utilities_CharIsLetterUppercase( _char )
+
+
+/*******************************************************************
+*
+*   Utilities_CharIsLetterLowercase
+*
+*   DESCRIPTION:
+*       Is the given character a lower-case letter?
+*
+*******************************************************************/
+
+#define Utilities_CharIsLetterLowercase( _char )                    \
+    ( (_char) >= 0x61                                               \
+   && (_char) <= 0x7a )
+
+
+/*******************************************************************
+*
+*   Utilities_CharIsLetterUppercase
+*
+*   DESCRIPTION:
+*       Is the given character an upper-case letter?
+*
+*******************************************************************/
+
+#define Utilities_CharIsLetterUppercase( _char )                    \
+    ( (_char) >= 0x41                                               \
+   && (_char) <= 0x5a )
+
+
+/*******************************************************************
+*
+*   Utilities_CharIsNumber
+*
+*   DESCRIPTION:
+*       Is the given character a number?
+*
+*******************************************************************/
+
+#define Utilities_CharIsNumber( _char ) \
+    ( (_char) >= 0x30           \
+   && (_char) <= 0x39 )
+
+
+/*******************************************************************
+*
+*   Utilities_CharMakeLowercase
+*
+*   DESCRIPTION:
+*       Convert the given uppercase character to lowercase.
+*
+*******************************************************************/
+
+#define Utilities_CharMakeLowercase( _upper ) \
+    ( (_upper) + 0x20 )
+
+
+/*******************************************************************
+*
+*   Utilities_CharMakeUppercase
+*
+*   DESCRIPTION:
+*       Convert the given lowercase character to uppercase.
+*
+*******************************************************************/
+
+#define Utilities_CharMakeUppercase( _lower ) \
+    ( (_lower) - 0x20 )
+
+
+/*******************************************************************
+*
 *   Utilities_HashString
 *
 *   DESCRIPTION:
@@ -508,13 +603,13 @@ return( ( sz + mask ) & ~mask );
 *
 *******************************************************************/
 
-static inline uint32_t Utilities_HashString( const char *str, const size_t len )
+static inline u32 Utilities_HashString( const char *str, const size_t len )
 {
-static const uint32_t SEED  = 0x811c9dc5;
-static const uint32_t PRIME = 0x01000193;
+static const u32 SEED  = 0x811c9dc5;
+static const u32 PRIME = 0x01000193;
 
-uint32_t ret = SEED;
-for( uint32_t i = 0; i < len; i++ )
+u32 ret = SEED;
+for( u32 i = 0; i < len; i++ )
     {
     ret ^= str[ i ];
     ret *= PRIME;
@@ -639,6 +734,32 @@ return( (uint64_t)( pointer_ptr - base_ptr ) );
 
 /*******************************************************************
 *
+*   Utilities_ReadCharFromBuffer()
+*
+*   DESCRIPTION:
+*       Read the next character from the file buffer and advance the
+*       caret.  Returns FALSE if end of buffer was reached.
+*
+*******************************************************************/
+
+static inline bool Utilities_ReadCharFromBuffer( int *caret, const char *read, const int read_sz, char *out )
+{
+*out = 0;
+if( *caret >= read_sz )
+    {
+    return( false );
+    }
+
+*out = read[ *caret ];
+(*caret)++;
+
+return( *out != 0 );
+
+} /* Utilities_ReadCharFromBuffer() */
+
+
+/*******************************************************************
+*
 *   Utilities_ShellSortU32Ascending
 *
 *   DESCRIPTION:
@@ -647,17 +768,17 @@ return( (uint64_t)( pointer_ptr - base_ptr ) );
 *
 *******************************************************************/
 
-static inline void Utilities_ShellSortU32Ascending( const uint32_t count, uint32_t *arr )
+static inline void Utilities_ShellSortU32Ascending( const u32 count, u32 *arr )
 {
-static const uint32_t CIURA_GAPS[] = { 701, 301, 132, 57, 23, 10, 4, 1 };
-for( uint32_t it_gap = 0; it_gap < cnt_of_array( CIURA_GAPS ); it_gap++ )
+static const u32 CIURA_GAPS[] = { 701, 301, 132, 57, 23, 10, 4, 1 };
+for( u32 it_gap = 0; it_gap < cnt_of_array( CIURA_GAPS ); it_gap++ )
     {
-    uint32_t gap = CIURA_GAPS[ it_gap ];
-    uint32_t temp;
-    for( uint32_t i = gap; i < count; i++ )
+    u32 gap = CIURA_GAPS[ it_gap ];
+    u32 temp;
+    for( u32 i = gap; i < count; i++ )
         {
         temp = arr[ i ];
-        uint32_t j;
+        u32 j;
         for( j = i; j >= gap && arr[ j - gap ] > temp; j -= gap )
             {
             arr[ j ] = arr[ j - gap ];
@@ -669,3 +790,7 @@ for( uint32_t it_gap = 0; it_gap < cnt_of_array( CIURA_GAPS ); it_gap++ )
 
 } /* Utilities_ShellSortU32Ascending() */
 
+
+bool   Utilities_ReadLineFromBuffer( int *read_caret, const char *read, const int read_sz, char *out, const int out_sz );
+char * Utilities_ReadWholeTextFile( const char *file_path, int *buffer_sz );
+bool   Utilities_StrContainsStr( const char *str, const bool case_insensitive, const char *search );

@@ -352,6 +352,7 @@ static bool EndFrame( RenderEngine *engine );
 static bool ResizeSwapChain( RenderEngine *engine );
 //static bool             ScheduleBufferUpload( const void *data, const uint32_t data_sz, ID3D12Device *device, ID3D12GraphicsCommandList *gfx, ID3D12Resource *upload, ID3D12Resource *gpu );
 //static void             SetViewport( const Float2 top_left, const Float2 extent, Engine::Engine *engine );
+static void UpdateCompoundMatrices( RenderEngine *engine );
 //static bool             WaitForFrameToFinish( uint64_t frame_num, Engine::Engine *engine );
 
 
@@ -2319,8 +2320,23 @@ return( CreateSwapChain( engine ) );
 //return( true );
 //
 //} /* ScheduleBufferUpload() */
-//
-//
+
+
+/*******************************************************************
+*
+*   UpdateCompoundMatrices()
+*
+*   DESCRIPTION:
+*       Ensure dirty compound matrices are current.
+*
+*******************************************************************/
+
+static void UpdateCompoundMatrices( RenderEngine *engine )
+{
+
+}   /* UpdateCompoundMatrices() */
+
+
 ///*******************************************************************
 //*
 //*   WaitForFrameToFinish()

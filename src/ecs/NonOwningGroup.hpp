@@ -31,7 +31,7 @@ bool   NonOwningGroup_GetNext( NonOwningGroupIterator *iterator, EntityId *next,
 
 /*******************************************************************
 *
-*   group_ids()
+*   NonOwningGroup_GroupIds()
 *
 *   DESCRIPTION:
 *       Expand the given component class list to be prefixed by the
@@ -39,7 +39,7 @@ bool   NonOwningGroup_GetNext( NonOwningGroupIterator *iterator, EntityId *next,
 *
 *******************************************************************/
 
-#define group_ids( ... ) \
+#define NonOwningGroup_GroupIds( ... ) \
     expand_macro( cnt_of_va_args( __VA_ARGS__ ) ), __VA_ARGS__
 
 } /* namespace ECS */

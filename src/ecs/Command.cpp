@@ -204,7 +204,7 @@ CommandSystem *system = AsCommandSystem( universe );
 ResetCache( system );
 
 /* process */
-NonOwningGroup_CreateIterator( universe, &system->group, group_ids( COMPONENT_PENDING_COMMAND ) );
+NonOwningGroup_CreateIterator( universe, &system->group, NonOwningGroup_GroupIds( COMPONENT_PENDING_COMMAND ) );
 
 EntityId entity;
 PendingCommandComponent *component;

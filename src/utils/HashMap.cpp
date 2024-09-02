@@ -314,13 +314,14 @@ DoRehash( h );
 
 static void DeleteAtIndex( const uint32_t index, HashMap *h )
 {
+h->frees[ h->capacity - h->size ] = h->keys[ index ].value_index;
+memset( GetStorageAtIndex( index, h ), 0, h->value_stride );
+
 h->keys[ index ].key = 0;
 h->keys[ index ].is_used = false;
 h->keys[ index ].was_deleted = true;
 h->keys[ index ].value_index = max_uint_value( uint32_t );
 
-h->frees[ h->capacity - h->size ] = h->keys[ index ].value_index;
-memset( GetStorageAtIndex( index, h ), 0, h->value_stride );
 h->size--;
 h->deleted_count++;
 

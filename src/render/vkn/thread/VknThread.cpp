@@ -84,7 +84,7 @@ Local variables
 mutex_priv_type        *priv;       /* private data                 */
 
 priv = (mutex_priv_type*)mutex->priv;
-do_debug_assert( pthread_mutex_destroy( &priv->mutex ) );
+do_debug_assert( !pthread_mutex_destroy( &priv->mutex ) );
 clr_struct( mutex );
 
 }   /* VKN_thread_mutex_destroy() */

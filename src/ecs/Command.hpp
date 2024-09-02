@@ -10,6 +10,7 @@ namespace ECS
 typedef enum _CommandProcessor
     {
     COMMAND_PROCESSOR_GAME_MODE,
+    COMMAND_PROCESSOR_HOT_VARS,
     COMMAND_PROCESSOR_UNIVERSE,
     /* Count */
     COMMAND_PROCESSOR_COUNT
@@ -46,9 +47,81 @@ EntityId entity = Universe_CreateNewEntity( universe );
 PendingCommandComponent *component = (PendingCommandComponent*)Universe_AttachComponentToEntity( entity, COMPONENT_PENDING_COMMAND, universe );
 
 component->cls = cls;
-component->u   = *command;
+if( command )
+    {
+    component->u = *command;
+    }
 
 } /* Command_PostPending() */
+
+
+/*******************************************************************
+*
+*   Command_MakeBindHotVarBool()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'bind bool hot var' command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeBindHotVarBool( const char *name, bool *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = true;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_BOOL;
+command->hot_vars_bind.request.bind.b = binding;
+
+return( command );
+
+} /* Command_MakeBindHotVarBool() */
+
+
+/*******************************************************************
+*
+*   Command_MakeBindHotVarFloat()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'bind float hot var' command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeBindHotVarFloat( const char *name, f32 *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = true;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_FLOAT;
+command->hot_vars_bind.request.bind.f = binding;
+
+return( command );
+
+} /* Command_MakeBindHotVarFloat() */
+
+
+/*******************************************************************
+*
+*   Command_MakeBindHotVarSint()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'bind sint hot var' command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeBindHotVarSint( const char *name, s32 *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = true;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_SINT;
+command->hot_vars_bind.request.bind.s = binding;
+
+return( command );
+
+} /* Command_MakeBindHotVarSint() */
 
 
 /*******************************************************************
@@ -87,6 +160,76 @@ command->destroy_entity.entity = to_destroy;
 return( command );
 
 } /* Command_MakeDestroyEntity() */
+
+
+/*******************************************************************
+*
+*   Command_MakeUnbindHotVarBool()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'unbind bool hot var' command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeUnbindHotVarBool( const char *name, bool *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = false;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_BOOL;
+command->hot_vars_bind.request.bind.b = binding;
+
+return( command );
+
+} /* Command_MakeUnbindHotVarBool() */
+
+
+/*******************************************************************
+*
+*   Command_MakeUnbindHotVarFloat()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'unbind float hot var'
+*       command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeUnbindHotVarFloat( const char *name, f32 *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = false;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_FLOAT;
+command->hot_vars_bind.request.bind.f = binding;
+
+return( command );
+
+} /* Command_MakeUnbindHotVarFloat() */
+
+
+/*******************************************************************
+*
+*   Command_MakeUnbindHotVarSint()
+*
+*   DESCRIPTION:
+*       Helper function to fill out a 'unbind sint hot var' command.
+*
+*******************************************************************/
+
+static inline PendingCommandCommand * Command_MakeUnbindHotVarSint( const char *name, s32 *binding, PendingCommandCommand *command )
+{
+*command = {};
+command->hot_vars_bind.is_bind = false;
+
+command->hot_vars_bind.request.name   = name;
+command->hot_vars_bind.request.type   = HOT_VARS_SINT;
+command->hot_vars_bind.request.bind.s = binding;
+
+return( command );
+
+} /* Command_MakeUnbindHotVarSint() */
 
 
 } /* namespace ECS */

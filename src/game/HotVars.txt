@@ -1,0 +1,11 @@
+septum_sepra -256# for enemies
+
+:/chamber_secrets
+chamber_opened TRUE#her skeleton will lie in the chamber forever
+enemies_of_the_heir_beware True # You'll be next mudbloods
+
+:/half_blood_prince/bathroom
+malfoy_damage 9999.0f
+
+:/half_blood_prince/courtyard
+snape_aggroed true #you dare use my own spells against me?

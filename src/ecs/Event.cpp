@@ -169,7 +169,7 @@ void Event_DoFrame( float frame_delta, Universe *universe )
 EventSystem *system = AsEventSystem( universe );
 
 ResetCache( system );
-NonOwningGroup_CreateIterator( universe, &system->group, group_ids( COMPONENT_EVENT_NOTIFICATION ) );
+NonOwningGroup_CreateIterator( universe, &system->group, NonOwningGroup_GroupIds( COMPONENT_EVENT_NOTIFICATION ) );
 
 EntityId entity;
 EventNotificationComponent *component;

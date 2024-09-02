@@ -4,6 +4,7 @@
 
 #include "AssetFile.hpp"
 #include "Entity.hpp"
+#include "Global.hpp"
 #include "Math.hpp"
 #include "Utilities.hpp"
 
@@ -95,8 +96,8 @@ typedef struct _SingletonControllerInputComponent
     {
     SingletonControllerInputButtonStateBitArray
                         button_state;
-    Float2                axis_state [CONTROLLER_AXIS_COUNT ];
-    float               trigger_state [CONTROLLER_TRIGGERS_COUNT ];
+    Float2              axis_state[ CONTROLLER_AXIS_COUNT ];
+    float               trigger_state[ CONTROLLER_TRIGGERS_COUNT ];
     ControllerButtonQuery
                        *is_pressed[ CONTROLLER_BUTTON_COUNT ];
     } SingletonControllerInputComponent;
@@ -108,7 +109,7 @@ typedef struct _SingletonControllerInputComponent
 *******************************************************************/
 
 typedef enum _KeyboardKeyScanCode
-{
+    {
     KEYBOARD_KEY_NULL = 0,
     KEYBOARD_KEY_ESC = 1,
     KEYBOARD_KEY_1 = 2,
@@ -195,15 +196,15 @@ typedef enum _KeyboardKeyScanCode
     KEYBOARD_KEY_DELETE = 83,
     /* count */
     KEYBOARD_KEY_COUNT 
-}KeyboardKeyScanCode;
+    } KeyboardKeyScanCode;
 
 typedef struct _SingletonKeyboardInputComponent
-{
+    {
     KeyboardKeyScanCode keyboard_keys_pressed [ KEYBOARD_KEY_COUNT ];
     KeyboardKeyScanCode Prev_keys_pressed [KEYBOARD_KEY_COUNT];
     uint32_t number_of_keys_pressed;
 
-} SingletonKeyboardInputComponent;
+    } SingletonKeyboardInputComponent;
 
 /*******************************************************************
 *
@@ -248,6 +249,65 @@ IMPLEMENT_SINGLETON_VOID( SingletonGameModeComponent );
 
 /*******************************************************************
 *
+*   COMPONENT_SINGLETON_HOT_VARS - SingletonHotVarsComponent
+*
+*******************************************************************/
+
+typedef enum
+    {
+    HOT_VARS_BOOL,
+    HOT_VARS_SINT,
+    HOT_VARS_FLOAT,
+    /* internal only */
+    HOT_VARS_DIRECTORY
+    } HotVarsDataType;
+
+typedef struct
+    {
+    const char         *name;
+    HotVarsDataType     type;
+    union
+        {
+        bool           *b;
+        f32            *f;
+        s32            *s;
+        } bind;
+    } HotVarBinding;
+
+IMPLEMENT_SINGLETON_VOID( SingletonHotVarsComponent );
+
+/*******************************************************************
+*
+*   COMPONENT_HOT_VAR_BINDING - HotVarBindingComponent
+*
+*******************************************************************/
+
+typedef struct
+    {
+    HotVarBinding       binding;
+    } HotVarBindingComponent;
+
+/*******************************************************************
+*
+*   COMPONENT_HOT_VAR_DEFINITION - HotVarDefinitionComponent
+*
+*******************************************************************/
+
+typedef struct
+    {
+    const char         *name;
+    HotVarsDataType     type;
+    EntityId            directory;
+    union
+        {
+        bool            b;
+        f32             f;
+        s32             s;
+        } value;
+    } HotVarDefinitionComponent;
+
+/*******************************************************************
+*
 *   COMPONENT_EVENT_NOTIFICATION - EventNotificationComponent
 *
 *******************************************************************/
@@ -255,6 +315,8 @@ IMPLEMENT_SINGLETON_VOID( SingletonGameModeComponent );
 typedef enum _EventNotificationClass
     {
     EVENT_NOTIFICATION_GAME_MAIN_MODE_CHANGED,
+    EVENT_NOTIFICATION_HOT_VARS_RELOADED,
+    EVENT_NOTIFICATION_HOT_VARS_SAVED,
     EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_ESC,
     EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_1,
     EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_2,
@@ -386,8 +448,11 @@ typedef struct _ModelComponent
 
 typedef enum _PendingCommandClass
     {
+    PENDING_COMMAND_BIND_HOT_VAR,
     PENDING_COMMAND_CHANGE_GAME_MODE,
     PENDING_COMMAND_DESTROY_ENTITY,
+    PENDING_COMMAND_RELOAD_HOT_VARS,
+    PENDING_COMMAND_SAVE_HOT_VARS,
     /* count */
     PENDING_COMMAND_CLASS_COUNT
     } PendingCommandClass;
@@ -414,6 +479,13 @@ typedef union _PendingCommandCommand
         AssetFileNameString
                         asset_name;
         } load_model;
+
+    /* PENDING_COMMAND_BIND_HOT_VAR */
+    struct
+        {
+        bool            is_bind;
+        HotVarBinding   request;
+        } hot_vars_bind;
     } PendingCommandCommand;
 
 typedef struct _PendingCommandComponent
@@ -492,6 +564,8 @@ typedef struct _TransformComponent
 typedef enum
     {
     COMPONENT_EVENT_NOTIFICATION,
+    COMPONENT_HOT_VAR_BINDING,
+    COMPONENT_HOT_VAR_DEFINITION,
     COMPONENT_MODEL,
     COMPONENT_PENDING_COMMAND,
     COMPONENT_SCENE,
@@ -500,6 +574,7 @@ typedef enum
     COMPONENT_SINGLETON_KEYBOARD_INPUT,
     COMPONENT_SINGLETON_GAME_MODE,
     COMPONENT_SINGLETON_EVENT,
+    COMPONENT_SINGLETON_HOT_VARS,
     COMPONENT_SINGLETON_PLAYER_INPUT,
     COMPONENT_SINGLETON_RENDER,
     COMPONENT_SINGLETON_SOUND_SYSTEM,
@@ -518,6 +593,8 @@ typedef struct _ComponentClassSizes
 static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
     {
     { COMPONENT_EVENT_NOTIFICATION,         sizeof( EventNotificationComponent )        },
+    { COMPONENT_HOT_VAR_BINDING,            sizeof( HotVarBindingComponent )            },
+    { COMPONENT_HOT_VAR_DEFINITION,         sizeof( HotVarDefinitionComponent )         },
     { COMPONENT_MODEL,                      sizeof( ModelComponent )                    },
     { COMPONENT_PENDING_COMMAND,            sizeof( PendingCommandComponent )           },
     { COMPONENT_SCENE,                      sizeof( SceneComponent )                    },
@@ -525,6 +602,7 @@ static const ComponentClassSizes COMPONENT_CLASS_SIZES[] =
     { COMPONENT_SINGLETON_CONTROLLER_INPUT, sizeof( SingletonControllerInputComponent ) },
     { COMPONENT_SINGLETON_KEYBOARD_INPUT,   sizeof( SingletonKeyboardInputComponent )   },
     { COMPONENT_SINGLETON_EVENT,            sizeof( SingletonEventComponent )           },
+    { COMPONENT_SINGLETON_HOT_VARS,         sizeof( SingletonHotVarsComponent )         },
     { COMPONENT_SINGLETON_GAME_MODE,        sizeof( SingletonGameModeComponent )        },
     { COMPONENT_SINGLETON_PLAYER_INPUT,     sizeof( SingletonPlayerInputComponent )     },
     { COMPONENT_SINGLETON_RENDER,           sizeof( SingletonRenderComponent )          },
