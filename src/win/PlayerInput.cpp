@@ -7,6 +7,7 @@
 
 
 #include "ControllerInputUtilities.hpp"
+#include "Event.hpp"
 #include "HardwareIDs.hpp"
 #include "math.hpp"
 #include "universe.hpp"
@@ -24,6 +25,8 @@ typedef struct _DirectXPlayerInput
     {
     IGameInput* game_input_library = nullptr;
     IGameInputDevice* the_gamepad = nullptr;
+    IGameInputDevice* the_keyboard = nullptr;
+    GameInputKeyState keyboard_key_state [ KEYBOARD_KEY_COUNT ];
     float controller_trigger_dead_zone[ CONTROLLER_DEVICE_COUNT ];
     float controller_stick_dead_zone [CONTROLLER_DEVICE_COUNT ];
     } DirectXPlayerInput;
@@ -55,6 +58,8 @@ static void NormalizeControllerTriggers( TriggerWritingArray *trigger_array, Dir
 static void NormalizeControllerStickAxis( StickWritingArray *stick_arry, DirectXPlayerInput *stick_dead_zone_for_controller, const ControllerDevice controller_device_type );
 static void WriteControllerTriggerAndStickAxisDataToComponent( SingletonControllerInputComponent *componentdata, TriggerWritingArray *trigger_array, StickWritingArray *stick_array );
 static void TestControllerComponentData( float frame_delta, SingletonControllerInputComponent *componentdata );
+static void KeyboardEventClassFinder( const KeyboardKeyScanCode changed_key_state, EventNotificationClass *output_event_class );
+static void GenerateKeyboardEvents( KeyboardKeyScanCode *previous_key_state, KeyboardKeyScanCode *current_key_state, const uint32_t num_keys, Universe *universe );
 
 
 
@@ -149,8 +154,6 @@ struct Controller
 
 DirectXPlayerInput *input = AsDirectXPlayerInput( universe );
 IGameInputReading *reading = NULL;
-
-
 
 
 /* Get controller input */
@@ -256,6 +259,52 @@ if (SUCCEEDED( input->game_input_library->GetCurrentReading(GameInputKindControl
         }
     reading->Release();
     }
+
+/* Get Keyboad input */
+ if( SUCCEEDED( input->game_input_library->GetCurrentReading( GameInputKindKeyboard, input->the_keyboard,&reading ) ) )
+    {
+    if( !input->the_keyboard ) reading->GetDevice( &input->the_keyboard );
+
+    SingletonKeyboardInputComponent *component = (SingletonKeyboardInputComponent*)Universe_GetSingletonComponent( COMPONENT_SINGLETON_KEYBOARD_INPUT, universe );
+   
+    for( uint32_t i = 0; i < cnt_of_array(component->keyboard_keys_pressed); i++ )   // save the previous iteration and null out the keyboard component
+        {
+        input->keyboard_key_state[i] = {};
+        component->Prev_keys_pressed[i] = {};
+        component->Prev_keys_pressed[i] = component->keyboard_keys_pressed[i];
+        component->keyboard_keys_pressed[i] = KEYBOARD_KEY_NULL;
+        }
+
+    // assign pressed keys to the component
+    component->number_of_keys_pressed = 0; 
+    component->number_of_keys_pressed = reading->GetKeyCount();
+
+    if( component->number_of_keys_pressed < cnt_of_array( component->keyboard_keys_pressed ))  //avoid rare case where more keys are pressed then are supported to avoid overflow
+        {
+        if( component->number_of_keys_pressed > 0 ) //only update if there is a key that needs pressed
+        {
+            uint32_t num_valid_buffer_entities = reading->GetKeyState( component->number_of_keys_pressed, input->keyboard_key_state );
+        }
+       
+        //throw out a key if it outputs an un-supported scan code
+        for( uint32_t i = 0; i < cnt_of_array( component->keyboard_keys_pressed ); i++ )
+        {
+            if( (uint32_t)input->keyboard_key_state[i].scanCode > (KEYBOARD_KEY_COUNT - 1) )
+            {
+                input->keyboard_key_state[i].scanCode = 0;
+                component->number_of_keys_pressed = component->number_of_keys_pressed - 1;
+            }
+            //assign current key to component
+            component->keyboard_keys_pressed[(uint32_t)input->keyboard_key_state[i].scanCode] = (KeyboardKeyScanCode)input->keyboard_key_state[i].scanCode;
+        }
+    }
+    //generate key events
+    GenerateKeyboardEvents( component->Prev_keys_pressed, component->keyboard_keys_pressed, KEYBOARD_KEY_COUNT, universe );
+ }
+
+    
+/* Get Mouse input */
+
 } /* PlayerInput_DoFrame() */
 
 
@@ -691,3 +740,308 @@ printf( "Left Trigger = %f, Right Trigger = %f \n\n", componentdata->trigger_sta
 } /* TestControllerComponentData() */
 
 
+/*******************************************************************
+*
+*   GenerateKeyboardEvents()
+*
+*   DESCRIPTION:
+*       Teviews the previous and current keyboard state and generates
+*       key press down or up events.
+*
+*******************************************************************/
+
+static void GenerateKeyboardEvents( KeyboardKeyScanCode *previous_key_state, KeyboardKeyScanCode *current_key_state, const uint32_t num_keys, Universe *universe )
+{
+    
+    for( uint32_t i = 0; i < num_keys; i++ )
+    {
+        if( previous_key_state[i] != current_key_state[i] )
+        {
+        EventNotificationEvent evt = {};
+        EventNotificationClass evtclass = {};
+
+            //some key changed, determine if it was a down or up event
+            if( current_key_state[i] == KEYBOARD_KEY_NULL )
+            {
+             //key up event
+             evt.keyboard_key_changed.is_going_up = TRUE;
+             KeyboardEventClassFinder( previous_key_state[i], &evtclass );
+            }
+            else
+            {
+            //key down event
+            evt.keyboard_key_changed.is_going_up = FALSE;
+            KeyboardEventClassFinder( current_key_state[i], &evtclass );
+            }
+            // Que the Event
+            Event_Enqueue( evtclass, &evt, universe );
+        }
+    }
+} /* GenerateKeyboardEvents() */
+
+/*******************************************************************
+*
+*   KeyboardEventClassFinder()
+*
+*   DESCRIPTION:
+*       takes a keyboard key state scan code enum and finds the appropriate event class
+*
+*******************************************************************/
+
+static void KeyboardEventClassFinder( const KeyboardKeyScanCode changed_key_state, EventNotificationClass * output_event_class )
+{
+
+switch( changed_key_state )
+{
+case KEYBOARD_KEY_ESC:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_ESC;
+    break;
+case KEYBOARD_KEY_1:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_1;
+    break;
+case KEYBOARD_KEY_2:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_2;
+    break;
+case KEYBOARD_KEY_3:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_3;
+    break;
+case KEYBOARD_KEY_4:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_4;
+    break;
+case KEYBOARD_KEY_5:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_5;
+    break;
+case KEYBOARD_KEY_6:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_6;
+    break;
+case KEYBOARD_KEY_7:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_7;
+    break;
+case KEYBOARD_KEY_8:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_8;
+    break;
+case KEYBOARD_KEY_9:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_9;
+    break;
+case KEYBOARD_KEY_0:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_0;
+    break;
+case KEYBOARD_KEY_HYPHEN:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_HYPHEN;
+    break;
+case KEYBOARD_KEY_EQUALS:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_EQUALS;
+    break;
+case KEYBOARD_KEY_BACKSPACE:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_BACKSPACE;
+    break;
+case KEYBOARD_KEY_TAB:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_TAB;
+    break;
+case KEYBOARD_KEY_Q:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_Q;
+    break;
+case KEYBOARD_KEY_W:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_W;
+    break;
+case KEYBOARD_KEY_E:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_E;
+    break;
+case KEYBOARD_KEY_R:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_R;
+    break;
+case KEYBOARD_KEY_T:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_T;
+    break;
+case KEYBOARD_KEY_Y:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_Y;
+    break;
+case KEYBOARD_KEY_U:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_U;
+    break;
+case KEYBOARD_KEY_I:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_I;
+    break;
+case KEYBOARD_KEY_O:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_O;
+    break;
+case KEYBOARD_KEY_P:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_P;
+    break;
+case KEYBOARD_KEY_LEFT_BRACKET:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_LEFT_BRACKET;
+    break;
+case KEYBOARD_KEY_RIGHT_BRACKET:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_RIGHT_BRACKET;
+    break;
+case KEYBOARD_KEY_ENTER:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_ENTER;
+    break;
+case KEYBOARD_KEY_CTRL:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_CTRL;
+    break;
+case KEYBOARD_KEY_A:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_A;
+    break;
+case KEYBOARD_KEY_S:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_S;
+    break;
+case KEYBOARD_KEY_D:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_D;
+    break;
+case KEYBOARD_KEY_F:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F;
+    break;
+case KEYBOARD_KEY_G:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_G;
+    break;
+case KEYBOARD_KEY_H:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_H;
+    break;
+case KEYBOARD_KEY_J:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_J;
+    break;
+case KEYBOARD_KEY_K:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_K;
+    break;
+case KEYBOARD_KEY_L:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_L;
+    break;
+case KEYBOARD_KEY_SEMI_COLON:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_SEMI_COLON;
+    break;
+case KEYBOARD_KEY_APOSTROPHE:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_APOSTROPHE;
+    break;
+case KEYBOARD_KEY_BACK_QUOTE:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_BACK_QUOTE;
+    break;
+case KEYBOARD_KEY_LEFT_SHIFT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_LEFT_SHIFT;
+    break;
+case KEYBOARD_KEY_BACKSLASH:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_BACKSLASH;
+    break;
+case KEYBOARD_KEY_Z:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_Z;
+    break;
+case KEYBOARD_KEY_X:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_X;
+    break;
+case KEYBOARD_KEY_C:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_C;
+    break;
+case KEYBOARD_KEY_V:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_V;
+    break;
+case KEYBOARD_KEY_B:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_B;
+    break;
+case KEYBOARD_KEY_N:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_N;
+    break;
+case KEYBOARD_KEY_M:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_M;
+    break;
+case KEYBOARD_KEY_COMMA:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_COMMA;
+    break;
+case KEYBOARD_KEY_PERIOD:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_PERIOD;
+    break;
+case KEYBOARD_KEY_FORWARD_SLASH:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_FORWARD_SLASH;
+    break;
+case KEYBOARD_KEY_RIGHT_SHIFT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_RIGHT_SHIFT;
+    break;
+case KEYBOARD_KEY_PRINT_SCREEN:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_PRINT_SCREEN;
+    break;
+case KEYBOARD_KEY_ALT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_ALT;
+    break;
+case KEYBOARD_KEY_SPACE:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_SPACE;
+    break;
+case KEYBOARD_KEY_CAPSLOCK:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_CAPSLOCK;
+    break;
+case KEYBOARD_KEY_F1:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F1;
+    break;
+case KEYBOARD_KEY_F2:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F2;
+    break;
+case KEYBOARD_KEY_F3:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F3;
+    break;
+case KEYBOARD_KEY_F4:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F4;
+    break;
+case KEYBOARD_KEY_F5:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F5;
+    break;
+case KEYBOARD_KEY_F6:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F6;
+    break;
+case KEYBOARD_KEY_F7:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F7;
+    break;
+case KEYBOARD_KEY_F8:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F8;
+    break;
+case KEYBOARD_KEY_F9:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F9;
+    break;
+case KEYBOARD_KEY_F10:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_F10;
+    break;
+case KEYBOARD_KEY_NUMLOCK:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_NUMLOCK;
+    break;
+case KEYBOARD_KEY_SCROLL_LOCK:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_SCROLL_LOCK;
+    break;
+case KEYBOARD_KEY_HOME:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_HOME;
+    break;
+case KEYBOARD_KEY_UP:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_UP;
+    break;
+case KEYBOARD_KEY_PAGE_UP:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_PAGE_UP;
+    break;
+case KEYBOARD_KEY_MINUS:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_MINUS;
+    break;
+case KEYBOARD_KEY_LEFT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_LEFT;
+    break;
+case KEYBOARD_KEY_CENTER:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_CENTER;
+    break;
+case KEYBOARD_KEY_RIGHT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_RIGHT;
+    break;
+case KEYBOARD_KEY_PLUS:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_PLUS;
+    break;
+case KEYBOARD_KEY_END:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_END;
+    break;
+case KEYBOARD_KEY_DOWN:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_DOWN;
+    break;
+case KEYBOARD_KEY_PAGE_DOWN:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_PAGE_DOWN;
+    break;
+case KEYBOARD_KEY_INSERT:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_INSERT;
+    break;
+case KEYBOARD_KEY_DELETE:
+    *output_event_class = EVENT_NOTIFICATION_KEYBOARD_KEY_CHANGED_DELETE;
+    break;
+}
+
+} /* KeyboardEventClassFinder () */

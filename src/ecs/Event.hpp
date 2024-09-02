@@ -8,7 +8,7 @@ namespace ECS
 {
 typedef enum _EventListener
     {
-    EVENT_LISTENER_RENDER,
+    EVENT_LISTENER_GAME_MODE,
     /* Count */
     EVENT_LISTENER_COUNT
     } EventListener;
